@@ -43,6 +43,7 @@ function ConfiguracoesPage() {
   const [instagram, setInstagram] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [theme, setTheme] = useState<ThemeName>("rosa");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -50,16 +51,19 @@ function ConfiguracoesPage() {
       setInstagram(q.data.instagram_url ?? "");
       setWhatsapp(q.data.whatsapp_phone ?? "");
       setLogoUrl(q.data.logo_url ?? "");
+      setTheme(q.data.theme ?? "rosa");
     }
   }, [q.data]);
 
+  type SaveOverrides = { logo?: string; theme?: ThemeName };
   const m = useMutation({
-    mutationFn: (newLogo?: string) =>
+    mutationFn: (over: SaveOverrides = {}) =>
       saveSettings({
         data: {
           instagram_url: instagram.trim(),
           whatsapp_phone: whatsapp.trim(),
-          logo_url: (newLogo ?? logoUrl).trim(),
+          logo_url: (over.logo ?? logoUrl).trim(),
+          theme: over.theme ?? theme,
         },
       }),
     onSuccess: () => {
