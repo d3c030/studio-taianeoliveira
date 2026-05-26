@@ -516,6 +516,13 @@ function Dashboard() {
             : undefined
         }
       />
+
+      <CheckoutSheet
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        appointment={checkoutAppt}
+        onCompleted={invalidateAll}
+      />
     </div>
   );
 }
