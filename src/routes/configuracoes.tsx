@@ -154,7 +154,7 @@ function ConfiguracoesPage() {
                   size="sm"
                   onClick={() => {
                     setLogoUrl("");
-                    m.mutate("");
+                    m.mutate({ logo: "" });
                   }}
                   className="text-muted-foreground"
                 >
