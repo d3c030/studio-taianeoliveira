@@ -505,6 +505,64 @@ function Dashboard() {
         </CardContent>
       </Card>
 
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <HandCoins className="h-4 w-4 text-primary" />
+            A Receber
+          </CardTitle>
+          <span className="text-xs text-muted-foreground">
+            Total: <span className="font-medium text-foreground tabular-nums">
+              {formatBRL((receivablesQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+            </span>
+          </span>
+        </CardHeader>
+        <CardContent>
+          {receivablesQ.isLoading ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">Carregando…</p>
+          ) : (receivablesQ.data?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Nenhum valor pendente. 🎉
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/70">
+              {(receivablesQ.data ?? []).map((a) => (
+                <li key={a.id} className="py-3 flex items-center gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium uppercase">
+                    {a.client_name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{a.client_name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {a.procedure ?? "Atendimento"} · {formatDateBR(a.date)}
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold tabular-nums shrink-0">
+                    {formatBRL(Number(a.amount))}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 shrink-0"
+                    onClick={() => setEditingReceivable(a)}
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Atualizar
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <ReceivableDialog
+        appointment={editingReceivable}
+        onOpenChange={(o) => !o && setEditingReceivable(null)}
+        onSaved={invalidateAll}
+      />
+
+
       <AppointmentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
