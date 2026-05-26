@@ -14,6 +14,7 @@ export type ContactSettings = {
   theme: ThemeName;
   pix_key: string;
   pix_copia_cola: string;
+  pix_qr_url: string;
 };
 
 const isTheme = (v: unknown): v is ThemeName =>
