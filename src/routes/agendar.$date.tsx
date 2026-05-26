@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Instagram, MessageCircle, Clock } from "lucide-react";
-import { getBookedSlots } from "@/lib/public-booking.functions";
+import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
 import {
   generateDailySlots,
   isClosedDay,
@@ -27,8 +27,20 @@ function AgendarDatePage() {
   const [selected, setSelected] = useState<string | null>(null);
 
   const dateObj = useMemo(() => parseISODate(date), [date]);
-  const valid =
-    !isNaN(dateObj.getTime()) && !isClosedDay(dateObj) && dateObj >= todayMidnight();
+  const dateValid = !isNaN(dateObj.getTime()) && dateObj >= todayMidnight();
+
+  const overridesQ = useQuery({
+    queryKey: ["public-agenda-overrides", dateObj.getFullYear(), dateObj.getMonth()],
+    queryFn: () =>
+      getAgendaOverrides({
+        data: { year: dateObj.getFullYear(), month: dateObj.getMonth() + 1 },
+      }),
+    enabled: dateValid,
+  });
+
+  const override = (overridesQ.data ?? []).find((o) => o.date === date);
+  const isOpen = override ? override.is_open : !isClosedDay(dateObj);
+  const valid = dateValid && isOpen;
 
   const bookedQ = useQuery({
     queryKey: ["public-booked", dateObj.getFullYear(), dateObj.getMonth()],
