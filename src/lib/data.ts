@@ -92,6 +92,18 @@ export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
   return (data ?? []) as Appointment[];
 }
 
+export async function fetchAppointmentsRange(startISO: string, endISO: string): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .gte("date", startISO)
+    .lte("date", endISO)
+    .order("date", { ascending: true })
+    .order("time", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Appointment[];
+}
+
 export async function updateAppointmentStatus(id: string, status: AppointmentStatus) {
   const { error } = await supabase.from("appointments").update({ status }).eq("id", id);
   if (error) throw error;
