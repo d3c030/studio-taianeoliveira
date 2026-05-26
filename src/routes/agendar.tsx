@@ -8,7 +8,9 @@ import {
   isClosedDay,
   isoFromDate,
   normalizeTime,
+  parseISODate,
   INSTAGRAM_URL,
+  BOOKING_PHONE,
 } from "@/lib/booking-config";
 import { MONTHS_PT } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -178,11 +180,22 @@ function AgendarPage() {
                 );
               }
 
+              const d = parseISODate(iso);
+              const dateLabel = d.toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              });
+              const message = encodeURIComponent(
+                `Olá! Gostaria de agendar um horário para o dia ${dateLabel}.`,
+              );
+              const waUrl = `https://wa.me/${BOOKING_PHONE}?text=${message}`;
               return (
-                <Link
+                <a
                   key={i}
-                  to="/agendar/$date"
-                  params={{ date: iso }}
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={cn(
                     base,
                     "bg-accent/40 hover:bg-primary hover:text-primary-foreground active:scale-95 cursor-pointer",
@@ -190,7 +203,7 @@ function AgendarPage() {
                   )}
                 >
                   {c.day}
-                </Link>
+                </a>
               );
             })}
           </div>
