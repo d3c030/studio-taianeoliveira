@@ -78,10 +78,16 @@ export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
     .from("appointments")
     .select("*")
     .gte("date", iso)
+    .eq("status", "a_fazer")
     .order("date", { ascending: true })
     .order("time", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Appointment[];
+}
+
+export async function updateAppointmentStatus(id: string, status: AppointmentStatus) {
+  const { error } = await supabase.from("appointments").update({ status }).eq("id", id);
+  if (error) throw error;
 }
 
 
