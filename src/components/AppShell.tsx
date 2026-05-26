@@ -112,11 +112,12 @@ export function AppShell() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur">
-        <div className="grid grid-cols-6">
+        <div className="grid grid-cols-7">
           {navItems.map(({ to, label, icon: Icon }) => {
             const shortLabel =
               label === "Atendimentos" ? "Atend." :
               label === "Usuários" ? "Usuár." :
+              label === "Configurações" ? "Config." :
               label;
             return (
               <Link
