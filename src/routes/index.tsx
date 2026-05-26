@@ -100,7 +100,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard
           icon={TrendingUp}
-          label="Faturação Bruta"
+          label="Faturamento Bruto"
           value={formatBRL(bruto)}
           accent="primary"
           hint={`${total} atendimento${total === 1 ? "" : "s"}`}
@@ -114,7 +114,7 @@ function Dashboard() {
         />
         <StatCard
           icon={Wallet}
-          label="Faturação Líquida"
+          label="Faturamento Líquido"
           value={formatBRL(liquido)}
           accent={liquido >= 0 ? "success" : "destructive"}
           hint="Bruto − Custos"
