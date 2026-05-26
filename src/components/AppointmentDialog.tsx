@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -10,7 +11,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { PAYMENT_METHODS, DEFAULT_PROCEDURES } from "@/lib/format";
-import type { Appointment, AppointmentInput } from "@/lib/data";
+import { fetchClients, type Appointment, type AppointmentInput } from "@/lib/data";
+import { ClientCombobox } from "@/components/ClientCombobox";
 
 type Props = {
   open: boolean;
@@ -29,17 +31,21 @@ export function AppointmentDialog({
   const [date, setDate] = useState(today());
   const [time, setTime] = useState("");
   const [clientName, setClientName] = useState("");
+  const [clientId, setClientId] = useState<string | null>(null);
   const [procedure, setProcedure] = useState("");
   const [payment, setPayment] = useState<string>("Pix");
   const [amount, setAmount] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+
   useEffect(() => {
     if (open) {
       setDate(initial?.date ?? today());
       setTime(initial?.time ?? "");
       setClientName(initial?.client_name ?? "");
+      setClientId(initial?.client_id ?? null);
       setProcedure(initial?.procedure ?? "");
       setPayment(initial?.payment_method ?? "Pix");
       setAmount(initial ? String(initial.amount) : "");
@@ -55,6 +61,7 @@ export function AppointmentDialog({
         date,
         time: time || null,
         client_name: clientName.trim(),
+        client_id: clientId,
         procedure: procedure.trim() || null,
         payment_method: payment,
         amount: parseFloat(amount.replace(",", ".")) || 0,
@@ -93,13 +100,16 @@ export function AppointmentDialog({
           </div>
 
           <div className="grid gap-1.5">
-            <Label htmlFor="client">Nome do cliente</Label>
-            <Input
-              id="client"
+            <Label htmlFor="client">Cliente</Label>
+            <ClientCombobox
+              clients={clientsQ.data ?? []}
               value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder="Ex: Maria Silva"
-              maxLength={120}
+              selectedId={clientId}
+              onChange={(name, id) => {
+                setClientName(name);
+                setClientId(id);
+              }}
+              placeholder="Procurar ou criar novo cliente"
             />
           </div>
 
