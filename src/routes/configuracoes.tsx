@@ -247,6 +247,44 @@ function ConfiguracoesPage() {
           </p>
         </div>
 
+        {/* Pix */}
+        <div className="space-y-3 pt-2 border-t border-border">
+          <Label className="flex items-center gap-2">
+            <QrCode className="h-4 w-4 text-primary" />
+            Pix (usado no checkout)
+          </Label>
+          <div className="space-y-2">
+            <Label htmlFor="pixkey" className="text-xs text-muted-foreground">
+              Chave Pix
+            </Label>
+            <Input
+              id="pixkey"
+              value={pixKey}
+              onChange={(e) => setPixKey(e.target.value)}
+              placeholder="email, CPF, telefone ou chave aleatória"
+              maxLength={255}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pixcc" className="text-xs text-muted-foreground">
+              Pix Copia e Cola (BR Code) — gera o QR Code automaticamente
+            </Label>
+            <Textarea
+              id="pixcc"
+              value={pixCopiaCola}
+              onChange={(e) => setPixCopiaCola(e.target.value)}
+              placeholder="00020126...6304ABCD"
+              rows={3}
+              maxLength={2000}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              Cole aqui o código gerado pelo seu app do banco. Se vazio, o QR Code usará a chave acima.
+            </p>
+          </div>
+        </div>
+
+
         <Button
           onClick={() => m.mutate({})}
           disabled={m.isPending || q.isLoading}
