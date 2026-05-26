@@ -44,8 +44,9 @@ export type Client = {
   updated_at: string;
 };
 
-export type AppointmentInput = Omit<Appointment, "id" | "created_at" | "client_id"> & {
+export type AppointmentInput = Omit<Appointment, "id" | "created_at" | "client_id" | "status"> & {
   client_id?: string | null;
+  status?: AppointmentStatus;
 };
 export type ExpenseInput = Omit<Expense, "id" | "created_at">;
 export type ClientInput = Pick<Client, "name" | "phone" | "notes">;
