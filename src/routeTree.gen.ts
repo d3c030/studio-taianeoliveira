@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CustosRouteImport } from './routes/custos'
+import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const LoginRoute = LoginRouteImport.update({
 const CustosRoute = CustosRouteImport.update({
   id: '/custos',
   path: '/custos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AtendimentosRoute = AtendimentosRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/atendimentos': typeof AtendimentosRoute
+  '/clientes': typeof ClientesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/atendimentos': typeof AtendimentosRoute
+  '/clientes': typeof ClientesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/atendimentos': typeof AtendimentosRoute
+  '/clientes': typeof ClientesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/atendimentos' | '/custos' | '/login'
+  fullPaths: '/' | '/atendimentos' | '/clientes' | '/custos' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/atendimentos' | '/custos' | '/login'
-  id: '__root__' | '/' | '/atendimentos' | '/custos' | '/login'
+  to: '/' | '/atendimentos' | '/clientes' | '/custos' | '/login'
+  id: '__root__' | '/' | '/atendimentos' | '/clientes' | '/custos' | '/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AtendimentosRoute: typeof AtendimentosRoute
+  ClientesRoute: typeof ClientesRoute
   CustosRoute: typeof CustosRoute
   LoginRoute: typeof LoginRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/custos'
       fullPath: '/custos'
       preLoaderRoute: typeof CustosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/atendimentos': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AtendimentosRoute: AtendimentosRoute,
+  ClientesRoute: ClientesRoute,
   CustosRoute: CustosRoute,
   LoginRoute: LoginRoute,
 }

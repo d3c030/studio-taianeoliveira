@@ -5,6 +5,7 @@ export type Appointment = {
   date: string; // YYYY-MM-DD
   time: string | null;
   client_name: string;
+  client_id: string | null;
   procedure: string | null;
   payment_method: string | null;
   amount: number;
@@ -24,8 +25,21 @@ export type Expense = {
   created_at: string;
 };
 
-export type AppointmentInput = Omit<Appointment, "id" | "created_at">;
+export type Client = {
+  id: string;
+  name: string;
+  normalized_name: string;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppointmentInput = Omit<Appointment, "id" | "created_at" | "client_id"> & {
+  client_id?: string | null;
+};
 export type ExpenseInput = Omit<Expense, "id" | "created_at">;
+export type ClientInput = Pick<Client, "name" | "phone" | "notes">;
 
 const monthRange = (year: number, monthIdx: number) => {
   const start = new Date(year, monthIdx, 1);
@@ -101,4 +115,88 @@ export async function fetchDistinctProcedures(): Promise<string[]> {
     if (r.procedure) set.add(r.procedure.trim());
   });
   return [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+// ===== Clients =====
+
+export async function fetchClients(): Promise<Client[]> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Client[];
+}
+
+export async function fetchClient(id: string): Promise<Client | null> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Client) ?? null;
+}
+
+export async function fetchClientHistory(clientId: string): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("date", { ascending: false })
+    .order("time", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Appointment[];
+}
+
+export async function updateClient(id: string, input: ClientInput) {
+  const { error } = await supabase.from("clients").update(input).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteClient(id: string) {
+  const { error } = await supabase.from("clients").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export type ClientStats = {
+  client: Client;
+  visits: number;
+  total: number;
+  lastDate: string | null;
+};
+
+export async function fetchClientsWithStats(): Promise<ClientStats[]> {
+  const [clientsRes, apptsRes] = await Promise.all([
+    supabase.from("clients").select("*"),
+    supabase
+      .from("appointments")
+      .select("client_id, amount, date")
+      .not("client_id", "is", null),
+  ]);
+  if (clientsRes.error) throw clientsRes.error;
+  if (apptsRes.error) throw apptsRes.error;
+
+  const stats = new Map<string, { visits: number; total: number; lastDate: string | null }>();
+  (apptsRes.data ?? []).forEach((a: { client_id: string | null; amount: number; date: string }) => {
+    if (!a.client_id) return;
+    const s = stats.get(a.client_id) ?? { visits: 0, total: 0, lastDate: null };
+    s.visits += 1;
+    s.total += Number(a.amount || 0);
+    if (!s.lastDate || a.date > s.lastDate) s.lastDate = a.date;
+    stats.set(a.client_id, s);
+  });
+
+  return (clientsRes.data as Client[])
+    .map((c) => {
+      const s = stats.get(c.id) ?? { visits: 0, total: 0, lastDate: null };
+      return { client: c, ...s };
+    })
+    .sort((a, b) => {
+      // sort by most recent visit, then name
+      if (a.lastDate && b.lastDate) return b.lastDate.localeCompare(a.lastDate);
+      if (a.lastDate) return -1;
+      if (b.lastDate) return 1;
+      return a.client.name.localeCompare(b.client.name, "pt-BR");
+    });
 }
