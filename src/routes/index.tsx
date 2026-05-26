@@ -86,8 +86,41 @@ function Dashboard() {
   const maxPay = Math.max(1, ...byPayment.map(([, v]) => v));
   const total = apptsQ.data?.length ?? 0;
 
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+  const isCurrentMonth =
+    year === now.getFullYear() && monthIdx === now.getMonth();
+  const todayDay = now.getDate();
+
+  const dailyData = useMemo(() => {
+    const sums = new Array(daysInMonth).fill(0) as number[];
+    const counts = new Array(daysInMonth).fill(0) as number[];
+    (apptsQ.data ?? []).forEach((a) => {
+      // a.date is "YYYY-MM-DD"
+      const d = Number(String(a.date).slice(8, 10));
+      if (d >= 1 && d <= daysInMonth) {
+        sums[d - 1] += Number(a.amount || 0);
+        counts[d - 1] += 1;
+      }
+    });
+    return sums.map((v, i) => ({
+      day: i + 1,
+      label: String(i + 1).padStart(2, "0"),
+      value: v,
+      count: counts[i],
+      isToday: isCurrentMonth && i + 1 === todayDay,
+      isFuture: isCurrentMonth && i + 1 > todayDay,
+    }));
+  }, [apptsQ.data, daysInMonth, isCurrentMonth, todayDay]);
+
+  const bestDay = useMemo(() => {
+    const ranked = [...dailyData].filter((d) => d.value > 0)
+      .sort((a, b) => b.value - a.value)[0];
+    return ranked;
+  }, [dailyData]);
+
   return (
     <div className="space-y-6">
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-display text-3xl sm:text-4xl">Painel</h2>
