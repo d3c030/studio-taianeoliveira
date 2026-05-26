@@ -88,12 +88,18 @@ function Dashboard() {
     queryKey: ["procedures"],
     queryFn: fetchDistinctProcedures,
   });
+  const receivablesQ = useQuery({
+    queryKey: ["receivables"],
+    queryFn: fetchReceivables,
+  });
+  const [editingReceivable, setEditingReceivable] = useState<Appointment | null>(null);
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["appts"] });
     qc.invalidateQueries({ queryKey: ["appts-upcoming"] });
     qc.invalidateQueries({ queryKey: ["procedures"] });
     qc.invalidateQueries({ queryKey: ["clients"] });
+    qc.invalidateQueries({ queryKey: ["receivables"] });
   };
 
   const handleStatusChange = async (id: string, status: AppointmentStatus) => {
