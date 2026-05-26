@@ -30,14 +30,15 @@ export function AppShell() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Login page renders standalone
-  if (pathname === "/login") return <Outlet />;
+  // Public pages render standalone (no admin shell, no auth required)
+  const isPublic = pathname === "/login" || pathname === "/agendar" || pathname.startsWith("/agendar/");
+  if (isPublic) return <Outlet />;
 
   if (authState === "loading") {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">Carregando…</div>;
   }
   if (authState === "out") {
-    if (typeof window !== "undefined") navigate({ to: "/login", replace: true });
+    if (typeof window !== "undefined") navigate({ to: "/agendar", replace: true });
     return null;
   }
 
