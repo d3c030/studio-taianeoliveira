@@ -17,6 +17,8 @@ export type Appointment = {
   procedure: string | null;
   payment_method: string | null;
   amount: number;
+  subtotal: number;
+  discount: number;
   notes: string | null;
   status: AppointmentStatus;
   created_at: string;
@@ -44,9 +46,14 @@ export type Client = {
   updated_at: string;
 };
 
-export type AppointmentInput = Omit<Appointment, "id" | "created_at" | "client_id" | "status"> & {
+export type AppointmentInput = Omit<
+  Appointment,
+  "id" | "created_at" | "client_id" | "status" | "subtotal" | "discount"
+> & {
   client_id?: string | null;
   status?: AppointmentStatus;
+  subtotal?: number;
+  discount?: number;
 };
 export type ExpenseInput = Omit<Expense, "id" | "created_at">;
 export type ClientInput = Pick<Client, "name" | "phone" | "notes">;
@@ -90,6 +97,27 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
   if (error) throw error;
 }
 
+export async function completeAppointment(
+  id: string,
+  data: {
+    subtotal: number;
+    discount: number;
+    amount: number;
+    payment_method: string;
+  },
+) {
+  const { error } = await supabase
+    .from("appointments")
+    .update({
+      subtotal: data.subtotal,
+      discount: data.discount,
+      amount: data.amount,
+      payment_method: data.payment_method,
+      status: "concluido",
+    })
+    .eq("id", id);
+  if (error) throw error;
+}
 
 export async function fetchExpenses(year: number, monthIdx: number): Promise<Expense[]> {
   const { start, end } = monthRange(year, monthIdx);
@@ -223,7 +251,6 @@ export async function fetchClientsWithStats(): Promise<ClientStats[]> {
       return { client: c, ...s };
     })
     .sort((a, b) => {
-      // sort by most recent visit, then name
       if (a.lastDate && b.lastDate) return b.lastDate.localeCompare(a.lastDate);
       if (a.lastDate) return -1;
       if (b.lastDate) return 1;

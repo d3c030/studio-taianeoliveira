@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Instagram, MessageCircle, Save, Image as ImageIcon, Upload, Palette, Check } from "lucide-react";
+import { Instagram, MessageCircle, Save, Image as ImageIcon, Upload, Palette, Check, QrCode } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   getContactSettings,
@@ -44,6 +45,8 @@ function ConfiguracoesPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [theme, setTheme] = useState<ThemeName>("rosa");
+  const [pixKey, setPixKey] = useState("");
+  const [pixCopiaCola, setPixCopiaCola] = useState("");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -52,6 +55,8 @@ function ConfiguracoesPage() {
       setWhatsapp(q.data.whatsapp_phone ?? "");
       setLogoUrl(q.data.logo_url ?? "");
       setTheme(q.data.theme ?? "rosa");
+      setPixKey(q.data.pix_key ?? "");
+      setPixCopiaCola(q.data.pix_copia_cola ?? "");
     }
   }, [q.data]);
 
@@ -64,6 +69,8 @@ function ConfiguracoesPage() {
           whatsapp_phone: whatsapp.trim(),
           logo_url: (over.logo ?? logoUrl).trim(),
           theme: over.theme ?? theme,
+          pix_key: pixKey.trim(),
+          pix_copia_cola: pixCopiaCola.trim(),
         },
       }),
     onSuccess: () => {
@@ -239,6 +246,44 @@ function ConfiguracoesPage() {
             O tema é aplicado em todo o painel e na página pública de agendamento.
           </p>
         </div>
+
+        {/* Pix */}
+        <div className="space-y-3 pt-2 border-t border-border">
+          <Label className="flex items-center gap-2">
+            <QrCode className="h-4 w-4 text-primary" />
+            Pix (usado no checkout)
+          </Label>
+          <div className="space-y-2">
+            <Label htmlFor="pixkey" className="text-xs text-muted-foreground">
+              Chave Pix
+            </Label>
+            <Input
+              id="pixkey"
+              value={pixKey}
+              onChange={(e) => setPixKey(e.target.value)}
+              placeholder="email, CPF, telefone ou chave aleatória"
+              maxLength={255}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pixcc" className="text-xs text-muted-foreground">
+              Pix Copia e Cola (BR Code) — gera o QR Code automaticamente
+            </Label>
+            <Textarea
+              id="pixcc"
+              value={pixCopiaCola}
+              onChange={(e) => setPixCopiaCola(e.target.value)}
+              placeholder="00020126...6304ABCD"
+              rows={3}
+              maxLength={2000}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              Cole aqui o código gerado pelo seu app do banco. Se vazio, o QR Code usará a chave acima.
+            </p>
+          </div>
+        </div>
+
 
         <Button
           onClick={() => m.mutate({})}

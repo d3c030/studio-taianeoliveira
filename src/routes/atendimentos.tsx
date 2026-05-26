@@ -9,10 +9,12 @@ import {
 import { formatBRL, formatDateBR, weekdayBR } from "@/lib/format";
 import { MonthPicker } from "@/components/MonthPicker";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
+import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/atendimentos")({
@@ -27,6 +29,8 @@ function AtendimentosPage() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Appointment | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutAppt, setCheckoutAppt] = useState<Appointment | null>(null);
 
   const qc = useQueryClient();
   const apptsQ = useQuery({
@@ -127,31 +131,46 @@ function AtendimentosPage() {
                 </div>
                 <Card className="divide-y divide-border/70 overflow-hidden">
                   {items.map((a) => (
-                    <button
+                    <div
                       key={a.id}
-                      onClick={() => { setEditing(a); setDialogOpen(true); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary/60 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors"
                     >
-                      <div className="w-12 shrink-0 text-sm font-medium tabular-nums text-primary">
-                        {a.time?.slice(0, 5) ?? "--:--"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{a.client_name}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {a.procedure || "—"}
+                      <button
+                        onClick={() => { setCheckoutAppt(a); setCheckoutOpen(true); }}
+                        className="flex-1 flex items-center gap-3 text-left min-w-0"
+                      >
+                        <div className="w-12 shrink-0 text-sm font-medium tabular-nums text-primary">
+                          {a.time?.slice(0, 5) ?? "--:--"}
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className="text-sm font-semibold tabular-nums">
-                          {formatBRL(Number(a.amount))}
-                        </span>
-                        {a.payment_method && (
-                          <Badge variant="secondary" className="text-[10px] font-normal">
-                            {a.payment_method}
-                          </Badge>
-                        )}
-                      </div>
-                    </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{a.client_name}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {a.procedure || "—"}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className="text-sm font-semibold tabular-nums">
+                            {formatBRL(Number(a.amount))}
+                          </span>
+                          {a.payment_method && (
+                            <Badge
+                              variant={a.status === "concluido" ? "default" : "secondary"}
+                              className="text-[10px] font-normal"
+                            >
+                              {a.status === "concluido" && <CheckCircle2 className="h-3 w-3 mr-0.5" />}
+                              {a.payment_method}
+                            </Badge>
+                          )}
+                        </div>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditing(a); setDialogOpen(true); }}
+                        className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground flex items-center justify-center"
+                        aria-label="Editar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    </div>
                   ))}
                 </Card>
               </section>
@@ -202,6 +221,13 @@ function AtendimentosPage() {
               }
             : undefined
         }
+      />
+
+      <CheckoutSheet
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        appointment={checkoutAppt}
+        onCompleted={invalidate}
       />
     </div>
   );

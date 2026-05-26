@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil, CheckCircle2 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
 } from "recharts";
@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
+import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -61,6 +62,8 @@ function Dashboard() {
   const [monthIdx, setMonthIdx] = useState(now.getMonth());
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutAppt, setCheckoutAppt] = useState<Appointment | null>(null);
   const qc = useQueryClient();
 
   const apptsQ = useQuery({
@@ -249,6 +252,15 @@ function Dashboard() {
                         </Select>
                       </div>
                       <Button
+                        variant="default"
+                        size="sm"
+                        className="hidden sm:inline-flex h-8 shrink-0"
+                        onClick={() => { setCheckoutAppt(a); setCheckoutOpen(true); }}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Finalizar
+                      </Button>
+                      <Button
                         variant="ghost"
                         size="icon"
                         className="h-9 w-9 shrink-0"
@@ -259,22 +271,15 @@ function Dashboard() {
                       </Button>
 
                     </div>
-                    <div className="mt-2 pl-13 sm:pl-0 sm:mt-0 sm:hidden">
-                      <Select
-                        value={a.status}
-                        onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
+                    <div className="mt-2 pl-13 sm:pl-0 sm:mt-0 sm:hidden flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 h-8"
+                        onClick={() => { setCheckoutAppt(a); setCheckoutOpen(true); }}
                       >
-                        <SelectTrigger className="h-8 w-full text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
-                            <SelectItem key={s} value={s} className="text-xs">
-                              {APPOINTMENT_STATUS_LABEL[s]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Finalizar
+                      </Button>
                     </div>
                   </li>
                 );
@@ -510,6 +515,13 @@ function Dashboard() {
               }
             : undefined
         }
+      />
+
+      <CheckoutSheet
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        appointment={checkoutAppt}
+        onCompleted={invalidateAll}
       />
     </div>
   );
