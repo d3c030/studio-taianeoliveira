@@ -25,6 +25,7 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           procedure: string | null
+          status: string
           time: string | null
         }
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           procedure?: string | null
+          status?: string
           time?: string | null
         }
         Update: {
@@ -49,6 +51,7 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           procedure?: string | null
+          status?: string
           time?: string | null
         }
         Relationships: [
