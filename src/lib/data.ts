@@ -161,6 +161,16 @@ export async function deleteExpense(id: string) {
   if (error) throw error;
 }
 
+export async function fetchReceivables(): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .ilike("payment_method", "a receber")
+    .order("date", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Appointment[];
+}
+
 export async function fetchDistinctProcedures(): Promise<string[]> {
   const { data, error } = await supabase
     .from("appointments")
