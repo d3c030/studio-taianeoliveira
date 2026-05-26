@@ -59,6 +59,9 @@ function Dashboard() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [monthIdx, setMonthIdx] = useState(now.getMonth());
+  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const qc = useQueryClient();
 
   const apptsQ = useQuery({
     queryKey: ["appts", year, monthIdx],
@@ -72,6 +75,27 @@ function Dashboard() {
     queryKey: ["appts-upcoming"],
     queryFn: () => fetchUpcomingAppointments(),
   });
+  const procsQ = useQuery({
+    queryKey: ["procedures"],
+    queryFn: fetchDistinctProcedures,
+  });
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["appts"] });
+    qc.invalidateQueries({ queryKey: ["appts-upcoming"] });
+    qc.invalidateQueries({ queryKey: ["procedures"] });
+    qc.invalidateQueries({ queryKey: ["clients"] });
+  };
+
+  const handleStatusChange = async (id: string, status: AppointmentStatus) => {
+    try {
+      await updateAppointmentStatus(id, status);
+      toast.success(`Status atualizado: ${APPOINTMENT_STATUS_LABEL[status]}`);
+      invalidateAll();
+    } catch {
+      toast.error("Erro ao atualizar status");
+    }
+  };
 
   const bruto = useMemo(
     () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0),
