@@ -185,30 +185,6 @@ function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <StatCard
-          icon={TrendingUp}
-          label="Faturamento Bruto"
-          value={formatBRL(bruto)}
-          accent="primary"
-          hint={`${total} atendimento${total === 1 ? "" : "s"}`}
-        />
-        <StatCard
-          icon={TrendingDown}
-          label="Custos"
-          value={formatBRL(custos)}
-          accent="destructive"
-          hint={`${expQ.data?.length ?? 0} despesa${(expQ.data?.length ?? 0) === 1 ? "" : "s"}`}
-        />
-        <StatCard
-          icon={Wallet}
-          label="Faturamento Líquido"
-          value={formatBRL(liquido)}
-          accent={liquido >= 0 ? "success" : "destructive"}
-          hint="Bruto − Custos"
-        />
-      </div>
-
       <Card className="border-border/70 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -295,6 +271,32 @@ function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <StatCard
+          icon={TrendingUp}
+          label="Faturamento Bruto"
+          value={formatBRL(bruto)}
+          accent="primary"
+          hint={`${total} atendimento${total === 1 ? "" : "s"}`}
+        />
+        <StatCard
+          icon={TrendingDown}
+          label="Custos"
+          value={formatBRL(custos)}
+          accent="destructive"
+          hint={`${expQ.data?.length ?? 0} despesa${(expQ.data?.length ?? 0) === 1 ? "" : "s"}`}
+        />
+        <StatCard
+          icon={Wallet}
+          label="Faturamento Líquido"
+          value={formatBRL(liquido)}
+          accent={liquido >= 0 ? "success" : "destructive"}
+          hint="Bruto − Custos"
+        />
+      </div>
+
+
 
 
 
