@@ -94,7 +94,7 @@ function ConfiguracoesPage() {
       const { data } = supabase.storage.from("branding").getPublicUrl(path);
       const publicUrl = data.publicUrl;
       setLogoUrl(publicUrl);
-      await m.mutateAsync(publicUrl);
+      await m.mutateAsync({ logo: publicUrl });
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
