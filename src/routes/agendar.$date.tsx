@@ -111,7 +111,7 @@ function AgendarDatePage() {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={logo} alt="Studio Taiane Oliveira" className="h-14 w-auto" />
+        <img src={settingsQ.data?.logo_url || defaultLogo} alt="Studio Taiane Oliveira" className="h-14 w-auto" />
         <div className="w-10" />
       </header>
 

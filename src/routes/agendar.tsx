@@ -127,7 +127,7 @@ function AgendarPage() {
       </div>
       <header className="px-4 pt-2 pb-4 flex flex-col items-center">
         <img
-          src={logo}
+          src={settingsQ.data?.logo_url || defaultLogo}
           alt="Studio Taiane Oliveira"
           className="h-24 sm:h-28 w-auto"
         />
