@@ -1,5 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type AppointmentStatus = "a_fazer" | "concluido" | "cancelado";
+
+export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = {
+  a_fazer: "A fazer",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
 export type Appointment = {
   id: string;
   date: string; // YYYY-MM-DD
@@ -10,6 +18,7 @@ export type Appointment = {
   payment_method: string | null;
   amount: number;
   notes: string | null;
+  status: AppointmentStatus;
   created_at: string;
 };
 
@@ -35,8 +44,9 @@ export type Client = {
   updated_at: string;
 };
 
-export type AppointmentInput = Omit<Appointment, "id" | "created_at" | "client_id"> & {
+export type AppointmentInput = Omit<Appointment, "id" | "created_at" | "client_id" | "status"> & {
   client_id?: string | null;
+  status?: AppointmentStatus;
 };
 export type ExpenseInput = Omit<Expense, "id" | "created_at">;
 export type ClientInput = Pick<Client, "name" | "phone" | "notes">;
@@ -68,10 +78,16 @@ export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
     .from("appointments")
     .select("*")
     .gte("date", iso)
+    .eq("status", "a_fazer")
     .order("date", { ascending: true })
     .order("time", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Appointment[];
+}
+
+export async function updateAppointmentStatus(id: string, status: AppointmentStatus) {
+  const { error } = await supabase.from("appointments").update({ status }).eq("id", id);
+  if (error) throw error;
 }
 
 

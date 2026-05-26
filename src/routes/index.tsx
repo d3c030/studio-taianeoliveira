@@ -1,14 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Eye, Pencil } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
 } from "recharts";
-import { fetchAppointments, fetchExpenses, fetchUpcomingAppointments } from "@/lib/data";
+import {
+  fetchAppointments, fetchExpenses, fetchUpcomingAppointments,
+  fetchDistinctProcedures, updateAppointment, updateAppointmentStatus,
+  deleteAppointment, APPOINTMENT_STATUS_LABEL,
+  type Appointment, type AppointmentStatus,
+} from "@/lib/data";
 import { formatBRL, PAYMENT_METHODS } from "@/lib/format";
 import { MonthPicker } from "@/components/MonthPicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AppointmentDialog } from "@/components/AppointmentDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Painel — Studio Taiane Oliveira" }] }),
@@ -50,6 +59,9 @@ function Dashboard() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [monthIdx, setMonthIdx] = useState(now.getMonth());
+  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const qc = useQueryClient();
 
   const apptsQ = useQuery({
     queryKey: ["appts", year, monthIdx],
@@ -63,6 +75,27 @@ function Dashboard() {
     queryKey: ["appts-upcoming"],
     queryFn: () => fetchUpcomingAppointments(),
   });
+  const procsQ = useQuery({
+    queryKey: ["procedures"],
+    queryFn: fetchDistinctProcedures,
+  });
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["appts"] });
+    qc.invalidateQueries({ queryKey: ["appts-upcoming"] });
+    qc.invalidateQueries({ queryKey: ["procedures"] });
+    qc.invalidateQueries({ queryKey: ["clients"] });
+  };
+
+  const handleStatusChange = async (id: string, status: AppointmentStatus) => {
+    try {
+      await updateAppointmentStatus(id, status);
+      toast.success(`Status atualizado: ${APPOINTMENT_STATUS_LABEL[status]}`);
+      invalidateAll();
+    } catch {
+      toast.error("Erro ao atualizar status");
+    }
+  };
 
   const bruto = useMemo(
     () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0),
@@ -190,7 +223,7 @@ function Dashboard() {
                 const isToday = a.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
                 return (
                   <li key={a.id} className="flex items-center gap-3 py-3">
-                    <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+                    <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium shrink-0 ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
                       <span className="leading-none">{dateObj.toLocaleDateString("pt-BR", { day: "2-digit" })}</span>
                       <span className="leading-none mt-0.5 uppercase opacity-80">{dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
                     </div>
@@ -204,9 +237,43 @@ function Dashboard() {
                       </div>
                     </div>
                     {a.amount > 0 && (
-                      <span className="text-sm tabular-nums text-muted-foreground">{formatBRL(Number(a.amount))}</span>
+                      <span className="hidden sm:inline text-sm tabular-nums text-muted-foreground shrink-0">{formatBRL(Number(a.amount))}</span>
                     )}
+                    <Select
+                      value={a.status}
+                      onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
+                    >
+                      <SelectTrigger className="h-8 w-[120px] text-xs shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
+                          <SelectItem key={s} value={s} className="text-xs">
+                            {APPOINTMENT_STATUS_LABEL[s]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      aria-label="Ver detalhes"
+                      onClick={() => { setEditing(a); setDialogOpen(true); }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      aria-label="Editar"
+                      onClick={() => { setEditing(a); setDialogOpen(true); }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                   </li>
+
                 );
               })}
             </ul>
@@ -332,6 +399,37 @@ function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      <AppointmentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initial={editing}
+        procedureSuggestions={procsQ.data}
+        onSubmit={async (data) => {
+          if (!editing) return;
+          try {
+            await updateAppointment(editing.id, data);
+            toast.success("Atendimento atualizado");
+            invalidateAll();
+          } catch (e) {
+            toast.error("Erro ao guardar");
+            throw e;
+          }
+        }}
+        onDelete={
+          editing
+            ? async () => {
+                try {
+                  await deleteAppointment(editing.id);
+                  toast.success("Atendimento apagado");
+                  invalidateAll();
+                } catch {
+                  toast.error("Erro ao apagar");
+                }
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }
