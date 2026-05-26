@@ -98,7 +98,7 @@ function AgendarDatePage() {
 
   const buildWhatsAppUrl = (time: string) => {
     const msg = `Olá, gostaria de agendar um horário no dia ${dayShort} e horário ${time} definido lá no site.`;
-    return `https://wa.me/${BOOKING_PHONE}?text=${encodeURIComponent(msg)}`;
+    return `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
   };
 
   return (
@@ -167,7 +167,7 @@ function AgendarDatePage() {
         <div className="mt-6 rounded-3xl bg-gradient-to-br from-accent/50 to-secondary/60 border border-border p-5 text-center">
           <p className="text-sm text-muted-foreground">Conheça nosso trabalho</p>
           <a
-            href={INSTAGRAM_URL}
+            href={igUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90"
