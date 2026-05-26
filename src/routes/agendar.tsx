@@ -15,7 +15,7 @@ import {
 } from "@/lib/booking-config";
 import { MONTHS_PT } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
+import defaultLogo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/agendar")({
   head: () => ({
@@ -127,7 +127,7 @@ function AgendarPage() {
       </div>
       <header className="px-4 pt-2 pb-4 flex flex-col items-center">
         <img
-          src={logo}
+          src={settingsQ.data?.logo_url || defaultLogo}
           alt="Studio Taiane Oliveira"
           className="h-24 sm:h-28 w-auto"
         />
