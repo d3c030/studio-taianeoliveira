@@ -115,6 +115,35 @@ function ConfiguracoesPage() {
     }
   };
 
+  const handleUploadQr = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx. 5 MB)");
+      return;
+    }
+    setUploadingQr(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `pix-qr-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("branding")
+        .upload(path, file, { cacheControl: "3600", upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("branding").getPublicUrl(path);
+      const publicUrl = data.publicUrl;
+      setPixQrUrl(publicUrl);
+      await m.mutateAsync({ pixQr: publicUrl });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploadingQr(false);
+      if (qrFileRef.current) qrFileRef.current.value = "";
+    }
+  };
+
   const previewSrc = logoUrl || defaultLogo;
 
   return (
