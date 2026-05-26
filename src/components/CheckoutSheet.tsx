@@ -233,6 +233,7 @@ export function CheckoutSheet({ open, onOpenChange, appointment, onCompleted }: 
         amount={pendingFinal}
         pixKey={settingsQ.data?.pix_key ?? ""}
         pixCopiaCola={settingsQ.data?.pix_copia_cola ?? ""}
+        pixQrUrl={settingsQ.data?.pix_qr_url ?? ""}
         saving={saving}
         onReceived={async () => {
           if (pendingPayment) {
