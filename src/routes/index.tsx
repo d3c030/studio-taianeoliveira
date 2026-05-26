@@ -231,6 +231,23 @@ function Dashboard() {
                       {a.amount > 0 && (
                         <span className="hidden sm:inline text-sm tabular-nums text-muted-foreground shrink-0">{formatBRL(Number(a.amount))}</span>
                       )}
+                      <div className="hidden sm:block">
+                        <Select
+                          value={a.status}
+                          onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
+                        >
+                          <SelectTrigger className="h-8 w-[120px] text-xs shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
+                              <SelectItem key={s} value={s} className="text-xs">
+                                {APPOINTMENT_STATUS_LABEL[s]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -240,6 +257,7 @@ function Dashboard() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
+
                     </div>
                     <div className="mt-2 pl-13 sm:pl-0 sm:mt-0 sm:hidden">
                       <Select
