@@ -2,17 +2,27 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Instagram, MessageCircle, Save, Image as ImageIcon, Upload } from "lucide-react";
+import { Instagram, MessageCircle, Save, Image as ImageIcon, Upload, Palette, Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   getContactSettings,
   updateContactSettings,
+  THEMES,
+  type ThemeName,
 } from "@/lib/settings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import defaultLogo from "@/assets/logo.png";
+
+const THEME_OPTIONS: { value: ThemeName; label: string; swatch: string; ring: string }[] = [
+  { value: "rosa",   label: "Rosa",   swatch: "linear-gradient(135deg, oklch(0.88 0.04 30), oklch(0.62 0.08 20))", ring: "oklch(0.62 0.08 20)" },
+  { value: "azul",   label: "Azul",   swatch: "linear-gradient(135deg, oklch(0.88 0.06 240), oklch(0.55 0.16 250))", ring: "oklch(0.55 0.16 250)" },
+  { value: "preto",  label: "Preto",  swatch: "linear-gradient(135deg, #2a2a2a, #0a0a0a)", ring: "#111" },
+  { value: "branco", label: "Branco", swatch: "linear-gradient(135deg, #ffffff, #ececec)", ring: "#111" },
+];
 
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — Studio Taiane Oliveira" }] }),
