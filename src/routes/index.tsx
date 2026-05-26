@@ -1,26 +1,167 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { TrendingUp, TrendingDown, Wallet, Sparkles } from "lucide-react";
+import { fetchAppointments, fetchExpenses } from "@/lib/data";
+import { formatBRL, PAYMENT_METHODS } from "@/lib/format";
+import { MonthPicker } from "@/components/MonthPicker";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({ meta: [{ title: "Painel — Studio Taiane Oliveira" }] }),
+  component: Dashboard,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function StatCard({
+  icon: Icon, label, value, accent, hint,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  accent: "primary" | "success" | "destructive";
+  hint?: string;
+}) {
+  const accentClass =
+    accent === "success"
+      ? "bg-[color:var(--success)]/12 text-[color:var(--success)]"
+      : accent === "destructive"
+      ? "bg-destructive/10 text-destructive"
+      : "bg-primary/10 text-primary";
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <Card className="border-border/70 shadow-sm">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+        <div className={`h-9 w-9 rounded-full flex items-center justify-center ${accentClass}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="font-display text-3xl tracking-tight">{value}</div>
+        {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
+      </CardContent>
+    </Card>
   );
 }
 
-function Index() {
-  return <PlaceholderIndex />;
+function Dashboard() {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [monthIdx, setMonthIdx] = useState(now.getMonth());
+
+  const apptsQ = useQuery({
+    queryKey: ["appts", year, monthIdx],
+    queryFn: () => fetchAppointments(year, monthIdx),
+  });
+  const expQ = useQuery({
+    queryKey: ["expenses", year, monthIdx],
+    queryFn: () => fetchExpenses(year, monthIdx),
+  });
+
+  const bruto = useMemo(
+    () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0),
+    [apptsQ.data]
+  );
+  const custos = useMemo(
+    () => (expQ.data ?? []).reduce((s, e) => s + Number(e.total || 0), 0),
+    [expQ.data]
+  );
+  const liquido = bruto - custos;
+
+  const byPayment = useMemo(() => {
+    const map = new Map<string, number>();
+    PAYMENT_METHODS.forEach((p) => map.set(p, 0));
+    (apptsQ.data ?? []).forEach((a) => {
+      const k = a.payment_method?.trim() || "Outros";
+      const normalized = PAYMENT_METHODS.find(
+        (p) => p.toLowerCase() === k.toLowerCase()
+      ) || k;
+      map.set(normalized, (map.get(normalized) ?? 0) + Number(a.amount || 0));
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [apptsQ.data]);
+
+  const maxPay = Math.max(1, ...byPayment.map(([, v]) => v));
+  const total = apptsQ.data?.length ?? 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-display text-3xl sm:text-4xl">Painel</h2>
+          <p className="text-sm text-muted-foreground">Resumo financeiro do mês.</p>
+        </div>
+        <MonthPicker
+          year={year}
+          monthIdx={monthIdx}
+          onChange={(y, m) => { setYear(y); setMonthIdx(m); }}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <StatCard
+          icon={TrendingUp}
+          label="Faturação Bruta"
+          value={formatBRL(bruto)}
+          accent="primary"
+          hint={`${total} atendimento${total === 1 ? "" : "s"}`}
+        />
+        <StatCard
+          icon={TrendingDown}
+          label="Custos"
+          value={formatBRL(custos)}
+          accent="destructive"
+          hint={`${expQ.data?.length ?? 0} despesa${(expQ.data?.length ?? 0) === 1 ? "" : "s"}`}
+        />
+        <StatCard
+          icon={Wallet}
+          label="Faturação Líquida"
+          value={formatBRL(liquido)}
+          accent={liquido >= 0 ? "success" : "destructive"}
+          hint="Bruto − Custos"
+        />
+      </div>
+
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Entradas por forma de pagamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {byPayment.length === 0 || bruto === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Sem entradas neste mês.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {byPayment.map(([label, value]) => {
+                const pct = bruto > 0 ? (value / bruto) * 100 : 0;
+                const w = (value / maxPay) * 100;
+                return (
+                  <li key={label}>
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <span className="text-sm font-medium">{label}</span>
+                      <span className="text-sm tabular-nums">
+                        {formatBRL(value)}{" "}
+                        <span className="text-xs text-muted-foreground">
+                          ({pct.toFixed(1)}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${w}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
