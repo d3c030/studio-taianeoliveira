@@ -1,6 +1,8 @@
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt } from "lucide-react";
+import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
+import { Home, CalendarDays, Receipt, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
 const navItems = [
@@ -11,7 +13,36 @@ const navItems = [
 
 export function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
+
+  const [authState, setAuthState] = useState<"loading" | "in" | "out">("loading");
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthState(session ? "in" : "out");
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setAuthState(data.session ? "in" : "out");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Login page renders standalone
+  if (pathname === "/login") return <Outlet />;
+
+  if (authState === "loading") {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">Carregando…</div>;
+  }
+  if (authState === "out") {
+    if (typeof window !== "undefined") navigate({ to: "/login", replace: true });
+    return null;
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login", replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -41,18 +72,30 @@ export function AppShell() {
             </Link>
           ))}
         </nav>
-        <div className="mt-auto text-xs text-muted-foreground">
-          Gestão completa do estúdio
-        </div>
+        <button
+          onClick={handleLogout}
+          className="mt-auto flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-center border-b border-border bg-background/95 backdrop-blur px-4 py-3">
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur px-4 py-3">
+        <div className="w-9" />
         <img
           src={logo}
           alt="Studio Taiane Oliveira — Sobrancelhas e Piercing"
           className="h-14 w-auto"
         />
+        <button
+          onClick={handleLogout}
+          aria-label="Sair"
+          className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </header>
 
       {/* Main */}
