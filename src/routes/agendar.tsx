@@ -92,7 +92,15 @@ function AgendarPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background">
-      <header className="px-4 pt-8 pb-4 flex flex-col items-center">
+      <div className="w-full flex justify-end px-4 pt-4">
+        <Link
+          to="/login"
+          className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors rounded-full px-4 py-2 hover:bg-secondary"
+        >
+          Login
+        </Link>
+      </div>
+      <header className="px-4 pt-2 pb-4 flex flex-col items-center">
         <img
           src={logo}
           alt="Studio Taiane Oliveira"
