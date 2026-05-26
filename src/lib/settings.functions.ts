@@ -59,7 +59,11 @@ export const updateContactSettings = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
 
-    const patch: Record<string, string> = {
+    const patch: {
+      instagram_url: string;
+      whatsapp_phone: string;
+      logo_url?: string;
+    } = {
       instagram_url: data.instagram_url,
       whatsapp_phone: data.whatsapp_phone,
     };
