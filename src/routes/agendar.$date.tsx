@@ -39,6 +39,13 @@ function AgendarDatePage() {
     enabled: dateValid,
   });
 
+  const settingsQ = useQuery({
+    queryKey: ["public-contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
+  const waPhone = settingsQ.data?.whatsapp_phone || BOOKING_PHONE;
+  const igUrl = settingsQ.data?.instagram_url || INSTAGRAM_URL;
+
   const override = (overridesQ.data ?? []).find((o) => o.date === date);
   const isOpen = override ? override.is_open : !isClosedDay(dateObj);
   const valid = dateValid && isOpen;
