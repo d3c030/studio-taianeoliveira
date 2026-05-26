@@ -48,7 +48,9 @@ function ConfiguracoesPage() {
   const [theme, setTheme] = useState<ThemeName>("rosa");
   const [pixKey, setPixKey] = useState("");
   const [pixCopiaCola, setPixCopiaCola] = useState("");
+  const [pixQrUrl, setPixQrUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadingQr, setUploadingQr] = useState(false);
 
   useEffect(() => {
     if (q.data) {
