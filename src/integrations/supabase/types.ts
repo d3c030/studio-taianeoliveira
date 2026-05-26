@@ -127,6 +127,7 @@ export type Database = {
           id: string
           instagram_url: string
           logo_url: string
+          theme: string
           updated_at: string
           whatsapp_phone: string
         }
@@ -135,6 +136,7 @@ export type Database = {
           id?: string
           instagram_url?: string
           logo_url?: string
+          theme?: string
           updated_at?: string
           whatsapp_phone?: string
         }
@@ -143,6 +145,7 @@ export type Database = {
           id?: string
           instagram_url?: string
           logo_url?: string
+          theme?: string
           updated_at?: string
           whatsapp_phone?: string
         }

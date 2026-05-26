@@ -3,19 +3,25 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export const THEMES = ["rosa", "azul", "preto", "branco"] as const;
+export type ThemeName = (typeof THEMES)[number];
+
 export type ContactSettings = {
   id: string | null;
   instagram_url: string;
   whatsapp_phone: string;
   logo_url: string;
+  theme: ThemeName;
 };
 
-// Public: anyone can read contact info (used on /agendar pages).
+const isTheme = (v: unknown): v is ThemeName =>
+  typeof v === "string" && (THEMES as readonly string[]).includes(v);
+
 export const getContactSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<ContactSettings> => {
     const { data, error } = await supabaseAdmin
       .from("contact_settings")
-      .select("id, instagram_url, whatsapp_phone, logo_url")
+      .select("id, instagram_url, whatsapp_phone, logo_url, theme")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -25,11 +31,11 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
       instagram_url: (data?.instagram_url as string | undefined) ?? "",
       whatsapp_phone: (data?.whatsapp_phone as string | undefined) ?? "",
       logo_url: (data?.logo_url as string | undefined) ?? "",
+      theme: isTheme(data?.theme) ? (data!.theme as ThemeName) : "rosa",
     };
   },
 );
 
-// Authenticated: upsert single contact_settings row.
 export const updateContactSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -47,6 +53,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
           .max(20)
           .regex(/^[0-9]*$/, "Apenas dígitos (com DDI e DDD)"),
         logo_url: z.string().trim().max(500).url().or(z.literal("")).optional(),
+        theme: z.enum(THEMES).optional(),
       })
       .parse(input),
   )
@@ -63,11 +70,13 @@ export const updateContactSettings = createServerFn({ method: "POST" })
       instagram_url: string;
       whatsapp_phone: string;
       logo_url?: string;
+      theme?: ThemeName;
     } = {
       instagram_url: data.instagram_url,
       whatsapp_phone: data.whatsapp_phone,
     };
     if (data.logo_url !== undefined) patch.logo_url = data.logo_url;
+    if (data.theme !== undefined) patch.theme = data.theme;
 
     if (existing?.id) {
       const { error } = await supabase

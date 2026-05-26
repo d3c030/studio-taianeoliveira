@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
+import { ThemeApplier } from "@/components/ThemeApplier";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -121,6 +122,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeApplier />
       <AppShell />
       <Toaster richColors position="top-center" />
     </QueryClientProvider>

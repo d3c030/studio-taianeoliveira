@@ -2,17 +2,27 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Instagram, MessageCircle, Save, Image as ImageIcon, Upload } from "lucide-react";
+import { Instagram, MessageCircle, Save, Image as ImageIcon, Upload, Palette, Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   getContactSettings,
   updateContactSettings,
+  THEMES,
+  type ThemeName,
 } from "@/lib/settings.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import defaultLogo from "@/assets/logo.png";
+
+const THEME_OPTIONS: { value: ThemeName; label: string; swatch: string; ring: string }[] = [
+  { value: "rosa",   label: "Rosa",   swatch: "linear-gradient(135deg, oklch(0.88 0.04 30), oklch(0.62 0.08 20))", ring: "oklch(0.62 0.08 20)" },
+  { value: "azul",   label: "Azul",   swatch: "linear-gradient(135deg, oklch(0.88 0.06 240), oklch(0.55 0.16 250))", ring: "oklch(0.55 0.16 250)" },
+  { value: "preto",  label: "Preto",  swatch: "linear-gradient(135deg, #2a2a2a, #0a0a0a)", ring: "#111" },
+  { value: "branco", label: "Branco", swatch: "linear-gradient(135deg, #ffffff, #ececec)", ring: "#111" },
+];
 
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — Studio Taiane Oliveira" }] }),
@@ -33,6 +43,7 @@ function ConfiguracoesPage() {
   const [instagram, setInstagram] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [theme, setTheme] = useState<ThemeName>("rosa");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -40,16 +51,19 @@ function ConfiguracoesPage() {
       setInstagram(q.data.instagram_url ?? "");
       setWhatsapp(q.data.whatsapp_phone ?? "");
       setLogoUrl(q.data.logo_url ?? "");
+      setTheme(q.data.theme ?? "rosa");
     }
   }, [q.data]);
 
+  type SaveOverrides = { logo?: string; theme?: ThemeName };
   const m = useMutation({
-    mutationFn: (newLogo?: string) =>
+    mutationFn: (over: SaveOverrides = {}) =>
       saveSettings({
         data: {
           instagram_url: instagram.trim(),
           whatsapp_phone: whatsapp.trim(),
-          logo_url: (newLogo ?? logoUrl).trim(),
+          logo_url: (over.logo ?? logoUrl).trim(),
+          theme: over.theme ?? theme,
         },
       }),
     onSuccess: () => {
@@ -80,7 +94,7 @@ function ConfiguracoesPage() {
       const { data } = supabase.storage.from("branding").getPublicUrl(path);
       const publicUrl = data.publicUrl;
       setLogoUrl(publicUrl);
-      await m.mutateAsync(publicUrl);
+      await m.mutateAsync({ logo: publicUrl });
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -140,7 +154,7 @@ function ConfiguracoesPage() {
                   size="sm"
                   onClick={() => {
                     setLogoUrl("");
-                    m.mutate("");
+                    m.mutate({ logo: "" });
                   }}
                   className="text-muted-foreground"
                 >
@@ -187,8 +201,47 @@ function ConfiguracoesPage() {
           />
         </div>
 
+        {/* Tema */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-primary" />
+            Tema visual
+          </Label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {THEME_OPTIONS.map((opt) => {
+              const active = theme === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setTheme(opt.value);
+                    m.mutate({ theme: opt.value });
+                  }}
+                  className={cn(
+                    "group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all hover:shadow-sm",
+                    active ? "border-primary" : "border-border hover:border-muted-foreground/40",
+                  )}
+                >
+                  <div
+                    className="h-14 w-full rounded-lg border border-border/60"
+                    style={{ background: opt.swatch }}
+                  />
+                  <span className="text-xs font-medium flex items-center gap-1">
+                    {active && <Check className="h-3.5 w-3.5 text-primary" />}
+                    {opt.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            O tema é aplicado em todo o painel e na página pública de agendamento.
+          </p>
+        </div>
+
         <Button
-          onClick={() => m.mutate(undefined)}
+          onClick={() => m.mutate({})}
           disabled={m.isPending || q.isLoading}
           className="w-full sm:w-auto"
         >
