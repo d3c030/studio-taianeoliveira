@@ -72,6 +72,8 @@ export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
     .order("time", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Appointment[];
+}
+
 
 export async function fetchExpenses(year: number, monthIdx: number): Promise<Expense[]> {
   const { start, end } = monthRange(year, monthIdx);
