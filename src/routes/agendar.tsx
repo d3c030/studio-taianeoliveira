@@ -15,7 +15,7 @@ import {
 } from "@/lib/booking-config";
 import { MONTHS_PT } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
+import defaultLogo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/agendar")({
   head: () => ({

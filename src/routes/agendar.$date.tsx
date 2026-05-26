@@ -13,7 +13,7 @@ import {
   INSTAGRAM_URL,
 } from "@/lib/booking-config";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
+import defaultLogo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/agendar/$date")({
   head: () => ({
