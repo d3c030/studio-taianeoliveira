@@ -1,9 +1,11 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png";
+import { getContactSettings } from "@/lib/settings.functions";
+import defaultLogo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", label: "Início", icon: Home },
