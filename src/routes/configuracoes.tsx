@@ -201,8 +201,47 @@ function ConfiguracoesPage() {
           />
         </div>
 
+        {/* Tema */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-primary" />
+            Tema visual
+          </Label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {THEME_OPTIONS.map((opt) => {
+              const active = theme === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setTheme(opt.value);
+                    m.mutate({ theme: opt.value });
+                  }}
+                  className={cn(
+                    "group relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all hover:shadow-sm",
+                    active ? "border-primary" : "border-border hover:border-muted-foreground/40",
+                  )}
+                >
+                  <div
+                    className="h-14 w-full rounded-lg border border-border/60"
+                    style={{ background: opt.swatch }}
+                  />
+                  <span className="text-xs font-medium flex items-center gap-1">
+                    {active && <Check className="h-3.5 w-3.5 text-primary" />}
+                    {opt.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            O tema é aplicado em todo o painel e na página pública de agendamento.
+          </p>
+        </div>
+
         <Button
-          onClick={() => m.mutate(undefined)}
+          onClick={() => m.mutate({})}
           disabled={m.isPending || q.isLoading}
           className="w-full sm:w-auto"
         >
