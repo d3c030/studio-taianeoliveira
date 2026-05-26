@@ -1,6 +1,7 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt, Sparkles } from "lucide-react";
+import { Home, CalendarDays, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", label: "Início", icon: Home },
@@ -16,14 +17,12 @@ export function AppShell() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-64 flex-col border-r border-border bg-sidebar p-6">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="font-display text-lg leading-tight">Studio Taiane</h1>
-            <p className="text-xs text-muted-foreground">Oliveira</p>
-          </div>
+        <div className="mb-10 flex justify-center">
+          <img
+            src={logo}
+            alt="Studio Taiane Oliveira — Sobrancelhas e Piercing"
+            className="w-44 h-auto"
+          />
         </div>
         <nav className="flex flex-col gap-1">
           {navItems.map(({ to, label, icon: Icon }) => (
@@ -48,14 +47,12 @@ export function AppShell() {
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
-        <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-          <Sparkles className="h-4 w-4" />
-        </div>
-        <div>
-          <h1 className="font-display text-base leading-tight">Studio Taiane Oliveira</h1>
-          <p className="text-[11px] text-muted-foreground -mt-0.5">Gestão do estúdio</p>
-        </div>
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-center border-b border-border bg-background/95 backdrop-blur px-4 py-3">
+        <img
+          src={logo}
+          alt="Studio Taiane Oliveira — Sobrancelhas e Piercing"
+          className="h-14 w-auto"
+        />
       </header>
 
       {/* Main */}
