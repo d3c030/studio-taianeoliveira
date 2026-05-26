@@ -151,7 +151,9 @@ export function AppointmentDialog({
               )}
             </div>
 
-            {procedures.length === 0 ? (
+            {procsQ.isLoading ? (
+              <p className="text-xs text-muted-foreground">A carregar procedimentos…</p>
+            ) : procedures.length === 0 ? (
               <p className="text-xs text-muted-foreground">
                 Nenhum procedimento cadastrado. Adicione em <strong>Procedimentos</strong>.
               </p>
