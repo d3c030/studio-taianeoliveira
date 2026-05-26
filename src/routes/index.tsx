@@ -223,7 +223,7 @@ function Dashboard() {
                 const isToday = a.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
                 return (
                   <li key={a.id} className="flex items-center gap-3 py-3">
-                    <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+                    <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium shrink-0 ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
                       <span className="leading-none">{dateObj.toLocaleDateString("pt-BR", { day: "2-digit" })}</span>
                       <span className="leading-none mt-0.5 uppercase opacity-80">{dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
                     </div>
@@ -237,9 +237,43 @@ function Dashboard() {
                       </div>
                     </div>
                     {a.amount > 0 && (
-                      <span className="text-sm tabular-nums text-muted-foreground">{formatBRL(Number(a.amount))}</span>
+                      <span className="hidden sm:inline text-sm tabular-nums text-muted-foreground shrink-0">{formatBRL(Number(a.amount))}</span>
                     )}
+                    <Select
+                      value={a.status}
+                      onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
+                    >
+                      <SelectTrigger className="h-8 w-[120px] text-xs shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
+                          <SelectItem key={s} value={s} className="text-xs">
+                            {APPOINTMENT_STATUS_LABEL[s]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      aria-label="Ver detalhes"
+                      onClick={() => { setEditing(a); setDialogOpen(true); }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      aria-label="Editar"
+                      onClick={() => { setEditing(a); setDialogOpen(true); }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                   </li>
+
                 );
               })}
             </ul>
