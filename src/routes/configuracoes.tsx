@@ -316,7 +316,59 @@ function ConfiguracoesPage() {
               Cole aqui o código gerado pelo seu app do banco. Se vazio, o QR Code usará a chave acima.
             </p>
           </div>
+
+          <div className="space-y-2 pt-2 border-t border-dashed border-border">
+            <Label className="text-xs text-muted-foreground">
+              QR Code Pix (imagem) — opcional, tem prioridade sobre o gerado automaticamente
+            </Label>
+            <div className="flex items-center gap-4">
+              <div className="h-28 w-28 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden">
+                {pixQrUrl ? (
+                  <img src={pixQrUrl} alt="QR Code Pix" className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <QrCode className="h-8 w-8 text-muted-foreground/40" />
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <input
+                  ref={qrFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUploadQr(f);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => qrFileRef.current?.click()}
+                  disabled={uploadingQr}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploadingQr ? "Enviando…" : "Enviar imagem do QR"}
+                </Button>
+                {pixQrUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPixQrUrl("");
+                      m.mutate({ pixQr: "" });
+                    }}
+                    className="text-muted-foreground"
+                  >
+                    Remover QR Code
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+
 
 
         <Button
