@@ -35,6 +35,7 @@ function ConfiguracoesPage() {
   const fetchSettings = useServerFn(getContactSettings);
   const saveSettings = useServerFn(updateContactSettings);
   const fileRef = useRef<HTMLInputElement>(null);
+  const qrFileRef = useRef<HTMLInputElement>(null);
 
   const q = useQuery({
     queryKey: ["contact-settings"],
