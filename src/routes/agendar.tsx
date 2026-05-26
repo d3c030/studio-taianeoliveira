@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Instagram, Sparkles } from "lucide-react";
 import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
+import { getContactSettings } from "@/lib/settings.functions";
 import {
   generateDailySlots,
   isClosedDay,
