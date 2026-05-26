@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt, LogOut, Users } from "lucide-react";
+import { Home, CalendarDays, Receipt, LogOut, Users, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ const navItems = [
   { to: "/atendimentos", label: "Atendimentos", icon: CalendarDays },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/custos", label: "Custos", icon: Receipt },
+  { to: "/usuarios", label: "Usuários", icon: Shield },
 ] as const;
 
 export function AppShell() {
