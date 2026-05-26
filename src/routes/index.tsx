@@ -193,11 +193,20 @@ function Dashboard() {
           <h2 className="font-display text-3xl sm:text-4xl">Painel</h2>
           <p className="text-sm text-muted-foreground">Resumo financeiro do mês.</p>
         </div>
-        <MonthPicker
-          year={year}
-          monthIdx={monthIdx}
-          onChange={(y, m) => { setYear(y); setMonthIdx(m); }}
-        />
+        <div className="flex items-center gap-2">
+          <MonthPicker
+            year={year}
+            monthIdx={monthIdx}
+            onChange={(y, m) => { setYear(y); setMonthIdx(m); }}
+          />
+          <Button
+            size="sm"
+            onClick={() => { setEditing(null); setDialogOpen(true); }}
+          >
+            <Plus className="h-4 w-4 mr-1.5" />
+            Novo
+          </Button>
+        </div>
       </div>
 
       <Card className="border-border/70 shadow-sm">
