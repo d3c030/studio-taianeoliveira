@@ -124,15 +124,19 @@ function Dashboard() {
   const total = apptsQ.data?.length ?? 0;
 
   const procedureCounts = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { count: number; total: number }>();
     (apptsQ.data ?? []).forEach((a) => {
       if (a.status === "cancelado") return;
       const name = (a.procedure ?? "").trim() || "Sem procedimento";
-      map.set(name, (map.get(name) ?? 0) + 1);
+      const cur = map.get(name) ?? { count: 0, total: 0 };
+      cur.count += 1;
+      cur.total += Number(a.amount || 0);
+      map.set(name, cur);
     });
-    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    return [...map.entries()].sort((a, b) => b[1].count - a[1].count);
   }, [apptsQ.data]);
-  const totalProcedures = procedureCounts.reduce((s, [, n]) => s + n, 0);
+  const totalProcedures = procedureCounts.reduce((s, [, v]) => s + v.count, 0);
+  const totalProceduresValue = procedureCounts.reduce((s, [, v]) => s + v.total, 0);
 
   const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
   const isCurrentMonth =
