@@ -229,15 +229,6 @@ function AgendarPage() {
           </a>
         </div>
 
-        {/* Discreet admin link */}
-        <div className="mt-8 text-center">
-          <Link
-            to="/login"
-            className="text-xs text-muted-foreground/60 hover:text-muted-foreground"
-          >
-            Acesso administrativo
-          </Link>
-        </div>
       </main>
     </div>
   );
