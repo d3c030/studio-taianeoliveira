@@ -399,6 +399,37 @@ function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      <AppointmentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initial={editing}
+        procedureSuggestions={procsQ.data}
+        onSubmit={async (data) => {
+          if (!editing) return;
+          try {
+            await updateAppointment(editing.id, data);
+            toast.success("Atendimento atualizado");
+            invalidateAll();
+          } catch (e) {
+            toast.error("Erro ao guardar");
+            throw e;
+          }
+        }}
+        onDelete={
+          editing
+            ? async () => {
+                try {
+                  await deleteAppointment(editing.id);
+                  toast.success("Atendimento apagado");
+                  invalidateAll();
+                } catch {
+                  toast.error("Erro ao apagar");
+                }
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }
