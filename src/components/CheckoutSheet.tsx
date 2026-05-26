@@ -396,13 +396,14 @@ function PaymentDialog({
 /* ============= Pix QR modal ============= */
 
 function PixDialog({
-  open, onOpenChange, amount, pixKey, pixCopiaCola, saving, onReceived,
+  open, onOpenChange, amount, pixKey, pixCopiaCola, pixQrUrl, saving, onReceived,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   amount: number;
   pixKey: string;
   pixCopiaCola: string;
+  pixQrUrl: string;
   saving: boolean;
   onReceived: () => void | Promise<void>;
 }) {
@@ -413,9 +414,12 @@ function PixDialog({
   }, [open]);
 
   const payload = pixCopiaCola || pixKey;
-  const qrSrc = payload
+  const qrSrc = pixQrUrl
+    ? pixQrUrl
+    : payload
     ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(payload)}`
     : "";
+  const hasQr = Boolean(qrSrc);
 
   const handleCopy = async () => {
     if (!payload) return;
