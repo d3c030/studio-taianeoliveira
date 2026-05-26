@@ -126,6 +126,7 @@ export type Database = {
           created_at: string
           id: string
           instagram_url: string
+          logo_url: string
           updated_at: string
           whatsapp_phone: string
         }
@@ -133,6 +134,7 @@ export type Database = {
           created_at?: string
           id?: string
           instagram_url?: string
+          logo_url?: string
           updated_at?: string
           whatsapp_phone?: string
         }
@@ -140,6 +142,7 @@ export type Database = {
           created_at?: string
           id?: string
           instagram_url?: string
+          logo_url?: string
           updated_at?: string
           whatsapp_phone?: string
         }
