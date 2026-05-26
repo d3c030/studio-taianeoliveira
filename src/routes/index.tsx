@@ -123,6 +123,17 @@ function Dashboard() {
   const maxPay = Math.max(1, ...byPayment.map(([, v]) => v));
   const total = apptsQ.data?.length ?? 0;
 
+  const procedureCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    (apptsQ.data ?? []).forEach((a) => {
+      if (a.status === "cancelado") return;
+      const name = (a.procedure ?? "").trim() || "Sem procedimento";
+      map.set(name, (map.get(name) ?? 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [apptsQ.data]);
+  const totalProcedures = procedureCounts.reduce((s, [, n]) => s + n, 0);
+
   const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
   const isCurrentMonth =
     year === now.getFullYear() && monthIdx === now.getMonth();
