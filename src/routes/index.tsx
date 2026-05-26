@@ -213,61 +213,56 @@ function Dashboard() {
                 const time = a.time ? String(a.time).slice(0, 5) : null;
                 const isToday = a.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
                 return (
-                  <li key={a.id} className="flex items-center gap-3 py-3">
-                    <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium shrink-0 ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
-                      <span className="leading-none">{dateObj.toLocaleDateString("pt-BR", { day: "2-digit" })}</span>
-                      <span className="leading-none mt-0.5 uppercase opacity-80">{dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{a.client_name}</div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {a.procedure ?? "Atendimento"} · <span className="capitalize">{dateLabel}</span>
-                        {time && (
-                          <> · <Clock className="inline h-3 w-3 -mt-0.5" /> {time}</>
-                        )}
+                  <li key={a.id} className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium shrink-0 ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+                        <span className="leading-none">{dateObj.toLocaleDateString("pt-BR", { day: "2-digit" })}</span>
+                        <span className="leading-none mt-0.5 uppercase opacity-80">{dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{a.client_name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {a.procedure ?? "Atendimento"} · <span className="capitalize">{dateLabel}</span>
+                          {time && (
+                            <> · <Clock className="inline h-3 w-3 -mt-0.5" /> {time}</>
+                          )}
+                        </div>
+                      </div>
+                      {a.amount > 0 && (
+                        <span className="hidden sm:inline text-sm tabular-nums text-muted-foreground shrink-0">{formatBRL(Number(a.amount))}</span>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        aria-label="Ver / editar"
+                        onClick={() => { setEditing(a); setDialogOpen(true); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </div>
-                    {a.amount > 0 && (
-                      <span className="hidden sm:inline text-sm tabular-nums text-muted-foreground shrink-0">{formatBRL(Number(a.amount))}</span>
-                    )}
-                    <Select
-                      value={a.status}
-                      onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
-                    >
-                      <SelectTrigger className="h-8 w-[120px] text-xs shrink-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
-                          <SelectItem key={s} value={s} className="text-xs">
-                            {APPOINTMENT_STATUS_LABEL[s]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      aria-label="Ver detalhes"
-                      onClick={() => { setEditing(a); setDialogOpen(true); }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      aria-label="Editar"
-                      onClick={() => { setEditing(a); setDialogOpen(true); }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="mt-2 pl-13 sm:pl-0 sm:mt-0 sm:hidden">
+                      <Select
+                        value={a.status}
+                        onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
+                      >
+                        <SelectTrigger className="h-8 w-full text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
+                            <SelectItem key={s} value={s} className="text-xs">
+                              {APPOINTMENT_STATUS_LABEL[s]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </li>
-
                 );
               })}
             </ul>
+
           )}
         </CardContent>
       </Card>
