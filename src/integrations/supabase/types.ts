@@ -187,6 +187,36 @@ export type Database = {
         }
         Relationships: []
       }
+      procedures: {
+        Row: {
+          created_at: string
+          default_price: number
+          estimated_minutes: number
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_price?: number
+          estimated_minutes?: number
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_price?: number
+          estimated_minutes?: number
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

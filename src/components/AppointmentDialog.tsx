@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Check } from "lucide-react";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -10,9 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { PAYMENT_METHODS, DEFAULT_PROCEDURES } from "@/lib/format";
+import { PAYMENT_METHODS } from "@/lib/format";
 import { fetchClients, type Appointment, type AppointmentInput } from "@/lib/data";
 import { ClientCombobox } from "@/components/ClientCombobox";
+import { fetchProcedures, joinProcedureNames, splitProcedureNames } from "@/lib/procedures";
+import { cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;
@@ -26,19 +29,27 @@ type Props = {
 const today = () => new Date().toISOString().slice(0, 10);
 
 export function AppointmentDialog({
-  open, onOpenChange, initial, procedureSuggestions = [], onSubmit, onDelete,
+  open, onOpenChange, initial, onSubmit, onDelete,
 }: Props) {
   const [date, setDate] = useState(today());
   const [time, setTime] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientId, setClientId] = useState<string | null>(null);
-  const [procedure, setProcedure] = useState("");
+  const [selectedProcs, setSelectedProcs] = useState<string[]>([]);
   const [payment, setPayment] = useState<string>("Pix");
   const [amount, setAmount] = useState<string>("");
+  const [amountTouched, setAmountTouched] = useState(false);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const procsQ = useQuery({ queryKey: ["procedures"], queryFn: fetchProcedures });
+
+  const priceByName = useMemo(() => {
+    const map = new Map<string, number>();
+    (procsQ.data ?? []).forEach((p) => map.set(p.name, Number(p.default_price || 0)));
+    return map;
+  }, [procsQ.data]);
 
   useEffect(() => {
     if (open) {
@@ -46,12 +57,26 @@ export function AppointmentDialog({
       setTime(initial?.time ?? "");
       setClientName(initial?.client_name ?? "");
       setClientId(initial?.client_id ?? null);
-      setProcedure(initial?.procedure ?? "");
+      setSelectedProcs(splitProcedureNames(initial?.procedure));
       setPayment(initial?.payment_method ?? "Pix");
       setAmount(initial ? String(initial.amount) : "");
+      setAmountTouched(!!initial); // when editing, respect existing amount
       setNotes(initial?.notes ?? "");
     }
   }, [open, initial]);
+
+  // Auto-sum suggestion: only updates the amount while the user hasn't typed manually.
+  useEffect(() => {
+    if (!open || amountTouched) return;
+    const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
+    setAmount(sum > 0 ? sum.toFixed(2) : "");
+  }, [selectedProcs, priceByName, open, amountTouched]);
+
+  const toggleProc = (name: string) => {
+    setSelectedProcs((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
 
   const handleSave = async () => {
     if (!clientName.trim() || !date) return;
@@ -62,7 +87,7 @@ export function AppointmentDialog({
         time: time || null,
         client_name: clientName.trim(),
         client_id: clientId,
-        procedure: procedure.trim() || null,
+        procedure: selectedProcs.length ? joinProcedureNames(selectedProcs) : null,
         payment_method: payment,
         amount: parseFloat(amount.replace(",", ".")) || 0,
         notes: notes.trim() || null,
@@ -74,9 +99,7 @@ export function AppointmentDialog({
     }
   };
 
-  const allProcs = Array.from(new Set([...DEFAULT_PROCEDURES, ...procedureSuggestions])).sort(
-    (a, b) => a.localeCompare(b, "pt-BR")
-  );
+  const procedures = procsQ.data ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,21 +137,53 @@ export function AppointmentDialog({
             />
           </div>
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="proc">Procedimento</Label>
-            <Input
-              id="proc"
-              value={procedure}
-              onChange={(e) => setProcedure(e.target.value)}
-              list="proc-suggestions"
-              placeholder="Ex: Design, Henna, Nostril..."
-              maxLength={200}
-            />
-            <datalist id="proc-suggestions">
-              {allProcs.map((p) => (
-                <option key={p} value={p} />
-              ))}
-            </datalist>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <Label>Procedimentos</Label>
+              {selectedProcs.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedProcs([])}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+
+            {procedures.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Nenhum procedimento cadastrado. Adicione em <strong>Procedimentos</strong>.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto rounded-lg border border-border/70 bg-secondary/30 p-2">
+                {procedures.map((p) => {
+                  const active = selectedProcs.includes(p.name);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleProc(p.name)}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/60"
+                      )}
+                    >
+                      {active && <Check className="h-3 w-3" />}
+                      <span>{p.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedProcs.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {selectedProcs.length} selecionado{selectedProcs.length > 1 ? "s" : ""}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -144,7 +199,7 @@ export function AppointmentDialog({
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="amount">Valor (R$)</Label>
+              <Label htmlFor="amount">Valor total (R$)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -152,9 +207,17 @@ export function AppointmentDialog({
                 step="0.01"
                 min="0"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  setAmountTouched(true);
+                }}
                 placeholder="0,00"
               />
+              {!amountTouched && selectedProcs.length > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  Soma sugerida automaticamente — pode editar livremente.
+                </p>
+              )}
             </div>
           </div>
 
