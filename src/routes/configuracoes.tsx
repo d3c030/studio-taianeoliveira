@@ -64,7 +64,7 @@ function ConfiguracoesPage() {
     }
   }, [q.data]);
 
-  type SaveOverrides = { logo?: string; theme?: ThemeName };
+  type SaveOverrides = { logo?: string; theme?: ThemeName; pixQr?: string };
   const m = useMutation({
     mutationFn: (over: SaveOverrides = {}) =>
       saveSettings({
@@ -75,6 +75,7 @@ function ConfiguracoesPage() {
           theme: over.theme ?? theme,
           pix_key: pixKey.trim(),
           pix_copia_cola: pixCopiaCola.trim(),
+          pix_qr_url: (over.pixQr ?? pixQrUrl).trim(),
         },
       }),
     onSuccess: () => {
