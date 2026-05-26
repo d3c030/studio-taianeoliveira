@@ -178,17 +178,17 @@ function Dashboard() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                     interval={0}
                     tickLine={false}
                     axisLine={false}
                     minTickGap={0}
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                     tickLine={false}
                     axisLine={false}
                     width={64}
@@ -197,10 +197,10 @@ function Dashboard() {
                     }
                   />
                   <Tooltip
-                    cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }}
+                    cursor={{ fill: "var(--accent)", opacity: 0.4 }}
                     contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
+                      background: "var(--card)",
+                      border: "1px solid var(--border)",
                       borderRadius: 8,
                       fontSize: 12,
                     }}
@@ -216,10 +216,10 @@ function Dashboard() {
                         key={d.day}
                         fill={
                           d.isFuture
-                            ? "hsl(var(--muted))"
+                            ? "var(--muted)"
                             : d.isToday
-                            ? "hsl(var(--primary))"
-                            : "hsl(var(--primary) / 0.65)"
+                            ? "var(--primary)"
+                            : "color-mix(in oklab, var(--primary) calc(0.65 * 100%), transparent)"
                         }
                       />
                     ))}
