@@ -124,15 +124,19 @@ function Dashboard() {
   const total = apptsQ.data?.length ?? 0;
 
   const procedureCounts = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { count: number; total: number }>();
     (apptsQ.data ?? []).forEach((a) => {
       if (a.status === "cancelado") return;
       const name = (a.procedure ?? "").trim() || "Sem procedimento";
-      map.set(name, (map.get(name) ?? 0) + 1);
+      const cur = map.get(name) ?? { count: 0, total: 0 };
+      cur.count += 1;
+      cur.total += Number(a.amount || 0);
+      map.set(name, cur);
     });
-    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    return [...map.entries()].sort((a, b) => b[1].count - a[1].count);
   }, [apptsQ.data]);
-  const totalProcedures = procedureCounts.reduce((s, [, n]) => s + n, 0);
+  const totalProcedures = procedureCounts.reduce((s, [, v]) => s + v.count, 0);
+  const totalProceduresValue = procedureCounts.reduce((s, [, v]) => s + v.total, 0);
 
   const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
   const isCurrentMonth =
@@ -418,7 +422,7 @@ function Dashboard() {
             Procedimentos realizados no mês
           </CardTitle>
           <span className="text-xs text-muted-foreground">
-            Para reposição de mercadoria · {totalProcedures} no total
+            Para reposição de mercadoria · {totalProcedures} no total · {formatBRL(totalProceduresValue)}
           </span>
         </CardHeader>
         <CardContent>
@@ -433,20 +437,28 @@ function Dashboard() {
                   <tr className="border-b border-border/70 text-left text-xs uppercase text-muted-foreground">
                     <th className="py-2 font-medium">Procedimento</th>
                     <th className="py-2 font-medium text-right w-24">Quantidade</th>
+                    <th className="py-2 font-medium text-right w-32">Valor</th>
                     <th className="py-2 font-medium text-right w-20">%</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/70">
-                  {procedureCounts.map(([name, count]) => {
+                  {procedureCounts.map(([name, { count, total: valueTotal }]) => {
                     const pct = totalProcedures > 0 ? (count / totalProcedures) * 100 : 0;
                     return (
                       <tr key={name}>
                         <td className="py-2.5">{name}</td>
                         <td className="py-2.5 text-right tabular-nums font-medium">{count}</td>
+                        <td className="py-2.5 text-right tabular-nums">{formatBRL(valueTotal)}</td>
                         <td className="py-2.5 text-right tabular-nums text-muted-foreground">{pct.toFixed(1)}%</td>
                       </tr>
                     );
                   })}
+                  <tr className="border-t-2 border-border font-medium">
+                    <td className="py-2.5">Total</td>
+                    <td className="py-2.5 text-right tabular-nums">{totalProcedures}</td>
+                    <td className="py-2.5 text-right tabular-nums">{formatBRL(totalProceduresValue)}</td>
+                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">100%</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
