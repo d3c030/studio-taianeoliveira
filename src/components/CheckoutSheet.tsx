@@ -454,7 +454,7 @@ function PixDialog({
             </div>
           </div>
 
-          {payload ? (
+          {hasQr ? (
             <div className="rounded-2xl border border-border bg-white p-3 flex items-center justify-center">
               <img
                 src={qrSrc}
@@ -465,7 +465,7 @@ function PixDialog({
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-border bg-secondary/40 px-4 py-6 text-center text-sm text-muted-foreground">
-              Configure a chave Pix em <strong>Configurações</strong> para gerar o QR Code.
+              Configure a chave Pix ou envie a imagem do QR Code em <strong>Configurações</strong>.
             </div>
           )}
 
