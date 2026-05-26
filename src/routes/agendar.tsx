@@ -47,6 +47,14 @@ function AgendarPage() {
     queryFn: () => getAgendaOverrides({ data: { year, month: month + 1 } }),
   });
 
+  const settingsQ = useQuery({
+    queryKey: ["public-contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
+  const waPhone = settingsQ.data?.whatsapp_phone || BOOKING_PHONE;
+  const igUrl = settingsQ.data?.instagram_url || INSTAGRAM_URL;
+
+
   const slotsPerDay = generateDailySlots().length;
 
   const bookedByDate = useMemo(() => {
