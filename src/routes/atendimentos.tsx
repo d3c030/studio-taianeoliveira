@@ -176,8 +176,10 @@ function AtendimentosPage() {
               toast.success("Atendimento adicionado");
             }
             invalidate();
-          } catch (e) {
-            toast.error("Erro ao guardar");
+          } catch (e: any) {
+            const msg = e?.message || e?.error_description || "Erro desconhecido";
+            toast.error(`Erro ao guardar: ${msg}`);
+            console.error("[atendimento save]", e);
             throw e;
           }
         }}
