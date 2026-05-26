@@ -603,3 +603,170 @@ function Dashboard() {
     </div>
   );
 }
+
+function ReceivableDialog({
+  appointment,
+  onOpenChange,
+  onSaved,
+}: {
+  appointment: Appointment | null;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const open = !!appointment;
+  const [amount, setAmount] = useState("0");
+  const [paid, setPaid] = useState("");
+  const [method, setMethod] = useState<string>("Pix");
+  const [saving, setSaving] = useState(false);
+
+  useMemo(() => {
+    if (appointment) {
+      setAmount(String(Number(appointment.amount || 0).toFixed(2)));
+      setPaid("");
+      setMethod("Pix");
+    }
+  }, [appointment]);
+
+  if (!appointment) {
+    return (
+      <Dialog open={false} onOpenChange={onOpenChange}>
+        <DialogContent />
+      </Dialog>
+    );
+  }
+
+  const parsedAmount = Number(amount.replace(",", ".")) || 0;
+  const parsedPaid = Number(paid.replace(",", ".")) || 0;
+  const remaining = Math.max(0, parsedAmount - parsedPaid);
+  const willClose = parsedPaid > 0 && remaining <= 0;
+
+  const updateAmount = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ amount: parsedAmount })
+        .eq("id", appointment.id);
+      if (error) throw error;
+      toast.success("Valor atualizado");
+      onSaved();
+      onOpenChange(false);
+    } catch {
+      toast.error("Erro ao atualizar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const registerPayment = async () => {
+    if (parsedPaid <= 0) {
+      toast.error("Informe o valor recebido");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (willClose) {
+        // fully paid → mark as concluído with the chosen method
+        const { error } = await supabase
+          .from("appointments")
+          .update({
+            amount: parsedAmount,
+            payment_method: method,
+            status: "concluido",
+          })
+          .eq("id", appointment.id);
+        if (error) throw error;
+        toast.success("Pagamento registrado e quitado");
+      } else {
+        // partial → reduce remaining balance, keep as A Receber
+        const { error } = await supabase
+          .from("appointments")
+          .update({ amount: remaining })
+          .eq("id", appointment.id);
+        if (error) throw error;
+        toast.success(`Recebido ${formatBRL(parsedPaid)} · restam ${formatBRL(remaining)}`);
+      }
+      onSaved();
+      onOpenChange(false);
+    } catch {
+      toast.error("Erro ao registrar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">{appointment.client_name}</DialogTitle>
+          <DialogDescription>
+            {appointment.procedure ?? "Atendimento"} · {formatDateBR(appointment.date)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="rcv-amount">Valor devido</Label>
+            <Input
+              id="rcv-amount"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Edite caso precise corrigir o valor total.</p>
+          </div>
+
+          <div className="border-t border-border/70 pt-4 grid gap-3">
+            <div className="text-sm font-medium">Registrar pagamento</div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="rcv-paid">Valor recebido</Label>
+                <Input
+                  id="rcv-paid"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={paid}
+                  onChange={(e) => setPaid(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="rcv-method">Forma de pagamento</Label>
+                <Select value={method} onValueChange={setMethod}>
+                  <SelectTrigger id="rcv-method">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHODS.filter((p) => p !== "A Receber").map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {parsedPaid > 0 && (
+              <div className="rounded-md bg-secondary/60 px-3 py-2 text-xs flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {willClose ? "Quitação total" : "Restará pendente"}
+                </span>
+                <span className="font-medium tabular-nums">
+                  {willClose ? formatBRL(parsedPaid) : formatBRL(remaining)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={updateAmount} disabled={saving}>
+            Salvar valor
+          </Button>
+          <Button onClick={registerPayment} disabled={saving || parsedPaid <= 0}>
+            {willClose ? "Quitar" : "Receber parcial"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
