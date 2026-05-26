@@ -123,6 +123,17 @@ function Dashboard() {
   const maxPay = Math.max(1, ...byPayment.map(([, v]) => v));
   const total = apptsQ.data?.length ?? 0;
 
+  const procedureCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    (apptsQ.data ?? []).forEach((a) => {
+      if (a.status === "cancelado") return;
+      const name = (a.procedure ?? "").trim() || "Sem procedimento";
+      map.set(name, (map.get(name) ?? 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [apptsQ.data]);
+  const totalProcedures = procedureCounts.reduce((s, [, n]) => s + n, 0);
+
   const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
   const isCurrentMonth =
     year === now.getFullYear() && monthIdx === now.getMonth();
@@ -396,6 +407,49 @@ function Dashboard() {
                 );
               })}
             </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ClipboardList className="h-4 w-4 text-primary" />
+            Procedimentos realizados no mês
+          </CardTitle>
+          <span className="text-xs text-muted-foreground">
+            Para reposição de mercadoria · {totalProcedures} no total
+          </span>
+        </CardHeader>
+        <CardContent>
+          {procedureCounts.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Sem procedimentos realizados neste mês.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/70 text-left text-xs uppercase text-muted-foreground">
+                    <th className="py-2 font-medium">Procedimento</th>
+                    <th className="py-2 font-medium text-right w-24">Quantidade</th>
+                    <th className="py-2 font-medium text-right w-20">%</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/70">
+                  {procedureCounts.map(([name, count]) => {
+                    const pct = totalProcedures > 0 ? (count / totalProcedures) * 100 : 0;
+                    return (
+                      <tr key={name}>
+                        <td className="py-2.5">{name}</td>
+                        <td className="py-2.5 text-right tabular-nums font-medium">{count}</td>
+                        <td className="py-2.5 text-right tabular-nums text-muted-foreground">{pct.toFixed(1)}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardContent>
       </Card>
