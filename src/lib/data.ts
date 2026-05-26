@@ -1,5 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type AppointmentStatus = "a_fazer" | "concluido" | "cancelado";
+
+export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = {
+  a_fazer: "A fazer",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
 export type Appointment = {
   id: string;
   date: string; // YYYY-MM-DD
@@ -10,6 +18,7 @@ export type Appointment = {
   payment_method: string | null;
   amount: number;
   notes: string | null;
+  status: AppointmentStatus;
   created_at: string;
 };
 
