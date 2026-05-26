@@ -1,23 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil, CheckCircle2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil, CheckCircle2, HandCoins } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
 } from "recharts";
 import {
   fetchAppointments, fetchExpenses, fetchUpcomingAppointments,
   fetchDistinctProcedures, updateAppointment, updateAppointmentStatus,
-  deleteAppointment, APPOINTMENT_STATUS_LABEL,
+  deleteAppointment, fetchReceivables, APPOINTMENT_STATUS_LABEL,
   type Appointment, type AppointmentStatus,
 } from "@/lib/data";
-import { formatBRL, PAYMENT_METHODS } from "@/lib/format";
+import { formatBRL, formatDateBR, PAYMENT_METHODS } from "@/lib/format";
 import { MonthPicker } from "@/components/MonthPicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { CheckoutSheet } from "@/components/CheckoutSheet";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -82,12 +88,18 @@ function Dashboard() {
     queryKey: ["procedures"],
     queryFn: fetchDistinctProcedures,
   });
+  const receivablesQ = useQuery({
+    queryKey: ["receivables"],
+    queryFn: fetchReceivables,
+  });
+  const [editingReceivable, setEditingReceivable] = useState<Appointment | null>(null);
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["appts"] });
     qc.invalidateQueries({ queryKey: ["appts-upcoming"] });
     qc.invalidateQueries({ queryKey: ["procedures"] });
     qc.invalidateQueries({ queryKey: ["clients"] });
+    qc.invalidateQueries({ queryKey: ["receivables"] });
   };
 
   const handleStatusChange = async (id: string, status: AppointmentStatus) => {
@@ -290,7 +302,7 @@ function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           icon={TrendingUp}
           label="Faturamento Bruto"
@@ -311,6 +323,13 @@ function Dashboard() {
           value={formatBRL(liquido)}
           accent={liquido >= 0 ? "success" : "destructive"}
           hint="Bruto − Custos"
+        />
+        <StatCard
+          icon={HandCoins}
+          label="A Receber"
+          value={formatBRL((receivablesQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+          accent="primary"
+          hint={`${receivablesQ.data?.length ?? 0} cliente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"} pendente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"}`}
         />
       </div>
 
@@ -486,6 +505,64 @@ function Dashboard() {
         </CardContent>
       </Card>
 
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <HandCoins className="h-4 w-4 text-primary" />
+            A Receber
+          </CardTitle>
+          <span className="text-xs text-muted-foreground">
+            Total: <span className="font-medium text-foreground tabular-nums">
+              {formatBRL((receivablesQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+            </span>
+          </span>
+        </CardHeader>
+        <CardContent>
+          {receivablesQ.isLoading ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">Carregando…</p>
+          ) : (receivablesQ.data?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Nenhum valor pendente. 🎉
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/70">
+              {(receivablesQ.data ?? []).map((a) => (
+                <li key={a.id} className="py-3 flex items-center gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium uppercase">
+                    {a.client_name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{a.client_name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {a.procedure ?? "Atendimento"} · {formatDateBR(a.date)}
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold tabular-nums shrink-0">
+                    {formatBRL(Number(a.amount))}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 shrink-0"
+                    onClick={() => setEditingReceivable(a)}
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Atualizar
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <ReceivableDialog
+        appointment={editingReceivable}
+        onOpenChange={(o: boolean) => !o && setEditingReceivable(null)}
+        onSaved={invalidateAll}
+      />
+
+
       <AppointmentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -524,5 +601,172 @@ function Dashboard() {
         onCompleted={invalidateAll}
       />
     </div>
+  );
+}
+
+function ReceivableDialog({
+  appointment,
+  onOpenChange,
+  onSaved,
+}: {
+  appointment: Appointment | null;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const open = !!appointment;
+  const [amount, setAmount] = useState("0");
+  const [paid, setPaid] = useState("");
+  const [method, setMethod] = useState<string>("Pix");
+  const [saving, setSaving] = useState(false);
+
+  useMemo(() => {
+    if (appointment) {
+      setAmount(String(Number(appointment.amount || 0).toFixed(2)));
+      setPaid("");
+      setMethod("Pix");
+    }
+  }, [appointment]);
+
+  if (!appointment) {
+    return (
+      <Dialog open={false} onOpenChange={onOpenChange}>
+        <DialogContent />
+      </Dialog>
+    );
+  }
+
+  const parsedAmount = Number(amount.replace(",", ".")) || 0;
+  const parsedPaid = Number(paid.replace(",", ".")) || 0;
+  const remaining = Math.max(0, parsedAmount - parsedPaid);
+  const willClose = parsedPaid > 0 && remaining <= 0;
+
+  const updateAmount = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ amount: parsedAmount })
+        .eq("id", appointment.id);
+      if (error) throw error;
+      toast.success("Valor atualizado");
+      onSaved();
+      onOpenChange(false);
+    } catch {
+      toast.error("Erro ao atualizar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const registerPayment = async () => {
+    if (parsedPaid <= 0) {
+      toast.error("Informe o valor recebido");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (willClose) {
+        // fully paid → mark as concluído with the chosen method
+        const { error } = await supabase
+          .from("appointments")
+          .update({
+            amount: parsedAmount,
+            payment_method: method,
+            status: "concluido",
+          })
+          .eq("id", appointment.id);
+        if (error) throw error;
+        toast.success("Pagamento registrado e quitado");
+      } else {
+        // partial → reduce remaining balance, keep as A Receber
+        const { error } = await supabase
+          .from("appointments")
+          .update({ amount: remaining })
+          .eq("id", appointment.id);
+        if (error) throw error;
+        toast.success(`Recebido ${formatBRL(parsedPaid)} · restam ${formatBRL(remaining)}`);
+      }
+      onSaved();
+      onOpenChange(false);
+    } catch {
+      toast.error("Erro ao registrar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">{appointment.client_name}</DialogTitle>
+          <DialogDescription>
+            {appointment.procedure ?? "Atendimento"} · {formatDateBR(appointment.date)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="rcv-amount">Valor devido</Label>
+            <Input
+              id="rcv-amount"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Edite caso precise corrigir o valor total.</p>
+          </div>
+
+          <div className="border-t border-border/70 pt-4 grid gap-3">
+            <div className="text-sm font-medium">Registrar pagamento</div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="rcv-paid">Valor recebido</Label>
+                <Input
+                  id="rcv-paid"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={paid}
+                  onChange={(e) => setPaid(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="rcv-method">Forma de pagamento</Label>
+                <Select value={method} onValueChange={setMethod}>
+                  <SelectTrigger id="rcv-method">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHODS.filter((p) => p !== "A Receber").map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {parsedPaid > 0 && (
+              <div className="rounded-md bg-secondary/60 px-3 py-2 text-xs flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {willClose ? "Quitação total" : "Restará pendente"}
+                </span>
+                <span className="font-medium tabular-nums">
+                  {willClose ? formatBRL(parsedPaid) : formatBRL(remaining)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={updateAmount} disabled={saving}>
+            Salvar valor
+          </Button>
+          <Button onClick={registerPayment} disabled={saving || parsedPaid <= 0}>
+            {willClose ? "Quitar" : "Receber parcial"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
