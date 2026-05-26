@@ -3,18 +3,14 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search } from "lucide-react";
 import {
-  fetchAppointments, fetchDistinctProcedures, createAppointment,
+  fetchAppointmentsRange, fetchDistinctProcedures, createAppointment,
   updateAppointment, deleteAppointment, type Appointment,
 } from "@/lib/data";
-import { formatBRL, formatDateBR, weekdayBR } from "@/lib/format";
-import { MonthPicker } from "@/components/MonthPicker";
+import { formatBRL } from "@/lib/format";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
-import { CheckoutSheet } from "@/components/CheckoutSheet";
+import { AppointmentsCalendar } from "@/components/AppointmentsCalendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/atendimentos")({
@@ -22,20 +18,44 @@ export const Route = createFileRoute("/atendimentos")({
   component: AtendimentosPage,
 });
 
+type ViewMode = "month" | "week" | "day";
+
+const toISO = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const addDays = (d: Date, n: number) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
+const startOfWeek = (d: Date) => addDays(d, -d.getDay());
+
+function rangeFor(view: ViewMode, cursor: Date): { start: string; end: string } {
+  if (view === "day") {
+    const iso = toISO(cursor);
+    return { start: iso, end: iso };
+  }
+  if (view === "week") {
+    const s = startOfWeek(cursor);
+    return { start: toISO(s), end: toISO(addDays(s, 6)) };
+  }
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+  const last = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
+  return { start: toISO(startOfWeek(first)), end: toISO(addDays(startOfWeek(last), 6)) };
+}
+
 function AtendimentosPage() {
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [monthIdx, setMonthIdx] = useState(now.getMonth());
+  const [cursor, setCursor] = useState<Date>(new Date());
+  const [view, setView] = useState<ViewMode>("month");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Appointment | null>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [checkoutAppt, setCheckoutAppt] = useState<Appointment | null>(null);
 
   const qc = useQueryClient();
+  const { start, end } = rangeFor(view, cursor);
+
   const apptsQ = useQuery({
-    queryKey: ["appts", year, monthIdx],
-    queryFn: () => fetchAppointments(year, monthIdx),
+    queryKey: ["appts-range", start, end],
+    queryFn: () => fetchAppointmentsRange(start, end),
   });
   const procsQ = useQuery({
     queryKey: ["procedures"],
@@ -49,135 +69,88 @@ function AtendimentosPage() {
     return list.filter(
       (a) =>
         a.client_name.toLowerCase().includes(q) ||
-        (a.procedure ?? "").toLowerCase().includes(q)
+        (a.procedure ?? "").toLowerCase().includes(q),
     );
   }, [apptsQ.data, search]);
 
-  const grouped = useMemo(() => {
-    const byDate = new Map<string, Appointment[]>();
-    filtered.forEach((a) => {
-      const arr = byDate.get(a.date) ?? [];
-      arr.push(a);
-      byDate.set(a.date, arr);
-    });
-    return [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [filtered]);
+  const total = useMemo(
+    () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0),
+    [apptsQ.data],
+  );
 
   const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["appts-range"] });
     qc.invalidateQueries({ queryKey: ["appts"] });
     qc.invalidateQueries({ queryKey: ["procedures"] });
     qc.invalidateQueries({ queryKey: ["clients"] });
     qc.invalidateQueries({ queryKey: ["clients-stats"] });
   };
 
+  const handleMove = async (a: Appointment, newDate: string) => {
+    try {
+      await updateAppointment(a.id, {
+        date: newDate,
+        time: a.time,
+        client_name: a.client_name,
+        client_id: a.client_id,
+        procedure: a.procedure,
+        payment_method: a.payment_method,
+        amount: Number(a.amount),
+        subtotal: Number(a.subtotal),
+        discount: Number(a.discount),
+        notes: a.notes,
+        status: a.status,
+      });
+      toast.success("Atendimento remanejado");
+      invalidate();
+    } catch {
+      toast.error("Erro ao mover");
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-display text-3xl sm:text-4xl">Atendimentos</h2>
           <p className="text-sm text-muted-foreground">
-            {apptsQ.data?.length ?? 0} no mês · {formatBRL(
-              (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0)
-            )}
+            {apptsQ.data?.length ?? 0} no período · {formatBRL(total)}
           </p>
-        </div>
-        <MonthPicker
-          year={year}
-          monthIdx={monthIdx}
-          onChange={(y, m) => { setYear(y); setMonthIdx(m); }}
-        />
-      </div>
-
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Procurar por cliente ou procedimento"
-            className="pl-9 bg-card"
-          />
         </div>
         <Button
           onClick={() => { setEditing(null); setDialogOpen(true); }}
           className="hidden sm:inline-flex"
         >
-          <Plus className="h-4 w-4 mr-1" /> Novo
+          <Plus className="h-4 w-4 mr-1" /> Novo atendimento
         </Button>
       </div>
 
-      {apptsQ.isLoading ? (
-        <p className="text-sm text-muted-foreground py-10 text-center">A carregar...</p>
-      ) : grouped.length === 0 ? (
-        <Card className="p-10 text-center text-muted-foreground">
-          Sem atendimentos neste mês.
-        </Card>
-      ) : (
-        <div className="space-y-5">
-          {grouped.map(([date, items]) => {
-            const total = items.reduce((s, a) => s + Number(a.amount || 0), 0);
-            return (
-              <section key={date}>
-                <div className="flex items-baseline justify-between mb-2 px-1">
-                  <h3 className="text-sm font-medium">
-                    {formatDateBR(date)}
-                    <span className="text-muted-foreground ml-2 capitalize text-xs">
-                      {weekdayBR(date)}
-                    </span>
-                  </h3>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {formatBRL(total)}
-                  </span>
-                </div>
-                <Card className="divide-y divide-border/70 overflow-hidden">
-                  {items.map((a) => (
-                    <div
-                      key={a.id}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors"
-                    >
-                      <button
-                        onClick={() => { setCheckoutAppt(a); setCheckoutOpen(true); }}
-                        className="flex-1 flex items-center gap-3 text-left min-w-0"
-                      >
-                        <div className="w-12 shrink-0 text-sm font-medium tabular-nums text-primary">
-                          {a.time?.slice(0, 5) ?? "--:--"}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">{a.client_name}</div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {a.procedure || "—"}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-sm font-semibold tabular-nums">
-                            {formatBRL(Number(a.amount))}
-                          </span>
-                          {a.payment_method && (
-                            <Badge
-                              variant={a.status === "concluido" ? "default" : "secondary"}
-                              className="text-[10px] font-normal"
-                            >
-                              {a.status === "concluido" && <CheckCircle2 className="h-3 w-3 mr-0.5" />}
-                              {a.payment_method}
-                            </Badge>
-                          )}
-                        </div>
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setEditing(a); setDialogOpen(true); }}
-                        className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground flex items-center justify-center"
-                        aria-label="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </Card>
-              </section>
-            );
-          })}
-        </div>
-      )}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Procurar por cliente ou procedimento"
+          className="pl-9 bg-card"
+        />
+      </div>
+
+      <AppointmentsCalendar
+        appointments={filtered}
+        cursor={cursor}
+        onCursorChange={setCursor}
+        view={view}
+        onViewChange={setView}
+        onCardClick={(a) => { setEditing(a); setDialogOpen(true); }}
+        onMove={handleMove}
+      />
+
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <LegendDot className="bg-card border-primary/40" /> Agendado
+        <LegendDot className="bg-accent/70 border-accent" /> A Receber
+        <LegendDot className="bg-success/20 border-success/50" /> Concluído
+        <LegendDot className="bg-muted/70 border-border" /> Cancelado
+      </div>
 
       {/* Floating add button (mobile) */}
       <Button
@@ -222,13 +195,10 @@ function AtendimentosPage() {
             : undefined
         }
       />
-
-      <CheckoutSheet
-        open={checkoutOpen}
-        onOpenChange={setCheckoutOpen}
-        appointment={checkoutAppt}
-        onCompleted={invalidate}
-      />
     </div>
   );
+}
+
+function LegendDot({ className }: { className: string }) {
+  return <span className={`inline-block h-3 w-3 rounded-sm border ${className}`} />;
 }
