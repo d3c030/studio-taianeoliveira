@@ -212,7 +212,7 @@ function AgendarPage() {
               const message = encodeURIComponent(
                 `Olá! Gostaria de agendar um horário para o dia ${dateLabel}.`,
               );
-              const waUrl = `https://wa.me/${BOOKING_PHONE}?text=${message}`;
+              const waUrl = `https://wa.me/${waPhone}?text=${message}`;
               return (
                 <a
                   key={i}
@@ -255,7 +255,7 @@ function AgendarPage() {
             Inspire-se em <span className="italic">@studiotaianeoliveira</span>
           </p>
           <a
-            href={INSTAGRAM_URL}
+            href={igUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
