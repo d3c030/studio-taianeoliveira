@@ -17,6 +17,7 @@ export type Database = {
       appointments: {
         Row: {
           amount: number
+          client_id: string | null
           client_name: string
           created_at: string
           date: string
@@ -28,6 +29,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          client_id?: string | null
           client_name: string
           created_at?: string
           date: string
@@ -39,6 +41,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          client_id?: string | null
           client_name?: string
           created_at?: string
           date?: string
@@ -47,6 +50,44 @@ export type Database = {
           payment_method?: string | null
           procedure?: string | null
           time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          normalized_name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          normalized_name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          normalized_name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -91,7 +132,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      normalize_client_name: { Args: { _name: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
