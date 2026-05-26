@@ -48,11 +48,13 @@ export type Database = {
           client_name: string
           created_at: string
           date: string
+          discount: number
           id: string
           notes: string | null
           payment_method: string | null
           procedure: string | null
           status: string
+          subtotal: number
           time: string | null
         }
         Insert: {
@@ -61,11 +63,13 @@ export type Database = {
           client_name: string
           created_at?: string
           date: string
+          discount?: number
           id?: string
           notes?: string | null
           payment_method?: string | null
           procedure?: string | null
           status?: string
+          subtotal?: number
           time?: string | null
         }
         Update: {
@@ -74,11 +78,13 @@ export type Database = {
           client_name?: string
           created_at?: string
           date?: string
+          discount?: number
           id?: string
           notes?: string | null
           payment_method?: string | null
           procedure?: string | null
           status?: string
+          subtotal?: number
           time?: string | null
         }
         Relationships: [
@@ -127,6 +133,8 @@ export type Database = {
           id: string
           instagram_url: string
           logo_url: string
+          pix_copia_cola: string
+          pix_key: string
           theme: string
           updated_at: string
           whatsapp_phone: string
@@ -136,6 +144,8 @@ export type Database = {
           id?: string
           instagram_url?: string
           logo_url?: string
+          pix_copia_cola?: string
+          pix_key?: string
           theme?: string
           updated_at?: string
           whatsapp_phone?: string
@@ -145,6 +155,8 @@ export type Database = {
           id?: string
           instagram_url?: string
           logo_url?: string
+          pix_copia_cola?: string
+          pix_key?: string
           theme?: string
           updated_at?: string
           whatsapp_phone?: string
