@@ -15,6 +15,7 @@ import { Route as CustosRouteImport } from './routes/custos'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as AgendarRouteImport } from './routes/agendar'
+import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 
@@ -48,6 +49,11 @@ const AgendarRoute = AgendarRouteImport.update({
   path: '/agendar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const AgendarDateRoute = AgendarDateRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agenda'
     | '/agendar'
     | '/atendimentos'
     | '/clientes'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agenda'
     | '/agendar'
     | '/atendimentos'
     | '/clientes'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/agenda'
     | '/agendar'
     | '/atendimentos'
     | '/clientes'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendaRoute: typeof AgendaRoute
   AgendarRoute: typeof AgendarRouteWithChildren
   AtendimentosRoute: typeof AtendimentosRoute
   ClientesRoute: typeof ClientesRoute
@@ -177,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -207,6 +227,7 @@ const AgendarRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendaRoute: AgendaRoute,
   AgendarRoute: AgendarRouteWithChildren,
   AtendimentosRoute: AtendimentosRoute,
   ClientesRoute: ClientesRoute,

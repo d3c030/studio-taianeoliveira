@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_days: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_open: boolean
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_open: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_open?: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           amount: number

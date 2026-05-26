@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Instagram, Sparkles } from "lucide-react";
-import { getBookedSlots } from "@/lib/public-booking.functions";
+import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
 import {
   generateDailySlots,
   isClosedDay,
@@ -41,6 +41,11 @@ function AgendarPage() {
     queryFn: () => getBookedSlots({ data: { year, month: month + 1 } }),
   });
 
+  const overridesQ = useQuery({
+    queryKey: ["public-agenda-overrides", year, month],
+    queryFn: () => getAgendaOverrides({ data: { year, month: month + 1 } }),
+  });
+
   const slotsPerDay = generateDailySlots().length;
 
   const bookedByDate = useMemo(() => {
@@ -54,6 +59,12 @@ function AgendarPage() {
     });
     return map;
   }, [bookedQ.data]);
+
+  const overridesByDate = useMemo(() => {
+    const m = new Map<string, boolean>();
+    (overridesQ.data ?? []).forEach((o) => m.set(o.date, o.is_open));
+    return m;
+  }, [overridesQ.data]);
 
   // Build calendar grid
   const firstOfMonth = new Date(year, month, 1);
@@ -84,8 +95,11 @@ function AgendarPage() {
 
   const getDayStatus = (d: Date) => {
     if (isPast(d)) return "past" as const;
-    if (isClosedDay(d)) return "closed" as const;
-    const taken = bookedByDate.get(isoFromDate(d))?.size ?? 0;
+    const iso = isoFromDate(d);
+    const ov = overridesByDate.get(iso);
+    const isOpen = ov !== undefined ? ov : !isClosedDay(d);
+    if (!isOpen) return "closed" as const;
+    const taken = bookedByDate.get(iso)?.size ?? 0;
     if (taken >= slotsPerDay) return "full" as const;
     return "open" as const;
   };
