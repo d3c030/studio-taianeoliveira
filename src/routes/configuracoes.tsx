@@ -60,6 +60,7 @@ function ConfiguracoesPage() {
       setTheme(q.data.theme ?? "rosa");
       setPixKey(q.data.pix_key ?? "");
       setPixCopiaCola(q.data.pix_copia_cola ?? "");
+      setPixQrUrl(q.data.pix_qr_url ?? "");
     }
   }, [q.data]);
 
