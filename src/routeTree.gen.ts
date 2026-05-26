@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CustosRouteImport } from './routes/custos'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as AgendarRouteImport } from './routes/agendar'
@@ -32,6 +33,11 @@ const LoginRoute = LoginRouteImport.update({
 const CustosRoute = CustosRouteImport.update({
   id: '/custos',
   path: '/custos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesRoute = ClientesRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/usuarios': typeof UsuariosRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/usuarios': typeof UsuariosRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/usuarios': typeof UsuariosRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/agendar'
     | '/atendimentos'
     | '/clientes'
+    | '/configuracoes'
     | '/custos'
     | '/login'
     | '/usuarios'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/agendar'
     | '/atendimentos'
     | '/clientes'
+    | '/configuracoes'
     | '/custos'
     | '/login'
     | '/usuarios'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/agendar'
     | '/atendimentos'
     | '/clientes'
+    | '/configuracoes'
     | '/custos'
     | '/login'
     | '/usuarios'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   AgendarRoute: typeof AgendarRouteWithChildren
   AtendimentosRoute: typeof AtendimentosRoute
   ClientesRoute: typeof ClientesRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
   CustosRoute: typeof CustosRoute
   LoginRoute: typeof LoginRoute
   UsuariosRoute: typeof UsuariosRoute
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/custos'
       fullPath: '/custos'
       preLoaderRoute: typeof CustosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes': {
@@ -231,6 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendarRoute: AgendarRouteWithChildren,
   AtendimentosRoute: AtendimentosRoute,
   ClientesRoute: ClientesRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
   CustosRoute: CustosRoute,
   LoginRoute: LoginRoute,
   UsuariosRoute: UsuariosRoute,
@@ -238,3 +259,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
