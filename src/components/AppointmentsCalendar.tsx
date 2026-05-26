@@ -332,7 +332,7 @@ export function AppointmentsCalendar({
         </div>
 
         {view === "month" && (
-          <div className="grid grid-cols-7 gap-px text-xs text-muted-foreground">
+          <div className="hidden sm:grid grid-cols-7 gap-px text-xs text-muted-foreground">
             {WEEKDAYS.map((w) => (
               <div key={w} className="px-2 py-1 text-center font-medium">
                 {w}
@@ -341,12 +341,64 @@ export function AppointmentsCalendar({
           </div>
         )}
 
+        {/* Mobile agenda view for month — avoids cramped 7-col grid */}
+        {view === "month" && (
+          <div className="sm:hidden flex flex-col gap-2">
+            {days
+              .filter((d) => d.getMonth() === cursor.getMonth())
+              .map((d) => {
+                const iso = toISO(d);
+                const items = byDate.get(iso) ?? [];
+                if (items.length === 0) return null;
+                const total = items.reduce((s, a) => s + Number(a.amount || 0), 0);
+                return (
+                  <div
+                    key={iso}
+                    className={cn(
+                      "rounded-lg border bg-card/60 p-2",
+                      iso === todayISO && "ring-1 ring-primary/40",
+                    )}
+                  >
+                    <div className="flex items-baseline justify-between mb-1.5 px-1">
+                      <span className="text-sm font-semibold capitalize">
+                        {d.toLocaleDateString("pt-BR", {
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {formatBRL(total)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {items.map((a) => (
+                        <AppointmentCard
+                          key={a.id}
+                          a={a}
+                          onClick={() => onCardClick(a)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            {days.filter(
+              (d) => d.getMonth() === cursor.getMonth() && (byDate.get(toISO(d)) ?? []).length > 0,
+            ).length === 0 && (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                Nenhum atendimento neste mês.
+              </p>
+            )}
+          </div>
+        )}
+
         <div
           className={cn(
-            "grid gap-px rounded-lg overflow-hidden bg-border/60",
-            view === "month" && "grid-cols-7",
-            view === "week" && "grid-cols-1 sm:grid-cols-7",
-            view === "day" && "grid-cols-1",
+            "gap-px rounded-lg overflow-hidden bg-border/60",
+            view === "month" && "hidden sm:grid grid-cols-7",
+            view === "week" && "grid grid-cols-1 sm:grid-cols-7",
+            view === "day" && "grid grid-cols-1",
           )}
         >
           {days.map((d) => {
