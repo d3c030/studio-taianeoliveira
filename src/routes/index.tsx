@@ -422,7 +422,7 @@ function Dashboard() {
             Procedimentos realizados no mês
           </CardTitle>
           <span className="text-xs text-muted-foreground">
-            Para reposição de mercadoria · {totalProcedures} no total
+            Para reposição de mercadoria · {totalProcedures} no total · {formatBRL(totalProceduresValue)}
           </span>
         </CardHeader>
         <CardContent>
@@ -437,20 +437,28 @@ function Dashboard() {
                   <tr className="border-b border-border/70 text-left text-xs uppercase text-muted-foreground">
                     <th className="py-2 font-medium">Procedimento</th>
                     <th className="py-2 font-medium text-right w-24">Quantidade</th>
+                    <th className="py-2 font-medium text-right w-32">Valor</th>
                     <th className="py-2 font-medium text-right w-20">%</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/70">
-                  {procedureCounts.map(([name, count]) => {
+                  {procedureCounts.map(([name, { count, total: valueTotal }]) => {
                     const pct = totalProcedures > 0 ? (count / totalProcedures) * 100 : 0;
                     return (
                       <tr key={name}>
                         <td className="py-2.5">{name}</td>
                         <td className="py-2.5 text-right tabular-nums font-medium">{count}</td>
+                        <td className="py-2.5 text-right tabular-nums">{formatBRL(valueTotal)}</td>
                         <td className="py-2.5 text-right tabular-nums text-muted-foreground">{pct.toFixed(1)}%</td>
                       </tr>
                     );
                   })}
+                  <tr className="border-t-2 border-border font-medium">
+                    <td className="py-2.5">Total</td>
+                    <td className="py-2.5 text-right tabular-nums">{totalProcedures}</td>
+                    <td className="py-2.5 text-right tabular-nums">{formatBRL(totalProceduresValue)}</td>
+                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">100%</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
