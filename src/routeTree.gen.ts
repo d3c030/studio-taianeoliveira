@@ -10,9 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CustosRouteImport } from './routes/custos'
-import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
@@ -26,6 +26,11 @@ const UsuariosRoute = UsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProcedimentosRoute = ProcedimentosRouteImport.update({
+  id: '/procedimentos',
+  path: '/procedimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -34,11 +39,6 @@ const LoginRoute = LoginRouteImport.update({
 const CustosRoute = CustosRouteImport.update({
   id: '/custos',
   path: '/custos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProcedimentosRoute = ProcedimentosRouteImport.update({
-  id: '/procedimentos',
-  path: '/procedimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
@@ -84,9 +84,9 @@ export interface FileRoutesByFullPath {
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/procedimentos': typeof ProcedimentosRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
+  '/procedimentos': typeof ProcedimentosRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
 }
@@ -97,9 +97,9 @@ export interface FileRoutesByTo {
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/procedimentos': typeof ProcedimentosRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
+  '/procedimentos': typeof ProcedimentosRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
 }
@@ -111,9 +111,9 @@ export interface FileRoutesById {
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/procedimentos': typeof ProcedimentosRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
+  '/procedimentos': typeof ProcedimentosRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
 }
@@ -126,9 +126,9 @@ export interface FileRouteTypes {
     | '/atendimentos'
     | '/clientes'
     | '/configuracoes'
-    | '/procedimentos'
     | '/custos'
     | '/login'
+    | '/procedimentos'
     | '/usuarios'
     | '/agendar/$date'
   fileRoutesByTo: FileRoutesByTo
@@ -139,9 +139,9 @@ export interface FileRouteTypes {
     | '/atendimentos'
     | '/clientes'
     | '/configuracoes'
-    | '/procedimentos'
     | '/custos'
     | '/login'
+    | '/procedimentos'
     | '/usuarios'
     | '/agendar/$date'
   id:
@@ -152,9 +152,9 @@ export interface FileRouteTypes {
     | '/atendimentos'
     | '/clientes'
     | '/configuracoes'
-    | '/procedimentos'
     | '/custos'
     | '/login'
+    | '/procedimentos'
     | '/usuarios'
     | '/agendar/$date'
   fileRoutesById: FileRoutesById
@@ -166,9 +166,9 @@ export interface RootRouteChildren {
   AtendimentosRoute: typeof AtendimentosRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
-  ProcedimentosRoute: typeof ProcedimentosRoute
   CustosRoute: typeof CustosRoute
   LoginRoute: typeof LoginRoute
+  ProcedimentosRoute: typeof ProcedimentosRoute
   UsuariosRoute: typeof UsuariosRoute
 }
 
@@ -179,6 +179,13 @@ declare module '@tanstack/react-router' {
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/procedimentos': {
+      id: '/procedimentos'
+      path: '/procedimentos'
+      fullPath: '/procedimentos'
+      preLoaderRoute: typeof ProcedimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -193,13 +200,6 @@ declare module '@tanstack/react-router' {
       path: '/custos'
       fullPath: '/custos'
       preLoaderRoute: typeof CustosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/procedimentos': {
-      id: '/procedimentos'
-      path: '/procedimentos'
-      fullPath: '/procedimentos'
-      preLoaderRoute: typeof ProcedimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -272,9 +272,9 @@ const rootRouteChildren: RootRouteChildren = {
   AtendimentosRoute: AtendimentosRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
-  ProcedimentosRoute: ProcedimentosRoute,
   CustosRoute: CustosRoute,
   LoginRoute: LoginRoute,
+  ProcedimentosRoute: ProcedimentosRoute,
   UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport
