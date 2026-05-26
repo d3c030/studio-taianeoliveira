@@ -45,6 +45,8 @@ function ConfiguracoesPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [theme, setTheme] = useState<ThemeName>("rosa");
+  const [pixKey, setPixKey] = useState("");
+  const [pixCopiaCola, setPixCopiaCola] = useState("");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -53,6 +55,8 @@ function ConfiguracoesPage() {
       setWhatsapp(q.data.whatsapp_phone ?? "");
       setLogoUrl(q.data.logo_url ?? "");
       setTheme(q.data.theme ?? "rosa");
+      setPixKey(q.data.pix_key ?? "");
+      setPixCopiaCola(q.data.pix_copia_cola ?? "");
     }
   }, [q.data]);
 
@@ -65,6 +69,8 @@ function ConfiguracoesPage() {
           whatsapp_phone: whatsapp.trim(),
           logo_url: (over.logo ?? logoUrl).trim(),
           theme: over.theme ?? theme,
+          pix_key: pixKey.trim(),
+          pix_copia_cola: pixCopiaCola.trim(),
         },
       }),
     onSuccess: () => {
