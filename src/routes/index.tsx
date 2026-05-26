@@ -558,7 +558,7 @@ function Dashboard() {
 
       <ReceivableDialog
         appointment={editingReceivable}
-        onOpenChange={(o) => !o && setEditingReceivable(null)}
+        onOpenChange={(o: boolean) => !o && setEditingReceivable(null)}
         onSaved={invalidateAll}
       />
 
