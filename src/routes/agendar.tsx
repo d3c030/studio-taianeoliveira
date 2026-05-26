@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Instagram, Sparkles } from "lucide-react";
 import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
+import { getContactSettings } from "@/lib/settings.functions";
 import {
   generateDailySlots,
   isClosedDay,
@@ -45,6 +46,14 @@ function AgendarPage() {
     queryKey: ["public-agenda-overrides", year, month],
     queryFn: () => getAgendaOverrides({ data: { year, month: month + 1 } }),
   });
+
+  const settingsQ = useQuery({
+    queryKey: ["public-contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
+  const waPhone = settingsQ.data?.whatsapp_phone || BOOKING_PHONE;
+  const igUrl = settingsQ.data?.instagram_url || INSTAGRAM_URL;
+
 
   const slotsPerDay = generateDailySlots().length;
 
@@ -203,7 +212,7 @@ function AgendarPage() {
               const message = encodeURIComponent(
                 `Olá! Gostaria de agendar um horário para o dia ${dateLabel}.`,
               );
-              const waUrl = `https://wa.me/${BOOKING_PHONE}?text=${message}`;
+              const waUrl = `https://wa.me/${waPhone}?text=${message}`;
               return (
                 <a
                   key={i}
@@ -246,7 +255,7 @@ function AgendarPage() {
             Inspire-se em <span className="italic">@studiotaianeoliveira</span>
           </p>
           <a
-            href={INSTAGRAM_URL}
+            href={igUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"

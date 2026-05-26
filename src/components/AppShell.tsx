@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck } from "lucide-react";
+import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/custos", label: "Custos", icon: Receipt },
   { to: "/usuarios", label: "Usuários", icon: Shield },
+  { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
 export function AppShell() {
@@ -111,11 +112,12 @@ export function AppShell() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur">
-        <div className="grid grid-cols-6">
+        <div className="grid grid-cols-7">
           {navItems.map(({ to, label, icon: Icon }) => {
             const shortLabel =
               label === "Atendimentos" ? "Atend." :
               label === "Usuários" ? "Usuár." :
+              label === "Configurações" ? "Config." :
               label;
             return (
               <Link

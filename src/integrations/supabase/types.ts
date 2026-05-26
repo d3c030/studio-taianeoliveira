@@ -121,6 +121,30 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_settings: {
+        Row: {
+          created_at: string
+          id: string
+          instagram_url: string
+          updated_at: string
+          whatsapp_phone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instagram_url?: string
+          updated_at?: string
+          whatsapp_phone?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instagram_url?: string
+          updated_at?: string
+          whatsapp_phone?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           created_at: string

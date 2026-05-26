@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Instagram, MessageCircle, Clock } from "lucide-react";
 import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
+import { getContactSettings } from "@/lib/settings.functions";
 import {
   generateDailySlots,
   isClosedDay,
@@ -37,6 +38,13 @@ function AgendarDatePage() {
       }),
     enabled: dateValid,
   });
+
+  const settingsQ = useQuery({
+    queryKey: ["public-contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
+  const waPhone = settingsQ.data?.whatsapp_phone || BOOKING_PHONE;
+  const igUrl = settingsQ.data?.instagram_url || INSTAGRAM_URL;
 
   const override = (overridesQ.data ?? []).find((o) => o.date === date);
   const isOpen = override ? override.is_open : !isClosedDay(dateObj);
@@ -90,7 +98,7 @@ function AgendarDatePage() {
 
   const buildWhatsAppUrl = (time: string) => {
     const msg = `Olá, gostaria de agendar um horário no dia ${dayShort} e horário ${time} definido lá no site.`;
-    return `https://wa.me/${BOOKING_PHONE}?text=${encodeURIComponent(msg)}`;
+    return `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
   };
 
   return (
@@ -159,7 +167,7 @@ function AgendarDatePage() {
         <div className="mt-6 rounded-3xl bg-gradient-to-br from-accent/50 to-secondary/60 border border-border p-5 text-center">
           <p className="text-sm text-muted-foreground">Conheça nosso trabalho</p>
           <a
-            href={INSTAGRAM_URL}
+            href={igUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90"
