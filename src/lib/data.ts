@@ -61,6 +61,20 @@ export async function fetchAppointments(year: number, monthIdx: number): Promise
   return (data ?? []) as Appointment[];
 }
 
+export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
+  const today = new Date();
+  const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .gte("date", iso)
+    .order("date", { ascending: true })
+    .order("time", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Appointment[];
+}
+
+
 export async function fetchExpenses(year: number, monthIdx: number): Promise<Expense[]> {
   const { start, end } = monthRange(year, monthIdx);
   const { data, error } = await supabase

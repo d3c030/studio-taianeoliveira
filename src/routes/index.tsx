@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
 } from "recharts";
-import { fetchAppointments, fetchExpenses } from "@/lib/data";
+import { fetchAppointments, fetchExpenses, fetchUpcomingAppointments } from "@/lib/data";
 import { formatBRL, PAYMENT_METHODS } from "@/lib/format";
 import { MonthPicker } from "@/components/MonthPicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +58,10 @@ function Dashboard() {
   const expQ = useQuery({
     queryKey: ["expenses", year, monthIdx],
     queryFn: () => fetchExpenses(year, monthIdx),
+  });
+  const upcomingQ = useQuery({
+    queryKey: ["appts-upcoming"],
+    queryFn: () => fetchUpcomingAppointments(),
   });
 
   const bruto = useMemo(
@@ -156,6 +160,61 @@ function Dashboard() {
           hint="Bruto − Custos"
         />
       </div>
+
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ClipboardList className="h-4 w-4 text-primary" />
+            A fazer
+          </CardTitle>
+          <span className="text-xs text-muted-foreground">
+            {(upcomingQ.data?.length ?? 0)} agendamento{(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"} futuro{(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"}
+          </span>
+        </CardHeader>
+        <CardContent>
+          {upcomingQ.isLoading ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">Carregando…</p>
+          ) : (upcomingQ.data?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Nenhum agendamento futuro. <Link to="/atendimentos" className="text-primary hover:underline">Novo atendimento</Link>
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/70">
+              {(upcomingQ.data ?? []).slice(0, 12).map((a) => {
+                const [y, m, d] = a.date.split("-");
+                const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
+                const dateLabel = dateObj.toLocaleDateString("pt-BR", {
+                  weekday: "short", day: "2-digit", month: "short",
+                });
+                const time = a.time ? String(a.time).slice(0, 5) : null;
+                const isToday = a.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
+                return (
+                  <li key={a.id} className="flex items-center gap-3 py-3">
+                    <div className={`h-10 w-10 rounded-full flex flex-col items-center justify-center text-[10px] font-medium ${isToday ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+                      <span className="leading-none">{dateObj.toLocaleDateString("pt-BR", { day: "2-digit" })}</span>
+                      <span className="leading-none mt-0.5 uppercase opacity-80">{dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{a.client_name}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {a.procedure ?? "Atendimento"} · <span className="capitalize">{dateLabel}</span>
+                        {time && (
+                          <> · <Clock className="inline h-3 w-3 -mt-0.5" /> {time}</>
+                        )}
+                      </div>
+                    </div>
+                    {a.amount > 0 && (
+                      <span className="text-sm tabular-nums text-muted-foreground">{formatBRL(Number(a.amount))}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+
 
       <Card className="border-border/70 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
