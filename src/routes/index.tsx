@@ -59,6 +59,10 @@ function Dashboard() {
     queryKey: ["expenses", year, monthIdx],
     queryFn: () => fetchExpenses(year, monthIdx),
   });
+  const upcomingQ = useQuery({
+    queryKey: ["appts-upcoming"],
+    queryFn: () => fetchUpcomingAppointments(),
+  });
 
   const bruto = useMemo(
     () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0),
