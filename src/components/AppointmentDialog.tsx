@@ -236,7 +236,7 @@ export function AppointmentDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="gap-2 sm:gap-2 sticky bottom-0 -mx-6 -mb-6 px-6 py-3 bg-background border-t border-border">
           {initial && onDelete && (
             <Button
               variant="ghost"
