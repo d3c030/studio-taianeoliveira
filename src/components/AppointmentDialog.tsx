@@ -66,6 +66,7 @@ export function AppointmentDialog({
         payment_method: payment,
         amount: parseFloat(amount.replace(",", ".")) || 0,
         notes: notes.trim() || null,
+        status: initial?.status ?? "a_fazer",
       });
       onOpenChange(false);
     } finally {
