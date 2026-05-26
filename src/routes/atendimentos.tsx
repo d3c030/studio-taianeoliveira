@@ -222,6 +222,13 @@ function AtendimentosPage() {
             : undefined
         }
       />
+
+      <CheckoutSheet
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        appointment={checkoutAppt}
+        onCompleted={invalidate}
+      />
     </div>
   );
 }
