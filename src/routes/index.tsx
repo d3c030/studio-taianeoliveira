@@ -324,6 +324,13 @@ function Dashboard() {
           accent={liquido >= 0 ? "success" : "destructive"}
           hint="Bruto − Custos"
         />
+        <StatCard
+          icon={HandCoins}
+          label="A Receber"
+          value={formatBRL((receivablesQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+          accent="primary"
+          hint={`${receivablesQ.data?.length ?? 0} cliente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"} pendente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"}`}
+        />
       </div>
 
 
