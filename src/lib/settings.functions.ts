@@ -24,7 +24,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<ContactSettings> => {
     const { data, error } = await supabaseAdmin
       .from("contact_settings")
-      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola")
+      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -37,6 +37,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
       theme: isTheme(data?.theme) ? (data!.theme as ThemeName) : "rosa",
       pix_key: (data?.pix_key as string | undefined) ?? "",
       pix_copia_cola: (data?.pix_copia_cola as string | undefined) ?? "",
+      pix_qr_url: (data?.pix_qr_url as string | undefined) ?? "",
     };
   },
 );
