@@ -14,7 +14,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CustosRouteImport } from './routes/custos'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
+import { Route as AgendarRouteImport } from './routes/agendar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
@@ -41,60 +43,89 @@ const AtendimentosRoute = AtendimentosRouteImport.update({
   path: '/atendimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendarRoute = AgendarRouteImport.update({
+  id: '/agendar',
+  path: '/agendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendarDateRoute = AgendarDateRouteImport.update({
+  id: '/$date',
+  path: '/$date',
+  getParentRoute: () => AgendarRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/usuarios': typeof UsuariosRoute
+  '/agendar/$date': typeof AgendarDateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/usuarios': typeof UsuariosRoute
+  '/agendar/$date': typeof AgendarDateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agendar': typeof AgendarRouteWithChildren
   '/atendimentos': typeof AtendimentosRoute
   '/clientes': typeof ClientesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/usuarios': typeof UsuariosRoute
+  '/agendar/$date': typeof AgendarDateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agendar'
     | '/atendimentos'
     | '/clientes'
     | '/custos'
     | '/login'
     | '/usuarios'
+    | '/agendar/$date'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/atendimentos' | '/clientes' | '/custos' | '/login' | '/usuarios'
+  to:
+    | '/'
+    | '/agendar'
+    | '/atendimentos'
+    | '/clientes'
+    | '/custos'
+    | '/login'
+    | '/usuarios'
+    | '/agendar/$date'
   id:
     | '__root__'
     | '/'
+    | '/agendar'
     | '/atendimentos'
     | '/clientes'
     | '/custos'
     | '/login'
     | '/usuarios'
+    | '/agendar/$date'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendarRoute: typeof AgendarRouteWithChildren
   AtendimentosRoute: typeof AtendimentosRoute
   ClientesRoute: typeof ClientesRoute
   CustosRoute: typeof CustosRoute
@@ -139,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtendimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agendar': {
+      id: '/agendar'
+      path: '/agendar'
+      fullPath: '/agendar'
+      preLoaderRoute: typeof AgendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -146,11 +184,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agendar/$date': {
+      id: '/agendar/$date'
+      path: '/$date'
+      fullPath: '/agendar/$date'
+      preLoaderRoute: typeof AgendarDateRouteImport
+      parentRoute: typeof AgendarRoute
+    }
   }
 }
 
+interface AgendarRouteChildren {
+  AgendarDateRoute: typeof AgendarDateRoute
+}
+
+const AgendarRouteChildren: AgendarRouteChildren = {
+  AgendarDateRoute: AgendarDateRoute,
+}
+
+const AgendarRouteWithChildren =
+  AgendarRoute._addFileChildren(AgendarRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendarRoute: AgendarRouteWithChildren,
   AtendimentosRoute: AtendimentosRoute,
   ClientesRoute: ClientesRoute,
   CustosRoute: CustosRoute,
@@ -160,3 +217,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
