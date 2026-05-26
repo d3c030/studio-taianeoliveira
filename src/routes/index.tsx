@@ -281,22 +281,6 @@ function Dashboard() {
                         Finalizar
                       </Button>
                     </div>
-                      <Select
-                        value={a.status}
-                        onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
-                      >
-                        <SelectTrigger className="h-8 w-full text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
-                            <SelectItem key={s} value={s} className="text-xs">
-                              {APPOINTMENT_STATUS_LABEL[s]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </li>
                 );
               })}
