@@ -158,6 +158,81 @@ function Dashboard() {
       </div>
 
       <Card className="border-border/70 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <CalendarRange className="h-4 w-4 text-primary" />
+            Movimento por dia
+          </CardTitle>
+          {bestDay && (
+            <span className="text-xs text-muted-foreground">
+              Melhor dia: <span className="font-medium text-foreground">dia {bestDay.day}</span> · {formatBRL(bestDay.value)}
+            </span>
+          )}
+        </CardHeader>
+        <CardContent>
+          {bruto === 0 ? (
+            <p className="text-sm text-muted-foreground py-10 text-center">
+              Sem atendimentos neste mês.
+            </p>
+          ) : (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    interval={0}
+                    tickLine={false}
+                    axisLine={false}
+                    minTickGap={0}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={64}
+                    tickFormatter={(v: number) =>
+                      v >= 1000 ? `R$${(v / 1000).toFixed(1)}k` : `R$${v}`
+                    }
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }}
+                    contentStyle={{
+                      background: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                    formatter={(value: number, _n, item: { payload?: { count?: number } }) => [
+                      `${formatBRL(value)} · ${item?.payload?.count ?? 0} atend.`,
+                      "Entradas",
+                    ]}
+                    labelFormatter={(l: string) => `Dia ${l}`}
+                  />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {dailyData.map((d) => (
+                      <Cell
+                        key={d.day}
+                        fill={
+                          d.isFuture
+                            ? "hsl(var(--muted))"
+                            : d.isToday
+                            ? "hsl(var(--primary))"
+                            : "hsl(var(--primary) / 0.65)"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/70 shadow-sm">
+
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Sparkles className="h-4 w-4 text-primary" />
