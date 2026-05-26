@@ -112,21 +112,28 @@ export function AppShell() {
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="grid grid-cols-6">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors",
-                isActive(to) ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          ))}
+          {navItems.map(({ to, label, icon: Icon }) => {
+            const shortLabel =
+              label === "Atendimentos" ? "Atend." :
+              label === "Usuários" ? "Usuár." :
+              label;
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors leading-tight",
+                  isActive(to) ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="truncate max-w-full px-0.5">{shortLabel}</span>
+              </Link>
+            );
+          })}
         </div>
       </nav>
+
     </div>
   );
 }
