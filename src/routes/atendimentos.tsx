@@ -62,6 +62,8 @@ function AtendimentosPage() {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["appts"] });
     qc.invalidateQueries({ queryKey: ["procedures"] });
+    qc.invalidateQueries({ queryKey: ["clients"] });
+    qc.invalidateQueries({ queryKey: ["clients-stats"] });
   };
 
   return (
