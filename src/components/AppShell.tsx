@@ -24,6 +24,13 @@ export function AppShell() {
 
   const [authState, setAuthState] = useState<"loading" | "in" | "out">("loading");
 
+  const settingsQ = useQuery({
+    queryKey: ["public-contact-settings"],
+    queryFn: () => getContactSettings(),
+    enabled: authState === "in",
+  });
+  const logo = settingsQ.data?.logo_url || defaultLogo;
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setAuthState(session ? "in" : "out");
