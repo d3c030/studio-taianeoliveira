@@ -35,6 +35,7 @@ function ConfiguracoesPage() {
   const fetchSettings = useServerFn(getContactSettings);
   const saveSettings = useServerFn(updateContactSettings);
   const fileRef = useRef<HTMLInputElement>(null);
+  const qrFileRef = useRef<HTMLInputElement>(null);
 
   const q = useQuery({
     queryKey: ["contact-settings"],
@@ -47,7 +48,9 @@ function ConfiguracoesPage() {
   const [theme, setTheme] = useState<ThemeName>("rosa");
   const [pixKey, setPixKey] = useState("");
   const [pixCopiaCola, setPixCopiaCola] = useState("");
+  const [pixQrUrl, setPixQrUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadingQr, setUploadingQr] = useState(false);
 
   useEffect(() => {
     if (q.data) {
@@ -57,10 +60,11 @@ function ConfiguracoesPage() {
       setTheme(q.data.theme ?? "rosa");
       setPixKey(q.data.pix_key ?? "");
       setPixCopiaCola(q.data.pix_copia_cola ?? "");
+      setPixQrUrl(q.data.pix_qr_url ?? "");
     }
   }, [q.data]);
 
-  type SaveOverrides = { logo?: string; theme?: ThemeName };
+  type SaveOverrides = { logo?: string; theme?: ThemeName; pixQr?: string };
   const m = useMutation({
     mutationFn: (over: SaveOverrides = {}) =>
       saveSettings({
@@ -71,6 +75,7 @@ function ConfiguracoesPage() {
           theme: over.theme ?? theme,
           pix_key: pixKey.trim(),
           pix_copia_cola: pixCopiaCola.trim(),
+          pix_qr_url: (over.pixQr ?? pixQrUrl).trim(),
         },
       }),
     onSuccess: () => {
@@ -107,6 +112,35 @@ function ConfiguracoesPage() {
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handleUploadQr = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx. 5 MB)");
+      return;
+    }
+    setUploadingQr(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `pix-qr-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("branding")
+        .upload(path, file, { cacheControl: "3600", upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("branding").getPublicUrl(path);
+      const publicUrl = data.publicUrl;
+      setPixQrUrl(publicUrl);
+      await m.mutateAsync({ pixQr: publicUrl });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploadingQr(false);
+      if (qrFileRef.current) qrFileRef.current.value = "";
     }
   };
 
@@ -282,7 +316,59 @@ function ConfiguracoesPage() {
               Cole aqui o código gerado pelo seu app do banco. Se vazio, o QR Code usará a chave acima.
             </p>
           </div>
+
+          <div className="space-y-2 pt-2 border-t border-dashed border-border">
+            <Label className="text-xs text-muted-foreground">
+              QR Code Pix (imagem) — opcional, tem prioridade sobre o gerado automaticamente
+            </Label>
+            <div className="flex items-center gap-4">
+              <div className="h-28 w-28 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden">
+                {pixQrUrl ? (
+                  <img src={pixQrUrl} alt="QR Code Pix" className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <QrCode className="h-8 w-8 text-muted-foreground/40" />
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <input
+                  ref={qrFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUploadQr(f);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => qrFileRef.current?.click()}
+                  disabled={uploadingQr}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploadingQr ? "Enviando…" : "Enviar imagem do QR"}
+                </Button>
+                {pixQrUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPixQrUrl("");
+                      m.mutate({ pixQr: "" });
+                    }}
+                    className="text-muted-foreground"
+                  >
+                    Remover QR Code
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+
 
 
         <Button

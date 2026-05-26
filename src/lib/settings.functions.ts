@@ -14,6 +14,7 @@ export type ContactSettings = {
   theme: ThemeName;
   pix_key: string;
   pix_copia_cola: string;
+  pix_qr_url: string;
 };
 
 const isTheme = (v: unknown): v is ThemeName =>
@@ -23,7 +24,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<ContactSettings> => {
     const { data, error } = await supabaseAdmin
       .from("contact_settings")
-      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola")
+      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -36,6 +37,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
       theme: isTheme(data?.theme) ? (data!.theme as ThemeName) : "rosa",
       pix_key: (data?.pix_key as string | undefined) ?? "",
       pix_copia_cola: (data?.pix_copia_cola as string | undefined) ?? "",
+      pix_qr_url: (data?.pix_qr_url as string | undefined) ?? "",
     };
   },
 );
@@ -60,6 +62,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
         theme: z.enum(THEMES).optional(),
         pix_key: z.string().trim().max(255).optional(),
         pix_copia_cola: z.string().trim().max(2000).optional(),
+        pix_qr_url: z.string().trim().max(500).url().or(z.literal("")).optional(),
       })
       .parse(input),
   )
@@ -79,6 +82,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
       theme?: ThemeName;
       pix_key?: string;
       pix_copia_cola?: string;
+      pix_qr_url?: string;
     } = {
       instagram_url: data.instagram_url,
       whatsapp_phone: data.whatsapp_phone,
@@ -87,6 +91,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
     if (data.theme !== undefined) patch.theme = data.theme;
     if (data.pix_key !== undefined) patch.pix_key = data.pix_key;
     if (data.pix_copia_cola !== undefined) patch.pix_copia_cola = data.pix_copia_cola;
+    if (data.pix_qr_url !== undefined) patch.pix_qr_url = data.pix_qr_url;
 
     if (existing?.id) {
       const { error } = await supabase

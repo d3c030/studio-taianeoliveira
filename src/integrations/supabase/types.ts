@@ -135,6 +135,7 @@ export type Database = {
           logo_url: string
           pix_copia_cola: string
           pix_key: string
+          pix_qr_url: string | null
           theme: string
           updated_at: string
           whatsapp_phone: string
@@ -146,6 +147,7 @@ export type Database = {
           logo_url?: string
           pix_copia_cola?: string
           pix_key?: string
+          pix_qr_url?: string | null
           theme?: string
           updated_at?: string
           whatsapp_phone?: string
@@ -157,6 +159,7 @@ export type Database = {
           logo_url?: string
           pix_copia_cola?: string
           pix_key?: string
+          pix_qr_url?: string | null
           theme?: string
           updated_at?: string
           whatsapp_phone?: string

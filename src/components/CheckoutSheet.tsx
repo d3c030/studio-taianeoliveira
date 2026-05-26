@@ -233,6 +233,7 @@ export function CheckoutSheet({ open, onOpenChange, appointment, onCompleted }: 
         amount={pendingFinal}
         pixKey={settingsQ.data?.pix_key ?? ""}
         pixCopiaCola={settingsQ.data?.pix_copia_cola ?? ""}
+        pixQrUrl={settingsQ.data?.pix_qr_url ?? ""}
         saving={saving}
         onReceived={async () => {
           if (pendingPayment) {
@@ -395,13 +396,14 @@ function PaymentDialog({
 /* ============= Pix QR modal ============= */
 
 function PixDialog({
-  open, onOpenChange, amount, pixKey, pixCopiaCola, saving, onReceived,
+  open, onOpenChange, amount, pixKey, pixCopiaCola, pixQrUrl, saving, onReceived,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   amount: number;
   pixKey: string;
   pixCopiaCola: string;
+  pixQrUrl: string;
   saving: boolean;
   onReceived: () => void | Promise<void>;
 }) {
@@ -412,9 +414,12 @@ function PixDialog({
   }, [open]);
 
   const payload = pixCopiaCola || pixKey;
-  const qrSrc = payload
+  const qrSrc = pixQrUrl
+    ? pixQrUrl
+    : payload
     ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(payload)}`
     : "";
+  const hasQr = Boolean(qrSrc);
 
   const handleCopy = async () => {
     if (!payload) return;
@@ -449,7 +454,7 @@ function PixDialog({
             </div>
           </div>
 
-          {payload ? (
+          {hasQr ? (
             <div className="rounded-2xl border border-border bg-white p-3 flex items-center justify-center">
               <img
                 src={qrSrc}
@@ -460,7 +465,7 @@ function PixDialog({
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-border bg-secondary/40 px-4 py-6 text-center text-sm text-muted-foreground">
-              Configure a chave Pix em <strong>Configurações</strong> para gerar o QR Code.
+              Configure a chave Pix ou envie a imagem do QR Code em <strong>Configurações</strong>.
             </div>
           )}
 
