@@ -571,11 +571,116 @@ function Dashboard() {
         </CardContent>
       </Card>
 
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <TrendingDown className="h-4 w-4 text-destructive" />
+            Custos do mês
+          </CardTitle>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              Total: <span className="font-medium text-destructive tabular-nums">{formatBRL(custos)}</span>
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8"
+              onClick={() => { setEditingExpense(null); setExpenseDialogOpen(true); }}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Novo
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {expQ.isLoading ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">Carregando…</p>
+          ) : (expQ.data?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Sem custos registados neste mês.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/70">
+              {(expQ.data ?? []).slice(0, 10).map((e) => (
+                <li key={e.id} className="py-3 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{e.description}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {formatDateBR(e.date)} · {Number(e.quantity)} × {formatBRL(Number(e.unit_price))}
+                      {e.payment_method ? ` · ${e.payment_method}` : ""}
+                    </div>
+                  </div>
+                  {e.payment_method && (
+                    <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] font-normal shrink-0">
+                      {e.payment_method}
+                    </Badge>
+                  )}
+                  <span className="text-sm font-semibold tabular-nums text-destructive shrink-0">
+                    −{formatBRL(Number(e.total))}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 shrink-0"
+                    aria-label="Editar custo"
+                    onClick={() => { setEditingExpense(e); setExpenseDialogOpen(true); }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </li>
+              ))}
+              {(expQ.data?.length ?? 0) > 10 && (
+                <li className="pt-3 text-center">
+                  <Link to="/custos" className="text-xs text-primary hover:underline">
+                    Ver todos os {expQ.data?.length} custos
+                  </Link>
+                </li>
+              )}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <ExpenseDialog
+        open={expenseDialogOpen}
+        onOpenChange={setExpenseDialogOpen}
+        initial={editingExpense}
+        onSubmit={async (data) => {
+          try {
+            if (editingExpense) {
+              await updateExpense(editingExpense.id, data);
+              toast.success("Custo atualizado");
+            } else {
+              await createExpense(data);
+              toast.success("Custo adicionado");
+            }
+            invalidateAll();
+          } catch (e) {
+            toast.error("Erro ao guardar");
+            throw e;
+          }
+        }}
+        onDelete={
+          editingExpense
+            ? async () => {
+                try {
+                  await deleteExpense(editingExpense.id);
+                  toast.success("Custo apagado");
+                  invalidateAll();
+                } catch {
+                  toast.error("Erro ao apagar");
+                }
+              }
+            : undefined
+        }
+      />
+
       <ReceivableDialog
         appointment={editingReceivable}
         onOpenChange={(o: boolean) => !o && setEditingReceivable(null)}
         onSaved={invalidateAll}
       />
+
 
 
       <AppointmentDialog
