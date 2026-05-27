@@ -167,23 +167,30 @@ function Dashboard() {
   const dailyData = useMemo(() => {
     const sums = new Array(daysInMonth).fill(0) as number[];
     const counts = new Array(daysInMonth).fill(0) as number[];
+    const expSums = new Array(daysInMonth).fill(0) as number[];
     (apptsQ.data ?? []).forEach((a) => {
-      // a.date is "YYYY-MM-DD"
       const d = Number(String(a.date).slice(8, 10));
       if (d >= 1 && d <= daysInMonth) {
         sums[d - 1] += Number(a.amount || 0);
         counts[d - 1] += 1;
       }
     });
+    (expQ.data ?? []).forEach((e) => {
+      const d = Number(String(e.date).slice(8, 10));
+      if (d >= 1 && d <= daysInMonth) {
+        expSums[d - 1] += Number(e.total || 0);
+      }
+    });
     return sums.map((v, i) => ({
       day: i + 1,
       label: String(i + 1).padStart(2, "0"),
       value: v,
+      expenses: expSums[i],
       count: counts[i],
       isToday: isCurrentMonth && i + 1 === todayDay,
       isFuture: isCurrentMonth && i + 1 > todayDay,
     }));
-  }, [apptsQ.data, daysInMonth, isCurrentMonth, todayDay]);
+  }, [apptsQ.data, expQ.data, daysInMonth, isCurrentMonth, todayDay]);
 
   const bestDay = useMemo(() => {
     const ranked = [...dailyData].filter((d) => d.value > 0)
