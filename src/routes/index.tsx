@@ -445,11 +445,7 @@ function Dashboard() {
         </CardContent>
       </Card>
 
-              </ResponsiveContainer>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
 
       <Card className="border-border/70 shadow-sm">
 
