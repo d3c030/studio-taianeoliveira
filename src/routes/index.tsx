@@ -96,6 +96,8 @@ function Dashboard() {
     queryFn: fetchReceivables,
   });
   const [editingReceivable, setEditingReceivable] = useState<Appointment | null>(null);
+  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["appts"] });
