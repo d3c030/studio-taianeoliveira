@@ -9,9 +9,12 @@ import {
   fetchAppointments, fetchExpenses, fetchUpcomingAppointments,
   fetchDistinctProcedures, updateAppointment, updateAppointmentStatus,
   deleteAppointment, fetchReceivables, APPOINTMENT_STATUS_LABEL,
-  type Appointment, type AppointmentStatus,
+  createExpense, updateExpense, deleteExpense,
+  type Appointment, type AppointmentStatus, type Expense,
 } from "@/lib/data";
 import { formatBRL, formatDateBR, PAYMENT_METHODS } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
+import { ExpenseDialog } from "@/components/ExpenseDialog";
 import { MonthPicker } from "@/components/MonthPicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
