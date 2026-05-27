@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil, CheckCircle2, HandCoins, Plus } from "lucide-react";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
+  ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid, Cell, Legend,
 } from "recharts";
 import {
   fetchAppointments, fetchExpenses, fetchUpcomingAppointments,
@@ -167,23 +167,30 @@ function Dashboard() {
   const dailyData = useMemo(() => {
     const sums = new Array(daysInMonth).fill(0) as number[];
     const counts = new Array(daysInMonth).fill(0) as number[];
+    const expSums = new Array(daysInMonth).fill(0) as number[];
     (apptsQ.data ?? []).forEach((a) => {
-      // a.date is "YYYY-MM-DD"
       const d = Number(String(a.date).slice(8, 10));
       if (d >= 1 && d <= daysInMonth) {
         sums[d - 1] += Number(a.amount || 0);
         counts[d - 1] += 1;
       }
     });
+    (expQ.data ?? []).forEach((e) => {
+      const d = Number(String(e.date).slice(8, 10));
+      if (d >= 1 && d <= daysInMonth) {
+        expSums[d - 1] += Number(e.total || 0);
+      }
+    });
     return sums.map((v, i) => ({
       day: i + 1,
       label: String(i + 1).padStart(2, "0"),
       value: v,
+      expenses: expSums[i],
       count: counts[i],
       isToday: isCurrentMonth && i + 1 === todayDay,
       isFuture: isCurrentMonth && i + 1 > todayDay,
     }));
-  }, [apptsQ.data, daysInMonth, isCurrentMonth, todayDay]);
+  }, [apptsQ.data, expQ.data, daysInMonth, isCurrentMonth, todayDay]);
 
   const bestDay = useMemo(() => {
     const ranked = [...dailyData].filter((d) => d.value > 0)
@@ -365,14 +372,14 @@ function Dashboard() {
           )}
         </CardHeader>
         <CardContent>
-          {bruto === 0 ? (
+          {bruto === 0 && custos === 0 ? (
             <p className="text-sm text-muted-foreground py-10 text-center">
-              Sem atendimentos neste mês.
+              Sem movimentação neste mês.
             </p>
           ) : (
-            <div className="h-64 w-full">
+            <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <ComposedChart data={dailyData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis
                     dataKey="label"
@@ -399,13 +406,16 @@ function Dashboard() {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    formatter={(value: number, _n, item: { payload?: { count?: number } }) => [
-                      `${formatBRL(value)} · ${item?.payload?.count ?? 0} atend.`,
-                      "Entradas",
-                    ]}
                     labelFormatter={(l: string) => `Dia ${l}`}
+                    formatter={(value: number, name: string, item: { payload?: { count?: number } }) => {
+                      if (name === "Entradas") {
+                        return [`${formatBRL(value)} · ${item?.payload?.count ?? 0} atend.`, name];
+                      }
+                      return [formatBRL(value), name];
+                    }}
                   />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                  <Legend wrapperStyle={{ fontSize: 12, paddingTop: 4 }} iconType="circle" />
+                  <Bar dataKey="value" name="Entradas" radius={[6, 6, 0, 0]}>
                     {dailyData.map((d) => (
                       <Cell
                         key={d.day}
@@ -419,12 +429,23 @@ function Dashboard() {
                       />
                     ))}
                   </Bar>
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="expenses"
+                    name="Custos"
+                    stroke="var(--destructive)"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: "var(--destructive)" }}
+                    activeDot={{ r: 5 }}
+                  />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           )}
         </CardContent>
       </Card>
+
+
 
       <Card className="border-border/70 shadow-sm">
 
