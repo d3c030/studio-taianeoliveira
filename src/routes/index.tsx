@@ -105,6 +105,7 @@ function Dashboard() {
     qc.invalidateQueries({ queryKey: ["procedures"] });
     qc.invalidateQueries({ queryKey: ["clients"] });
     qc.invalidateQueries({ queryKey: ["receivables"] });
+    qc.invalidateQueries({ queryKey: ["expenses"] });
   };
 
   const handleStatusChange = async (id: string, status: AppointmentStatus) => {
