@@ -68,15 +68,17 @@ function AppointmentCard({
   a: Appointment;
   compact?: boolean;
   onClick: () => void;
-  unlocked: boolean;
-  onToggleUnlock: () => void;
+  unlocked?: boolean;
+  onToggleUnlock?: () => void;
   whatsappUrl?: string | null;
 }) {
+  const isUnlocked = !!unlocked;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
     data: { appointment: a },
-    disabled: !unlocked,
+    disabled: !isUnlocked,
   });
+
 
   const procs = splitProcedureNames(a.procedure);
   const showWA = a.status === "a_fazer" && !!whatsappUrl;
