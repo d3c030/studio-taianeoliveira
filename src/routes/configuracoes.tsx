@@ -66,9 +66,6 @@ function ConfiguracoesPage() {
     }
   }, [q.data]);
 
-
-  type SaveOverrides = { logo?: string; theme?: ThemeName; pixQr?: string };
-  const m = useMutation({
     mutationFn: (over: SaveOverrides = {}) =>
       saveSettings({
         data: {
@@ -79,6 +76,10 @@ function ConfiguracoesPage() {
           pix_key: pixKey.trim(),
           pix_copia_cola: pixCopiaCola.trim(),
           pix_qr_url: (over.pixQr ?? pixQrUrl).trim(),
+          whatsapp_message_template: whatsappTemplate.trim(),
+        },
+      }),
+
         },
       }),
     onSuccess: () => {
