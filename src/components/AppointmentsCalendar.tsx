@@ -11,7 +11,7 @@ import {
   DragOverlay,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, MessageCircle, Lock } from "lucide-react";
 import type { Appointment } from "@/lib/data";
 import { formatBRL } from "@/lib/format";
 import { splitProcedureNames } from "@/lib/procedures";
@@ -28,7 +28,9 @@ type Props = {
   onViewChange: (v: ViewMode) => void;
   onCardClick: (a: Appointment) => void;
   onMove: (a: Appointment, newDate: string) => Promise<void> | void;
+  whatsappUrlFor?: (a: Appointment) => string | null;
 };
+
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTHS = [
