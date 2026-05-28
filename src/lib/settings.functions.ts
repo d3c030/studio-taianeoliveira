@@ -21,11 +21,10 @@ export type ContactSettings = {
 const isTheme = (v: unknown): v is ThemeName =>
   typeof v === "string" && (THEMES as readonly string[]).includes(v);
 
-export const getContactSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<ContactSettings> => {
     const { data, error } = await supabaseAdmin
       .from("contact_settings")
-      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url")
+      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url, whatsapp_message_template")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -39,8 +38,10 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
       pix_key: (data?.pix_key as string | undefined) ?? "",
       pix_copia_cola: (data?.pix_copia_cola as string | undefined) ?? "",
       pix_qr_url: (data?.pix_qr_url as string | undefined) ?? "",
+      whatsapp_message_template: (data?.whatsapp_message_template as string | undefined) ?? "",
     };
   },
+);
 );
 
 export const updateContactSettings = createServerFn({ method: "POST" })
