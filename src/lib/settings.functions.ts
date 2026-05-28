@@ -15,6 +15,7 @@ export type ContactSettings = {
   pix_key: string;
   pix_copia_cola: string;
   pix_qr_url: string;
+  whatsapp_message_template: string;
 };
 
 const isTheme = (v: unknown): v is ThemeName =>
