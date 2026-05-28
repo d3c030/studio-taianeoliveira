@@ -140,16 +140,32 @@ export function ExpenseDialog({ open, onOpenChange, initial, categorySuggestions
             <span className="font-display text-xl">{formatBRL(total)}</span>
           </div>
 
-          <div className="grid gap-1.5">
-            <Label>Forma de pagamento</Label>
-            <Select value={payment} onValueChange={setPayment}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {EXPENSE_PAYMENT_METHODS.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Forma de pagamento</Label>
+              <Select value={payment} onValueChange={setPayment}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {EXPENSE_PAYMENT_METHODS.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="category">Categoria</Label>
+              <Input
+                id="category"
+                list="expense-categories"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Ex: Mercadoria"
+                maxLength={60}
+              />
+              <datalist id="expense-categories">
+                {categoryOptions.map((c) => <option key={c} value={c} />)}
+              </datalist>
+            </div>
           </div>
 
           <div className="grid gap-1.5">
