@@ -65,6 +65,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
         pix_key: z.string().trim().max(255).optional(),
         pix_copia_cola: z.string().trim().max(2000).optional(),
         pix_qr_url: z.string().trim().max(500).url().or(z.literal("")).optional(),
+        whatsapp_message_template: z.string().trim().max(1000).optional(),
       })
       .parse(input),
   )
