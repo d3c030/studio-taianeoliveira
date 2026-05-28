@@ -25,12 +25,13 @@ const DEFAULT_CATEGORIES = ["Mercadoria", "Salário", "Aluguel", "Marketing", "E
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete }: Props) {
+export function ExpenseDialog({ open, onOpenChange, initial, categorySuggestions, onSubmit, onDelete }: Props) {
   const [date, setDate] = useState(today());
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
   const [payment, setPayment] = useState<string>("Pix");
+  const [category, setCategory] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -41,6 +42,7 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
       setQuantity(initial ? String(initial.quantity) : "1");
       setUnitPrice(initial ? String(initial.unit_price) : "");
       setPayment(initial?.payment_method ?? "Pix");
+      setCategory(initial?.category ?? "");
       setNotes(initial?.notes ?? "");
     }
   }, [open, initial]);
@@ -50,6 +52,11 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
     const u = parseFloat(unitPrice.replace(",", ".")) || 0;
     return q * u;
   }, [quantity, unitPrice]);
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>([...DEFAULT_CATEGORIES, ...(categorySuggestions ?? [])]);
+    return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [categorySuggestions]);
 
   const handleSave = async () => {
     if (!description.trim()) return;
@@ -64,6 +71,7 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
         unit_price: u,
         total: q * u,
         payment_method: payment,
+        category: category.trim() || null,
         notes: notes.trim() || null,
       });
       onOpenChange(false);
