@@ -49,6 +49,7 @@ function ConfiguracoesPage() {
   const [pixKey, setPixKey] = useState("");
   const [pixCopiaCola, setPixCopiaCola] = useState("");
   const [pixQrUrl, setPixQrUrl] = useState("");
+  const [whatsappTemplate, setWhatsappTemplate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
 
@@ -61,6 +62,7 @@ function ConfiguracoesPage() {
       setPixKey(q.data.pix_key ?? "");
       setPixCopiaCola(q.data.pix_copia_cola ?? "");
       setPixQrUrl(q.data.pix_qr_url ?? "");
+      setWhatsappTemplate(q.data.whatsapp_message_template ?? "");
     }
   }, [q.data]);
 
@@ -76,8 +78,11 @@ function ConfiguracoesPage() {
           pix_key: pixKey.trim(),
           pix_copia_cola: pixCopiaCola.trim(),
           pix_qr_url: (over.pixQr ?? pixQrUrl).trim(),
+          whatsapp_message_template: whatsappTemplate.trim(),
         },
       }),
+
+
     onSuccess: () => {
       toast.success("Configurações atualizadas");
       qc.invalidateQueries({ queryKey: ["contact-settings"] });
@@ -369,6 +374,25 @@ function ConfiguracoesPage() {
           </div>
         </div>
 
+        {/* WhatsApp template */}
+        <div className="space-y-2 pt-2 border-t border-border">
+          <Label htmlFor="wa-tpl" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4 text-primary" />
+            Mensagem padrão de confirmação (WhatsApp)
+          </Label>
+          <Textarea
+            id="wa-tpl"
+            value={whatsappTemplate}
+            onChange={(e) => setWhatsappTemplate(e.target.value)}
+            placeholder="Olá {cliente}! Confirmando seu atendimento ({procedimento}) em {data} às {hora}."
+            rows={4}
+            maxLength={1000}
+          />
+          <p className="text-xs text-muted-foreground">
+            Use os marcadores: <code>{"{cliente}"}</code>, <code>{"{data}"}</code>,{" "}
+            <code>{"{hora}"}</code>, <code>{"{procedimento}"}</code>.
+          </p>
+        </div>
 
 
         <Button

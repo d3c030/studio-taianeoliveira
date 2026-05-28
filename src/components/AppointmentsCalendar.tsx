@@ -11,7 +11,7 @@ import {
   DragOverlay,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, MessageCircle, Lock } from "lucide-react";
 import type { Appointment } from "@/lib/data";
 import { formatBRL } from "@/lib/format";
 import { splitProcedureNames } from "@/lib/procedures";
@@ -28,7 +28,9 @@ type Props = {
   onViewChange: (v: ViewMode) => void;
   onCardClick: (a: Appointment) => void;
   onMove: (a: Appointment, newDate: string) => Promise<void> | void;
+  whatsappUrlFor?: (a: Appointment) => string | null;
 };
+
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTHS = [
@@ -55,50 +57,92 @@ const statusClasses = (a: Appointment) => {
   if ((a.payment_method ?? "").toLowerCase() === "a receber")
     return "bg-accent/70 border-accent hover:bg-accent";
   return "bg-card border-primary/30 hover:bg-secondary";
-};
-
 function AppointmentCard({
   a,
   compact,
   onClick,
+  unlocked,
+  onToggleUnlock,
+  whatsappUrl,
 }: {
   a: Appointment;
   compact?: boolean;
   onClick: () => void;
+  unlocked?: boolean;
+  onToggleUnlock?: () => void;
+  whatsappUrl?: string | null;
 }) {
+  const isUnlocked = !!unlocked;
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
     data: { appointment: a },
+    disabled: !isUnlocked,
   });
 
+
   const procs = splitProcedureNames(a.procedure);
+  const showWA = a.status === "a_fazer" && !!whatsappUrl;
 
   return (
     <div
       ref={setNodeRef}
       {...attributes}
-      {...listeners}
+      {...(isUnlocked ? listeners : {})}
       onClick={(e) => {
         if (isDragging) return;
         e.stopPropagation();
         onClick();
       }}
       className={cn(
-        "group cursor-grab active:cursor-grabbing rounded-md border px-2 py-1.5 text-left transition-colors shadow-sm",
+        "group relative rounded-md border px-2 py-1.5 text-left transition-colors shadow-sm cursor-pointer",
         statusClasses(a),
         isDragging && "opacity-30",
+        isUnlocked && "ring-2 ring-primary/60 cursor-grab active:cursor-grabbing",
         compact ? "text-[11px]" : "text-xs",
       )}
-      style={{ touchAction: "none" }}
+      style={isUnlocked ? { touchAction: "none" } : undefined}
     >
       <div className="flex items-center justify-between gap-1">
         <span className="font-medium tabular-nums text-primary">
           {a.time?.slice(0, 5) ?? "--:--"}
         </span>
-        <span className="font-semibold tabular-nums">
-          {formatBRL(Number(a.amount))}
-        </span>
+        <div className="flex items-center gap-1">
+          {showWA && (
+            <a
+              href={whatsappUrl ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center justify-center h-5 w-5 rounded hover:bg-success/15"
+              aria-label="Enviar WhatsApp"
+              title="Confirmar via WhatsApp"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+            </a>
+          )}
+          <span className="font-semibold tabular-nums">
+            {formatBRL(Number(a.amount))}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleUnlock?.();
+            }}
+            className={cn(
+              "inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground",
+              isUnlocked ? "text-primary" : "hover:text-foreground",
+            )}
+            aria-label={isUnlocked ? "Travar" : "Destravar para mover"}
+            title={isUnlocked ? "Travar" : "Toque para destravar e arrastar"}
+          >
+            {isUnlocked ? <GripVertical className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
+          </button>
+        </div>
       </div>
+
+
       <div className="truncate font-medium">{a.client_name}</div>
       {procs.length > 0 && !compact && (
         <div className="mt-1 flex flex-wrap gap-1">
@@ -125,6 +169,8 @@ function AppointmentCard({
     </div>
   );
 }
+
+
 
 function DayCell({
   date,

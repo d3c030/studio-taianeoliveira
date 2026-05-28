@@ -307,7 +307,8 @@ export async function fetchAppointmentPayments(appointmentId: string): Promise<A
 
 export type RegisterPaymentInput = {
   appointmentId: string;
-  totalAmount: number;
+  /** Outstanding balance BEFORE this payment (typically appointment.amount). */
+  currentRemaining: number;
   amount: number;
   payment_method: string;
   paid_at?: string;
@@ -315,11 +316,11 @@ export type RegisterPaymentInput = {
 };
 
 /**
- * Registers a payment row, recomputes the remaining balance,
- * and (if fully paid) marks the appointment as 'concluido' with the latest payment method.
+ * Inserts a payment row, decrements appointment.amount by the paid value,
+ * and closes the appointment (status = concluido) when fully paid.
  */
 export async function registerAppointmentPayment(input: RegisterPaymentInput) {
-  const { appointmentId, totalAmount, amount, payment_method, paid_at, notes } = input;
+  const { appointmentId, currentRemaining, amount, payment_method, paid_at, notes } = input;
   if (amount <= 0) throw new Error("Valor deve ser maior que zero");
 
   const { error: insErr } = await supabase.from("appointment_payments").insert({
@@ -331,33 +332,28 @@ export async function registerAppointmentPayment(input: RegisterPaymentInput) {
   });
   if (insErr) throw insErr;
 
-  const payments = await fetchAppointmentPayments(appointmentId);
-  const paid = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
-  const remaining = Math.max(0, Number(totalAmount) - paid);
+  const newRemaining = Math.max(0, Number(currentRemaining) - Number(amount));
 
-  if (remaining <= 0.0001) {
-    const methods = new Set(payments.map((p) => p.payment_method ?? "").filter(Boolean));
-    const finalMethod = methods.size > 1 ? "Misto" : (payment_method || [...methods][0] || "Pix");
+  if (newRemaining <= 0.0001) {
     const { error: updErr } = await supabase
       .from("appointments")
-      .update({ amount: totalAmount, payment_method: finalMethod, status: "concluido" })
+      .update({ payment_method, status: "concluido" })
       .eq("id", appointmentId);
     if (updErr) throw updErr;
-    return { paid, remaining: 0, closed: true };
-  } else {
-    // keep balance visible — store remaining in appointments.amount so the existing
-    // "A Receber" pipeline keeps working without schema changes elsewhere.
-    const { error: updErr } = await supabase
-      .from("appointments")
-      .update({ amount: remaining, payment_method: "A Receber" })
-      .eq("id", appointmentId);
-    if (updErr) throw updErr;
-    return { paid, remaining, closed: false };
+    return { closed: true, newRemaining: 0 };
   }
+
+  const { error: updErr } = await supabase
+    .from("appointments")
+    .update({ amount: newRemaining, payment_method: "A Receber" })
+    .eq("id", appointmentId);
+  if (updErr) throw updErr;
+  return { closed: false, newRemaining };
 }
 
 export async function deleteAppointmentPayment(id: string) {
   const { error } = await supabase.from("appointment_payments").delete().eq("id", id);
   if (error) throw error;
 }
+
 
