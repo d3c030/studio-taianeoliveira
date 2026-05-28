@@ -21,6 +21,7 @@ export type ContactSettings = {
 const isTheme = (v: unknown): v is ThemeName =>
   typeof v === "string" && (THEMES as readonly string[]).includes(v);
 
+export const getContactSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<ContactSettings> => {
     const { data, error } = await supabaseAdmin
       .from("contact_settings")
