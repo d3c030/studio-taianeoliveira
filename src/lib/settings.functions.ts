@@ -86,6 +86,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
       pix_key?: string;
       pix_copia_cola?: string;
       pix_qr_url?: string;
+      whatsapp_message_template?: string;
     } = {
       instagram_url: data.instagram_url,
       whatsapp_phone: data.whatsapp_phone,
@@ -95,6 +96,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
     if (data.pix_key !== undefined) patch.pix_key = data.pix_key;
     if (data.pix_copia_cola !== undefined) patch.pix_copia_cola = data.pix_copia_cola;
     if (data.pix_qr_url !== undefined) patch.pix_qr_url = data.pix_qr_url;
+    if (data.whatsapp_message_template !== undefined) patch.whatsapp_message_template = data.whatsapp_message_template;
 
     if (existing?.id) {
       const { error } = await supabase
