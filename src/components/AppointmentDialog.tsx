@@ -134,7 +134,6 @@ export function AppointmentDialog({
               <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
           </div>
-
           <div className="grid gap-1.5">
             <Label htmlFor="client">Cliente</Label>
             <ClientCombobox
@@ -144,9 +143,28 @@ export function AppointmentDialog({
               onChange={(name, id) => {
                 setClientName(name);
                 setClientId(id);
+                const picked = (clientsQ.data ?? []).find((c) => c.id === id);
+                if (picked?.phone) setClientPhone(picked.phone);
               }}
               placeholder="Procurar ou criar novo cliente"
             />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="phone">WhatsApp (DDD + número)</Label>
+            <Input
+              id="phone"
+              inputMode="tel"
+              placeholder="11999999999"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value.replace(/\D/g, ""))}
+              maxLength={15}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Salvo no atendimento para envio de confirmação via WhatsApp.
+            </p>
+          </div>
+
           </div>
 
           <div className="grid gap-2">
