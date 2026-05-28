@@ -139,7 +139,7 @@ function AppointmentCard({
         </div>
       </div>
 
-      </div>
+
       <div className="truncate font-medium">{a.client_name}</div>
       {procs.length > 0 && !compact && (
         <div className="mt-1 flex flex-wrap gap-1">
