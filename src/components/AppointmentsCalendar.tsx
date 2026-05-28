@@ -72,7 +72,7 @@ function AppointmentCard({
   onToggleUnlock?: () => void;
   whatsappUrl?: string | null;
 }) {
-  const isUnlocked = !!unlocked;
+  const isUnlocked = !!isUnlocked;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
     data: { appointment: a },
@@ -87,7 +87,7 @@ function AppointmentCard({
     <div
       ref={setNodeRef}
       {...attributes}
-      {...(unlocked ? listeners : {})}
+      {...(isUnlocked ? listeners : {})}
       onClick={(e) => {
         if (isDragging) return;
         e.stopPropagation();
@@ -97,10 +97,10 @@ function AppointmentCard({
         "group relative rounded-md border px-2 py-1.5 text-left transition-colors shadow-sm cursor-pointer",
         statusClasses(a),
         isDragging && "opacity-30",
-        unlocked && "ring-2 ring-primary/60 cursor-grab active:cursor-grabbing",
+        isUnlocked && "ring-2 ring-primary/60 cursor-grab active:cursor-grabbing",
         compact ? "text-[11px]" : "text-xs",
       )}
-      style={unlocked ? { touchAction: "none" } : undefined}
+      style={isUnlocked ? { touchAction: "none" } : undefined}
     >
       <div className="flex items-center justify-between gap-1">
         <span className="font-medium tabular-nums text-primary">
@@ -127,16 +127,16 @@ function AppointmentCard({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onToggleUnlock();
+              onToggleUnlock?.();
             }}
             className={cn(
               "inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground",
-              unlocked ? "text-primary" : "hover:text-foreground",
+              isUnlocked ? "text-primary" : "hover:text-foreground",
             )}
-            aria-label={unlocked ? "Travar" : "Destravar para mover"}
-            title={unlocked ? "Travar" : "Toque para destravar e arrastar"}
+            aria-label={isUnlocked ? "Travar" : "Destravar para mover"}
+            title={isUnlocked ? "Travar" : "Toque para destravar e arrastar"}
           >
-            {unlocked ? <GripVertical className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
+            {isUnlocked ? <GripVertical className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
           </button>
         </div>
       </div>
