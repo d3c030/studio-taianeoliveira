@@ -374,6 +374,25 @@ function ConfiguracoesPage() {
           </div>
         </div>
 
+        {/* WhatsApp template */}
+        <div className="space-y-2 pt-2 border-t border-border">
+          <Label htmlFor="wa-tpl" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4 text-primary" />
+            Mensagem padrão de confirmação (WhatsApp)
+          </Label>
+          <Textarea
+            id="wa-tpl"
+            value={whatsappTemplate}
+            onChange={(e) => setWhatsappTemplate(e.target.value)}
+            placeholder="Olá {cliente}! Confirmando seu atendimento ({procedimento}) em {data} às {hora}."
+            rows={4}
+            maxLength={1000}
+          />
+          <p className="text-xs text-muted-foreground">
+            Use os marcadores: <code>{"{cliente}"}</code>, <code>{"{data}"}</code>,{" "}
+            <code>{"{hora}"}</code>, <code>{"{procedimento}"}</code>.
+          </p>
+        </div>
 
 
         <Button
