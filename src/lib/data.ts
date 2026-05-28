@@ -14,6 +14,7 @@ export type Appointment = {
   time: string | null;
   client_name: string;
   client_id: string | null;
+  client_phone: string | null;
   procedure: string | null;
   payment_method: string | null;
   amount: number;
@@ -21,6 +22,16 @@ export type Appointment = {
   discount: number;
   notes: string | null;
   status: AppointmentStatus;
+  created_at: string;
+};
+
+export type AppointmentPayment = {
+  id: string;
+  appointment_id: string;
+  amount: number;
+  payment_method: string | null;
+  paid_at: string;
+  notes: string | null;
   created_at: string;
 };
 
