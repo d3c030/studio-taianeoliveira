@@ -35,6 +35,7 @@ export function AppointmentDialog({
   const [time, setTime] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientId, setClientId] = useState<string | null>(null);
+  const [clientPhone, setClientPhone] = useState("");
   const [selectedProcs, setSelectedProcs] = useState<string[]>([]);
   const [payment, setPayment] = useState<string>("Pix");
   const [amount, setAmount] = useState<string>("");
@@ -57,13 +58,22 @@ export function AppointmentDialog({
       setTime(initial?.time ?? "");
       setClientName(initial?.client_name ?? "");
       setClientId(initial?.client_id ?? null);
+      setClientPhone(initial?.client_phone ?? "");
       setSelectedProcs(splitProcedureNames(initial?.procedure));
       setPayment(initial?.payment_method ?? "Pix");
       setAmount(initial ? String(initial.amount) : "");
-      setAmountTouched(!!initial); // when editing, respect existing amount
+      setAmountTouched(!!initial);
       setNotes(initial?.notes ?? "");
     }
   }, [open, initial]);
+
+  // Auto-fill phone from selected client when no phone has been typed yet
+  useEffect(() => {
+    if (!open || !clientId) return;
+    const c = (clientsQ.data ?? []).find((x) => x.id === clientId);
+    if (c?.phone && !clientPhone) setClientPhone(c.phone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, clientsQ.data, open]);
 
   // Auto-sum suggestion: only updates the amount while the user hasn't typed manually.
   useEffect(() => {
@@ -87,6 +97,7 @@ export function AppointmentDialog({
         time: time || null,
         client_name: clientName.trim(),
         client_id: clientId,
+        client_phone: clientPhone.replace(/\D/g, "") || null,
         procedure: selectedProcs.length ? joinProcedureNames(selectedProcs) : null,
         payment_method: payment,
         amount: parseFloat(amount.replace(",", ".")) || 0,
@@ -98,6 +109,7 @@ export function AppointmentDialog({
       setSaving(false);
     }
   };
+
 
   const procedures = procsQ.data ?? [];
 
