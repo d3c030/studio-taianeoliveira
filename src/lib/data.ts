@@ -67,7 +67,7 @@ export type AppointmentInput = Omit<
   status?: AppointmentStatus;
   subtotal?: number;
   discount?: number;
-};
+export type ExpenseInput = Omit<Expense, "id" | "created_at" | "category"> & { category?: string | null };
 export type ExpenseInput = Omit<Expense, "id" | "created_at">;
 export type ClientInput = Pick<Client, "name" | "phone" | "notes">;
 
