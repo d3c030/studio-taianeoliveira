@@ -41,11 +41,50 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_payments: {
+        Row: {
+          amount: number
+          appointment_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string
+          payment_method: string | null
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method?: string | null
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_payments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           amount: number
           client_id: string | null
           client_name: string
+          client_phone: string | null
           created_at: string
           date: string
           discount: number
@@ -61,6 +100,7 @@ export type Database = {
           amount?: number
           client_id?: string | null
           client_name: string
+          client_phone?: string | null
           created_at?: string
           date: string
           discount?: number
@@ -76,6 +116,7 @@ export type Database = {
           amount?: number
           client_id?: string | null
           client_name?: string
+          client_phone?: string | null
           created_at?: string
           date?: string
           discount?: number
@@ -138,6 +179,7 @@ export type Database = {
           pix_qr_url: string | null
           theme: string
           updated_at: string
+          whatsapp_message_template: string
           whatsapp_phone: string
         }
         Insert: {
@@ -150,6 +192,7 @@ export type Database = {
           pix_qr_url?: string | null
           theme?: string
           updated_at?: string
+          whatsapp_message_template?: string
           whatsapp_phone?: string
         }
         Update: {
@@ -162,12 +205,14 @@ export type Database = {
           pix_qr_url?: string | null
           theme?: string
           updated_at?: string
+          whatsapp_message_template?: string
           whatsapp_phone?: string
         }
         Relationships: []
       }
       expenses: {
         Row: {
+          category: string | null
           created_at: string
           date: string
           description: string
@@ -179,6 +224,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          category?: string | null
           created_at?: string
           date: string
           description: string
@@ -190,6 +236,7 @@ export type Database = {
           unit_price?: number
         }
         Update: {
+          category?: string | null
           created_at?: string
           date?: string
           description?: string
