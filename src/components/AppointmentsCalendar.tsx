@@ -57,49 +57,87 @@ const statusClasses = (a: Appointment) => {
   if ((a.payment_method ?? "").toLowerCase() === "a receber")
     return "bg-accent/70 border-accent hover:bg-accent";
   return "bg-card border-primary/30 hover:bg-secondary";
-};
-
 function AppointmentCard({
   a,
   compact,
   onClick,
+  unlocked,
+  onToggleUnlock,
+  whatsappUrl,
 }: {
   a: Appointment;
   compact?: boolean;
   onClick: () => void;
+  unlocked: boolean;
+  onToggleUnlock: () => void;
+  whatsappUrl?: string | null;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
     data: { appointment: a },
+    disabled: !unlocked,
   });
 
   const procs = splitProcedureNames(a.procedure);
+  const showWA = a.status === "a_fazer" && !!whatsappUrl;
 
   return (
     <div
       ref={setNodeRef}
       {...attributes}
-      {...listeners}
       onClick={(e) => {
         if (isDragging) return;
         e.stopPropagation();
         onClick();
       }}
       className={cn(
-        "group cursor-grab active:cursor-grabbing rounded-md border px-2 py-1.5 text-left transition-colors shadow-sm",
+        "group relative rounded-md border px-2 py-1.5 text-left transition-colors shadow-sm cursor-pointer",
         statusClasses(a),
         isDragging && "opacity-30",
+        unlocked && "ring-2 ring-primary/60",
         compact ? "text-[11px]" : "text-xs",
       )}
-      style={{ touchAction: "none" }}
     >
       <div className="flex items-center justify-between gap-1">
         <span className="font-medium tabular-nums text-primary">
           {a.time?.slice(0, 5) ?? "--:--"}
         </span>
-        <span className="font-semibold tabular-nums">
-          {formatBRL(Number(a.amount))}
-        </span>
+        <div className="flex items-center gap-1">
+          {showWA && (
+            <a
+              href={whatsappUrl ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center justify-center h-5 w-5 rounded text-[color:var(--success,#16a34a)] hover:bg-success/15"
+              aria-label="Enviar WhatsApp"
+              title="Confirmar via WhatsApp"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+            </a>
+          )}
+          <span className="font-semibold tabular-nums">
+            {formatBRL(Number(a.amount))}
+          </span>
+          <button
+            type="button"
+            ref={setNodeRef as unknown as React.Ref<HTMLButtonElement>}
+            {...listeners}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleUnlock();
+            }}
+            className={cn(
+              "inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground",
+              unlocked ? "cursor-grab active:cursor-grabbing text-primary" : "hover:text-foreground",
+            )}
+            aria-label={unlocked ? "Arraste para mover" : "Destravar para mover"}
+            title={unlocked ? "Arraste para mover" : "Toque para destravar"}
+            style={unlocked ? { touchAction: "none" } : undefined}
+          >
+            {unlocked ? <GripVertical className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
+          </button>
+        </div>
       </div>
       <div className="truncate font-medium">{a.client_name}</div>
       {procs.length > 0 && !compact && (
@@ -125,6 +163,9 @@ function AppointmentCard({
         </div>
       )}
     </div>
+  );
+}
+
   );
 }
 
