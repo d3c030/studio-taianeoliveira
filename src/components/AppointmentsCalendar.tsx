@@ -85,6 +85,7 @@ function AppointmentCard({
     <div
       ref={setNodeRef}
       {...attributes}
+      {...(unlocked ? listeners : {})}
       onClick={(e) => {
         if (isDragging) return;
         e.stopPropagation();
@@ -94,9 +95,10 @@ function AppointmentCard({
         "group relative rounded-md border px-2 py-1.5 text-left transition-colors shadow-sm cursor-pointer",
         statusClasses(a),
         isDragging && "opacity-30",
-        unlocked && "ring-2 ring-primary/60",
+        unlocked && "ring-2 ring-primary/60 cursor-grab active:cursor-grabbing",
         compact ? "text-[11px]" : "text-xs",
       )}
+      style={unlocked ? { touchAction: "none" } : undefined}
     >
       <div className="flex items-center justify-between gap-1">
         <span className="font-medium tabular-nums text-primary">
@@ -109,7 +111,7 @@ function AppointmentCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center justify-center h-5 w-5 rounded text-[color:var(--success,#16a34a)] hover:bg-success/15"
+              className="inline-flex items-center justify-center h-5 w-5 rounded hover:bg-success/15"
               aria-label="Enviar WhatsApp"
               title="Confirmar via WhatsApp"
             >
@@ -121,23 +123,22 @@ function AppointmentCard({
           </span>
           <button
             type="button"
-            ref={setNodeRef as unknown as React.Ref<HTMLButtonElement>}
-            {...listeners}
             onClick={(e) => {
               e.stopPropagation();
               onToggleUnlock();
             }}
             className={cn(
               "inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground",
-              unlocked ? "cursor-grab active:cursor-grabbing text-primary" : "hover:text-foreground",
+              unlocked ? "text-primary" : "hover:text-foreground",
             )}
-            aria-label={unlocked ? "Arraste para mover" : "Destravar para mover"}
-            title={unlocked ? "Arraste para mover" : "Toque para destravar"}
-            style={unlocked ? { touchAction: "none" } : undefined}
+            aria-label={unlocked ? "Travar" : "Destravar para mover"}
+            title={unlocked ? "Travar" : "Toque para destravar e arrastar"}
           >
             {unlocked ? <GripVertical className="h-3.5 w-3.5" /> : <Lock className="h-3 w-3" />}
           </button>
         </div>
+      </div>
+
       </div>
       <div className="truncate font-medium">{a.client_name}</div>
       {procs.length > 0 && !compact && (
