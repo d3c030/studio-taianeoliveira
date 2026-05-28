@@ -166,8 +166,7 @@ function AppointmentCard({
   );
 }
 
-  );
-}
+
 
 function DayCell({
   date,
