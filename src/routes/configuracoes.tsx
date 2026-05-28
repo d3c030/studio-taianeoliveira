@@ -49,6 +49,7 @@ function ConfiguracoesPage() {
   const [pixKey, setPixKey] = useState("");
   const [pixCopiaCola, setPixCopiaCola] = useState("");
   const [pixQrUrl, setPixQrUrl] = useState("");
+  const [whatsappTemplate, setWhatsappTemplate] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
 
@@ -61,8 +62,10 @@ function ConfiguracoesPage() {
       setPixKey(q.data.pix_key ?? "");
       setPixCopiaCola(q.data.pix_copia_cola ?? "");
       setPixQrUrl(q.data.pix_qr_url ?? "");
+      setWhatsappTemplate(q.data.whatsapp_message_template ?? "");
     }
   }, [q.data]);
+
 
   type SaveOverrides = { logo?: string; theme?: ThemeName; pixQr?: string };
   const m = useMutation({
