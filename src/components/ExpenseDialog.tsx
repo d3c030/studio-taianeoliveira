@@ -16,18 +16,22 @@ type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   initial?: Expense | null;
+  categorySuggestions?: string[];
   onSubmit: (data: ExpenseInput) => Promise<void>;
   onDelete?: () => Promise<void>;
 };
 
+const DEFAULT_CATEGORIES = ["Mercadoria", "Salário", "Aluguel", "Marketing", "Equipamento", "Limpeza", "Outros"];
+
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete }: Props) {
+export function ExpenseDialog({ open, onOpenChange, initial, categorySuggestions, onSubmit, onDelete }: Props) {
   const [date, setDate] = useState(today());
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
   const [payment, setPayment] = useState<string>("Pix");
+  const [category, setCategory] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -38,6 +42,7 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
       setQuantity(initial ? String(initial.quantity) : "1");
       setUnitPrice(initial ? String(initial.unit_price) : "");
       setPayment(initial?.payment_method ?? "Pix");
+      setCategory(initial?.category ?? "");
       setNotes(initial?.notes ?? "");
     }
   }, [open, initial]);
@@ -47,6 +52,11 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
     const u = parseFloat(unitPrice.replace(",", ".")) || 0;
     return q * u;
   }, [quantity, unitPrice]);
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>([...DEFAULT_CATEGORIES, ...(categorySuggestions ?? [])]);
+    return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [categorySuggestions]);
 
   const handleSave = async () => {
     if (!description.trim()) return;
@@ -61,6 +71,7 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
         unit_price: u,
         total: q * u,
         payment_method: payment,
+        category: category.trim() || null,
         notes: notes.trim() || null,
       });
       onOpenChange(false);
@@ -129,16 +140,32 @@ export function ExpenseDialog({ open, onOpenChange, initial, onSubmit, onDelete 
             <span className="font-display text-xl">{formatBRL(total)}</span>
           </div>
 
-          <div className="grid gap-1.5">
-            <Label>Forma de pagamento</Label>
-            <Select value={payment} onValueChange={setPayment}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {EXPENSE_PAYMENT_METHODS.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Forma de pagamento</Label>
+              <Select value={payment} onValueChange={setPayment}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {EXPENSE_PAYMENT_METHODS.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="category">Categoria</Label>
+              <Input
+                id="category"
+                list="expense-categories"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Ex: Mercadoria"
+                maxLength={60}
+              />
+              <datalist id="expense-categories">
+                {categoryOptions.map((c) => <option key={c} value={c} />)}
+              </datalist>
+            </div>
           </div>
 
           <div className="grid gap-1.5">

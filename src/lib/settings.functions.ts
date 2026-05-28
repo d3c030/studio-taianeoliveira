@@ -15,6 +15,7 @@ export type ContactSettings = {
   pix_key: string;
   pix_copia_cola: string;
   pix_qr_url: string;
+  whatsapp_message_template: string;
 };
 
 const isTheme = (v: unknown): v is ThemeName =>
@@ -24,7 +25,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<ContactSettings> => {
     const { data, error } = await supabaseAdmin
       .from("contact_settings")
-      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url")
+      .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url, whatsapp_message_template")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -38,6 +39,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
       pix_key: (data?.pix_key as string | undefined) ?? "",
       pix_copia_cola: (data?.pix_copia_cola as string | undefined) ?? "",
       pix_qr_url: (data?.pix_qr_url as string | undefined) ?? "",
+      whatsapp_message_template: (data?.whatsapp_message_template as string | undefined) ?? "",
     };
   },
 );
@@ -63,6 +65,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
         pix_key: z.string().trim().max(255).optional(),
         pix_copia_cola: z.string().trim().max(2000).optional(),
         pix_qr_url: z.string().trim().max(500).url().or(z.literal("")).optional(),
+        whatsapp_message_template: z.string().trim().max(1000).optional(),
       })
       .parse(input),
   )
@@ -83,6 +86,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
       pix_key?: string;
       pix_copia_cola?: string;
       pix_qr_url?: string;
+      whatsapp_message_template?: string;
     } = {
       instagram_url: data.instagram_url,
       whatsapp_phone: data.whatsapp_phone,
@@ -92,6 +96,7 @@ export const updateContactSettings = createServerFn({ method: "POST" })
     if (data.pix_key !== undefined) patch.pix_key = data.pix_key;
     if (data.pix_copia_cola !== undefined) patch.pix_copia_cola = data.pix_copia_cola;
     if (data.pix_qr_url !== undefined) patch.pix_qr_url = data.pix_qr_url;
+    if (data.whatsapp_message_template !== undefined) patch.whatsapp_message_template = data.whatsapp_message_template;
 
     if (existing?.id) {
       const { error } = await supabase
