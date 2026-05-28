@@ -43,6 +43,7 @@ export type Expense = {
   unit_price: number;
   total: number;
   payment_method: string | null;
+  category: string | null;
   notes: string | null;
   created_at: string;
 };
