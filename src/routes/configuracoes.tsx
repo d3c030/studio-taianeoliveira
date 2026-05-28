@@ -66,6 +66,8 @@ function ConfiguracoesPage() {
     }
   }, [q.data]);
 
+  type SaveOverrides = { logo?: string; theme?: ThemeName; pixQr?: string };
+  const m = useMutation({
     mutationFn: (over: SaveOverrides = {}) =>
       saveSettings({
         data: {
