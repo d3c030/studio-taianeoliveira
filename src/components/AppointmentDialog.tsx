@@ -165,7 +165,6 @@ export function AppointmentDialog({
             </p>
           </div>
 
-          </div>
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
