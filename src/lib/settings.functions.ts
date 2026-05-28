@@ -42,7 +42,6 @@ const isTheme = (v: unknown): v is ThemeName =>
     };
   },
 );
-);
 
 export const updateContactSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
