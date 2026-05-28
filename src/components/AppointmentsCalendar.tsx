@@ -72,7 +72,8 @@ function AppointmentCard({
   onToggleUnlock?: () => void;
   whatsappUrl?: string | null;
 }) {
-  const isUnlocked = !!isUnlocked;
+  const isUnlocked = !!unlocked;
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
     data: { appointment: a },
