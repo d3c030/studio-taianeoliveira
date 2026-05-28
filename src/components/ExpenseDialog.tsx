@@ -16,9 +16,12 @@ type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   initial?: Expense | null;
+  categorySuggestions?: string[];
   onSubmit: (data: ExpenseInput) => Promise<void>;
   onDelete?: () => Promise<void>;
 };
+
+const DEFAULT_CATEGORIES = ["Mercadoria", "Salário", "Aluguel", "Marketing", "Equipamento", "Limpeza", "Outros"];
 
 const today = () => new Date().toISOString().slice(0, 10);
 
