@@ -59,9 +59,10 @@ export type Client = {
 
 export type AppointmentInput = Omit<
   Appointment,
-  "id" | "created_at" | "client_id" | "status" | "subtotal" | "discount"
+  "id" | "created_at" | "client_id" | "client_phone" | "status" | "subtotal" | "discount"
 > & {
   client_id?: string | null;
+  client_phone?: string | null;
   status?: AppointmentStatus;
   subtotal?: number;
   discount?: number;
