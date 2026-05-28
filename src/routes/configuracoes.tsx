@@ -80,8 +80,7 @@ function ConfiguracoesPage() {
         },
       }),
 
-        },
-      }),
+
     onSuccess: () => {
       toast.success("Configurações atualizadas");
       qc.invalidateQueries({ queryKey: ["contact-settings"] });
