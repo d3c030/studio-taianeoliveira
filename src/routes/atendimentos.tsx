@@ -63,6 +63,13 @@ function AtendimentosPage() {
     queryKey: ["procedures"],
     queryFn: fetchDistinctProcedures,
   });
+  const settingsQ = useQuery({
+    queryKey: ["contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
+
+  const whatsappUrlFor = (a: Appointment) =>
+    whatsappFor(a, a.client_phone, settingsQ.data?.whatsapp_message_template);
 
   const filtered = useMemo(() => {
     const list = apptsQ.data ?? [];
