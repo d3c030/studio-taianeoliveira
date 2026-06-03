@@ -152,6 +152,7 @@ function AtendimentosPage() {
         onViewChange={setView}
         onCardClick={(a) => { setEditing(a); setDialogOpen(true); }}
         onMove={handleMove}
+        whatsappUrlFor={whatsappUrlFor}
       />
 
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
