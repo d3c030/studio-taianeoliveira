@@ -57,6 +57,8 @@ const statusClasses = (a: Appointment) => {
   if ((a.payment_method ?? "").toLowerCase() === "a receber")
     return "bg-accent/70 border-accent hover:bg-accent";
   return "bg-card border-primary/30 hover:bg-secondary";
+};
+
 function AppointmentCard({
   a,
   compact,
