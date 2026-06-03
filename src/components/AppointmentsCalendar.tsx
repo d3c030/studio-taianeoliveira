@@ -179,6 +179,7 @@ function DayCell({
   onCardClick,
   onClickEmpty,
   variant,
+  whatsappUrlFor,
 }: {
   date: Date;
   isCurrentMonth?: boolean;
@@ -187,6 +188,7 @@ function DayCell({
   onCardClick: (a: Appointment) => void;
   onClickEmpty?: () => void;
   variant: "month" | "week" | "day";
+  whatsappUrlFor?: (a: Appointment) => string | null;
 }) {
   const iso = toISO(date);
   const { setNodeRef, isOver } = useDroppable({ id: iso });
