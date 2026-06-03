@@ -11,6 +11,8 @@ import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { AppointmentsCalendar } from "@/components/AppointmentsCalendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { whatsappFor } from "@/lib/whatsapp";
+import { getContactSettings } from "@/lib/settings.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/atendimentos")({
