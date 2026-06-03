@@ -291,6 +291,21 @@ function Dashboard() {
                           </SelectContent>
                         </Select>
                       </div>
+                      {(() => {
+                        const wa = whatsappFor(a, a.client_phone, settingsQ.data?.whatsapp_message_template);
+                        return wa ? (
+                          <a
+                            href={wa}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hidden sm:inline-flex items-center justify-center h-8 w-8 rounded-md border border-success/40 text-success hover:bg-success/15 shrink-0"
+                            aria-label="Confirmar via WhatsApp"
+                            title="Confirmar via WhatsApp"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </a>
+                        ) : null;
+                      })()}
                       <Button
                         variant="default"
                         size="sm"
