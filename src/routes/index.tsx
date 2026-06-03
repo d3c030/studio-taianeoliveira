@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil, CheckCircle2, HandCoins, Plus } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Sparkles, CalendarRange, ClipboardList, Clock, Pencil, CheckCircle2, HandCoins, Plus, MessageCircle } from "lucide-react";
 import {
   ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid, Cell, Legend,
 } from "recharts";
@@ -27,6 +27,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { supabase } from "@/integrations/supabase/client";
+import { whatsappFor } from "@/lib/whatsapp";
+import { getContactSettings } from "@/lib/settings.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -94,6 +96,10 @@ function Dashboard() {
   const receivablesQ = useQuery({
     queryKey: ["receivables"],
     queryFn: fetchReceivables,
+  });
+  const settingsQ = useQuery({
+    queryKey: ["contact-settings"],
+    queryFn: () => getContactSettings(),
   });
   const [editingReceivable, setEditingReceivable] = useState<Appointment | null>(null);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -285,6 +291,21 @@ function Dashboard() {
                           </SelectContent>
                         </Select>
                       </div>
+                      {(() => {
+                        const wa = whatsappFor(a, a.client_phone, settingsQ.data?.whatsapp_message_template);
+                        return wa ? (
+                          <a
+                            href={wa}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hidden sm:inline-flex items-center justify-center h-8 w-8 rounded-md border border-success/40 text-success hover:bg-success/15 shrink-0"
+                            aria-label="Confirmar via WhatsApp"
+                            title="Confirmar via WhatsApp"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </a>
+                        ) : null;
+                      })()}
                       <Button
                         variant="default"
                         size="sm"

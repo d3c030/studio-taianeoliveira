@@ -11,6 +11,8 @@ import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { AppointmentsCalendar } from "@/components/AppointmentsCalendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { whatsappFor } from "@/lib/whatsapp";
+import { getContactSettings } from "@/lib/settings.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/atendimentos")({
@@ -61,6 +63,13 @@ function AtendimentosPage() {
     queryKey: ["procedures"],
     queryFn: fetchDistinctProcedures,
   });
+  const settingsQ = useQuery({
+    queryKey: ["contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
+
+  const whatsappUrlFor = (a: Appointment) =>
+    whatsappFor(a, a.client_phone, settingsQ.data?.whatsapp_message_template);
 
   const filtered = useMemo(() => {
     const list = apptsQ.data ?? [];
@@ -143,6 +152,7 @@ function AtendimentosPage() {
         onViewChange={setView}
         onCardClick={(a) => { setEditing(a); setDialogOpen(true); }}
         onMove={handleMove}
+        whatsappUrlFor={whatsappUrlFor}
       />
 
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

@@ -57,22 +57,21 @@ const statusClasses = (a: Appointment) => {
   if ((a.payment_method ?? "").toLowerCase() === "a receber")
     return "bg-accent/70 border-accent hover:bg-accent";
   return "bg-card border-primary/30 hover:bg-secondary";
+};
+
 function AppointmentCard({
   a,
   compact,
   onClick,
-  unlocked,
-  onToggleUnlock,
   whatsappUrl,
 }: {
   a: Appointment;
   compact?: boolean;
   onClick: () => void;
-  unlocked?: boolean;
-  onToggleUnlock?: () => void;
   whatsappUrl?: string | null;
 }) {
-  const isUnlocked = !!unlocked;
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const onToggleUnlock = () => setIsUnlocked((v) => !v);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
@@ -180,6 +179,7 @@ function DayCell({
   onCardClick,
   onClickEmpty,
   variant,
+  whatsappUrlFor,
 }: {
   date: Date;
   isCurrentMonth?: boolean;
@@ -188,6 +188,7 @@ function DayCell({
   onCardClick: (a: Appointment) => void;
   onClickEmpty?: () => void;
   variant: "month" | "week" | "day";
+  whatsappUrlFor?: (a: Appointment) => string | null;
 }) {
   const iso = toISO(date);
   const { setNodeRef, isOver } = useDroppable({ id: iso });
@@ -234,6 +235,7 @@ function DayCell({
             a={a}
             compact={variant === "month"}
             onClick={() => onCardClick(a)}
+            whatsappUrl={whatsappUrlFor?.(a)}
           />
         ))}
       </div>
@@ -249,6 +251,7 @@ export function AppointmentsCalendar({
   onViewChange,
   onCardClick,
   onMove,
+  whatsappUrlFor,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -423,6 +426,7 @@ export function AppointmentsCalendar({
                           key={a.id}
                           a={a}
                           onClick={() => onCardClick(a)}
+                          whatsappUrl={whatsappUrlFor?.(a)}
                         />
                       ))}
                     </div>
@@ -459,6 +463,7 @@ export function AppointmentsCalendar({
                 appointments={items}
                 onCardClick={onCardClick}
                 variant={view}
+                whatsappUrlFor={whatsappUrlFor}
               />
             );
           })}

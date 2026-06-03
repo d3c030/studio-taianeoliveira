@@ -156,6 +156,17 @@ export async function fetchExpenses(year: number, monthIdx: number): Promise<Exp
   return (data ?? []) as Expense[];
 }
 
+export async function fetchExpensesRange(startDate: string, endDate: string): Promise<Expense[]> {
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("*")
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Expense[];
+}
+
 export async function createAppointment(input: AppointmentInput) {
   const { error } = await supabase.from("appointments").insert(input);
   if (error) throw error;
