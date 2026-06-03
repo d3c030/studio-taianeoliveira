@@ -463,6 +463,7 @@ export function AppointmentsCalendar({
                 appointments={items}
                 onCardClick={onCardClick}
                 variant={view}
+                whatsappUrlFor={whatsappUrlFor}
               />
             );
           })}
