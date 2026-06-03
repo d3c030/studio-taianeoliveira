@@ -235,6 +235,7 @@ function DayCell({
             a={a}
             compact={variant === "month"}
             onClick={() => onCardClick(a)}
+            whatsappUrl={whatsappUrlFor?.(a)}
           />
         ))}
       </div>
