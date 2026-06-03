@@ -426,6 +426,7 @@ export function AppointmentsCalendar({
                           key={a.id}
                           a={a}
                           onClick={() => onCardClick(a)}
+                          whatsappUrl={whatsappUrlFor?.(a)}
                         />
                       ))}
                     </div>
