@@ -251,6 +251,7 @@ export function AppointmentsCalendar({
   onViewChange,
   onCardClick,
   onMove,
+  whatsappUrlFor,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
