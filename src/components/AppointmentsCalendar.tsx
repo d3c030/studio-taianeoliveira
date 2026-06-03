@@ -63,18 +63,15 @@ function AppointmentCard({
   a,
   compact,
   onClick,
-  unlocked,
-  onToggleUnlock,
   whatsappUrl,
 }: {
   a: Appointment;
   compact?: boolean;
   onClick: () => void;
-  unlocked?: boolean;
-  onToggleUnlock?: () => void;
   whatsappUrl?: string | null;
 }) {
-  const isUnlocked = !!unlocked;
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const onToggleUnlock = () => setIsUnlocked((v) => !v);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: a.id,
