@@ -97,6 +97,10 @@ function Dashboard() {
     queryKey: ["receivables"],
     queryFn: fetchReceivables,
   });
+  const settingsQ = useQuery({
+    queryKey: ["contact-settings"],
+    queryFn: () => getContactSettings(),
+  });
   const [editingReceivable, setEditingReceivable] = useState<Appointment | null>(null);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
