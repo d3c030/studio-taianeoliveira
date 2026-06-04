@@ -12,8 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { PAYMENT_METHODS } from "@/lib/format";
-import { fetchClients, type Appointment, type AppointmentInput } from "@/lib/data";
+import { PAYMENT_METHODS, formatBRL, formatDateBR } from "@/lib/format";
+import {
+  fetchClients, fetchAppointmentPayments,
+  type Appointment, type AppointmentInput,
+} from "@/lib/data";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { fetchProcedures, joinProcedureNames, splitProcedureNames } from "@/lib/procedures";
 import { cn } from "@/lib/utils";
