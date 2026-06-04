@@ -45,6 +45,9 @@ export function AppointmentDialog({
   const [amount, setAmount] = useState<string>("");
   const [amountTouched, setAmountTouched] = useState(false);
   const [notes, setNotes] = useState("");
+  const [hasDeposit, setHasDeposit] = useState(false);
+  const [depositAmount, setDepositAmount] = useState<string>("");
+  const [depositMethod, setDepositMethod] = useState<string>("Pix");
   const [saving, setSaving] = useState(false);
 
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
