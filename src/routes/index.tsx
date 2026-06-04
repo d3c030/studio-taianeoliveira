@@ -8,6 +8,7 @@ import {
 import {
   fetchAppointments, fetchExpenses, fetchUpcomingAppointments,
   fetchDistinctProcedures, updateAppointment, updateAppointmentStatus,
+  createAppointment,
   deleteAppointment, fetchReceivables, APPOINTMENT_STATUS_LABEL,
   createExpense, updateExpense, deleteExpense,
   type Appointment, type AppointmentStatus, type Expense,
@@ -730,14 +731,19 @@ function Dashboard() {
         onOpenChange={setDialogOpen}
         initial={editing}
         procedureSuggestions={procsQ.data}
-        onSubmit={async (data) => {
-          if (!editing) return;
+        onSubmit={async (data, extras) => {
           try {
-            await updateAppointment(editing.id, data);
-            toast.success("Atendimento atualizado");
+            if (editing) {
+              await updateAppointment(editing.id, data);
+              toast.success("Atendimento atualizado");
+            } else {
+              await createAppointment(data, extras?.deposit ?? null);
+              toast.success("Atendimento adicionado");
+            }
             invalidateAll();
-          } catch (e) {
-            toast.error("Erro ao guardar");
+          } catch (e: any) {
+            const msg = e?.message || "Erro desconhecido";
+            toast.error(`Erro ao guardar: ${msg}`);
             throw e;
           }
         }}

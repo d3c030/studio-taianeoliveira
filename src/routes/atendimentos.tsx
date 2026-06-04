@@ -176,13 +176,13 @@ function AtendimentosPage() {
         onOpenChange={setDialogOpen}
         initial={editing}
         procedureSuggestions={procsQ.data}
-        onSubmit={async (data) => {
+        onSubmit={async (data, extras) => {
           try {
             if (editing) {
               await updateAppointment(editing.id, data);
               toast.success("Atendimento atualizado");
             } else {
-              await createAppointment(data);
+              await createAppointment(data, extras?.deposit ?? null);
               toast.success("Atendimento adicionado");
             }
             invalidate();

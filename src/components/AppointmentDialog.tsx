@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -22,7 +23,10 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   initial?: Appointment | null;
   procedureSuggestions?: string[];
-  onSubmit: (data: AppointmentInput) => Promise<void>;
+  onSubmit: (
+    data: AppointmentInput,
+    extras?: { deposit?: { amount: number; payment_method: string } | null },
+  ) => Promise<void>;
   onDelete?: () => Promise<void>;
 };
 
@@ -41,6 +45,9 @@ export function AppointmentDialog({
   const [amount, setAmount] = useState<string>("");
   const [amountTouched, setAmountTouched] = useState(false);
   const [notes, setNotes] = useState("");
+  const [hasDeposit, setHasDeposit] = useState(false);
+  const [depositAmount, setDepositAmount] = useState<string>("");
+  const [depositMethod, setDepositMethod] = useState<string>("Pix");
   const [saving, setSaving] = useState(false);
 
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
@@ -64,6 +71,9 @@ export function AppointmentDialog({
       setAmount(initial ? String(initial.amount) : "");
       setAmountTouched(!!initial);
       setNotes(initial?.notes ?? "");
+      setHasDeposit(false);
+      setDepositAmount("");
+      setDepositMethod("Pix");
     }
   }, [open, initial]);
 
@@ -92,18 +102,27 @@ export function AppointmentDialog({
     if (!clientName.trim() || !date) return;
     setSaving(true);
     try {
-      await onSubmit({
-        date,
-        time: time || null,
-        client_name: clientName.trim(),
-        client_id: clientId,
-        client_phone: clientPhone.replace(/\D/g, "") || null,
-        procedure: selectedProcs.length ? joinProcedureNames(selectedProcs) : null,
-        payment_method: payment,
-        amount: parseFloat(amount.replace(",", ".")) || 0,
-        notes: notes.trim() || null,
-        status: initial?.status ?? "a_fazer",
-      });
+      const total = parseFloat(amount.replace(",", ".")) || 0;
+      const dep = hasDeposit ? Math.min(total, parseFloat(depositAmount.replace(",", ".")) || 0) : 0;
+      const remaining = Math.max(0, total - dep);
+      const isNew = !initial;
+      await onSubmit(
+        {
+          date,
+          time: time || null,
+          client_name: clientName.trim(),
+          client_id: clientId,
+          client_phone: clientPhone.replace(/\D/g, "") || null,
+          procedure: selectedProcs.length ? joinProcedureNames(selectedProcs) : null,
+          payment_method: dep > 0 && remaining > 0 ? "A Receber" : payment,
+          amount: remaining,
+          notes: notes.trim() || null,
+          status: initial?.status ?? "a_fazer",
+        },
+        isNew && dep > 0
+          ? { deposit: { amount: dep, payment_method: depositMethod } }
+          : undefined,
+      );
       onOpenChange(false);
     } finally {
       setSaving(false);
@@ -251,6 +270,62 @@ export function AppointmentDialog({
               )}
             </div>
           </div>
+
+          {!initial && (
+            <div className="rounded-lg border border-border bg-secondary/30 p-3 grid gap-3">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <Checkbox
+                  checked={hasDeposit}
+                  onCheckedChange={(v) => setHasDeposit(!!v)}
+                />
+                <span className="text-sm font-medium">Sinal (entrada)</span>
+                <span className="text-xs text-muted-foreground">
+                  abatido do valor final
+                </span>
+              </label>
+              {hasDeposit && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="deposit">Valor do sinal (R$)</Label>
+                    <Input
+                      id="deposit"
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      min="0"
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label>Pagamento do sinal</Label>
+                    <Select value={depositMethod} onValueChange={setDepositMethod}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHODS.map((p) => (
+                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {(() => {
+                    const total = parseFloat(amount.replace(",", ".")) || 0;
+                    const dep = Math.min(total, parseFloat(depositAmount.replace(",", ".")) || 0);
+                    const rest = Math.max(0, total - dep);
+                    return (
+                      <p className="col-span-2 text-[11px] text-muted-foreground">
+                        Restante a receber:{" "}
+                        <strong className="text-foreground">
+                          {rest.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </strong>
+                      </p>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-1.5">
             <Label htmlFor="notes">Observações</Label>
