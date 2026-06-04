@@ -96,26 +96,16 @@ export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
   const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const { data, error } = await supabase
     .from("appointments")
-    .select("*")
+    .select("*, clients(phone)")
     .gte("date", iso)
     .eq("status", "a_fazer")
     .order("date", { ascending: true })
     .order("time", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as Appointment[];
-}
-
-export async function fetchAppointmentsRange(startISO: string, endISO: string): Promise<Appointment[]> {
-  const { data, error } = await supabase
-    .from("appointments")
-    .select("*")
-    .gte("date", startISO)
-    .lte("date", endISO)
-    .order("date", { ascending: true })
-    .order("time", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as Appointment[];
-}
+  return ((data ?? []) as any[]).map((a) => ({
+    ...a,
+    client_phone: a.client_phone ?? a.clients?.phone ?? null,
+  })) as Appointment[];
 
 export async function updateAppointmentStatus(id: string, status: AppointmentStatus) {
   const { error } = await supabase.from("appointments").update({ status }).eq("id", id);
