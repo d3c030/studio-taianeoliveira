@@ -71,6 +71,9 @@ export function AppointmentDialog({
       setAmount(initial ? String(initial.amount) : "");
       setAmountTouched(!!initial);
       setNotes(initial?.notes ?? "");
+      setHasDeposit(false);
+      setDepositAmount("");
+      setDepositMethod("Pix");
     }
   }, [open, initial]);
 
