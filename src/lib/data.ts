@@ -167,9 +167,28 @@ export async function fetchExpensesRange(startDate: string, endDate: string): Pr
   return (data ?? []) as Expense[];
 }
 
-export async function createAppointment(input: AppointmentInput) {
-  const { error } = await supabase.from("appointments").insert(input);
+export async function createAppointment(
+  input: AppointmentInput,
+  deposit?: { amount: number; payment_method: string } | null,
+) {
+  const { data, error } = await supabase
+    .from("appointments")
+    .insert(input)
+    .select("id")
+    .single();
   if (error) throw error;
+  const id = data?.id as string;
+  if (deposit && deposit.amount > 0 && id) {
+    const { error: payErr } = await supabase.from("appointment_payments").insert({
+      appointment_id: id,
+      amount: deposit.amount,
+      payment_method: deposit.payment_method,
+      paid_at: new Date().toISOString().slice(0, 10),
+      notes: "Sinal (entrada)",
+    });
+    if (payErr) throw payErr;
+  }
+  return id;
 }
 
 export async function updateAppointment(id: string, input: AppointmentInput) {
