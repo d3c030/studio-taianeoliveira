@@ -102,18 +102,27 @@ export function AppointmentDialog({
     if (!clientName.trim() || !date) return;
     setSaving(true);
     try {
-      await onSubmit({
-        date,
-        time: time || null,
-        client_name: clientName.trim(),
-        client_id: clientId,
-        client_phone: clientPhone.replace(/\D/g, "") || null,
-        procedure: selectedProcs.length ? joinProcedureNames(selectedProcs) : null,
-        payment_method: payment,
-        amount: parseFloat(amount.replace(",", ".")) || 0,
-        notes: notes.trim() || null,
-        status: initial?.status ?? "a_fazer",
-      });
+      const total = parseFloat(amount.replace(",", ".")) || 0;
+      const dep = hasDeposit ? Math.min(total, parseFloat(depositAmount.replace(",", ".")) || 0) : 0;
+      const remaining = Math.max(0, total - dep);
+      const isNew = !initial;
+      await onSubmit(
+        {
+          date,
+          time: time || null,
+          client_name: clientName.trim(),
+          client_id: clientId,
+          client_phone: clientPhone.replace(/\D/g, "") || null,
+          procedure: selectedProcs.length ? joinProcedureNames(selectedProcs) : null,
+          payment_method: dep > 0 && remaining > 0 ? "A Receber" : payment,
+          amount: remaining,
+          notes: notes.trim() || null,
+          status: initial?.status ?? "a_fazer",
+        },
+        isNew && dep > 0
+          ? { deposit: { amount: dep, payment_method: depositMethod } }
+          : undefined,
+      );
       onOpenChange(false);
     } finally {
       setSaving(false);
