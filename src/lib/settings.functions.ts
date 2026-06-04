@@ -21,9 +21,43 @@ export type ContactSettings = {
 const isTheme = (v: unknown): v is ThemeName =>
   typeof v === "string" && (THEMES as readonly string[]).includes(v);
 
-export const getContactSettings = createServerFn({ method: "GET" }).handler(
-  async (): Promise<ContactSettings> => {
+export type PublicContactSettings = Pick<
+  ContactSettings,
+  "instagram_url" | "whatsapp_phone" | "logo_url" | "theme" | "whatsapp_message_template"
+>;
+
+/**
+ * Public, anonymous-safe contact info for booking pages and the global theme.
+ * Excludes PIX credentials. Uses supabaseAdmin to bypass RLS (which now
+ * restricts SELECT on contact_settings to authenticated users).
+ */
+export const getPublicContactSettings = createServerFn({ method: "GET" }).handler(
+  async (): Promise<PublicContactSettings> => {
     const { data, error } = await supabaseAdmin
+      .from("contact_settings")
+      .select("instagram_url, whatsapp_phone, logo_url, theme, whatsapp_message_template")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return {
+      instagram_url: (data?.instagram_url as string | undefined) ?? "",
+      whatsapp_phone: (data?.whatsapp_phone as string | undefined) ?? "",
+      logo_url: (data?.logo_url as string | undefined) ?? "",
+      theme: isTheme(data?.theme) ? (data!.theme as ThemeName) : "rosa",
+      whatsapp_message_template: (data?.whatsapp_message_template as string | undefined) ?? "",
+    };
+  },
+);
+
+/**
+ * Full contact settings including PIX. Requires authentication.
+ */
+export const getContactSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<ContactSettings> => {
+    const { supabase } = context;
+    const { data, error } = await supabase
       .from("contact_settings")
       .select("id, instagram_url, whatsapp_phone, logo_url, theme, pix_key, pix_copia_cola, pix_qr_url, whatsapp_message_template")
       .order("updated_at", { ascending: false })
@@ -41,8 +75,7 @@ export const getContactSettings = createServerFn({ method: "GET" }).handler(
       pix_qr_url: (data?.pix_qr_url as string | undefined) ?? "",
       whatsapp_message_template: (data?.whatsapp_message_template as string | undefined) ?? "",
     };
-  },
-);
+  });
 
 export const updateContactSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
