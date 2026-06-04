@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Instagram, Sparkles } from "lucide-react";
 import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
-import { getContactSettings } from "@/lib/settings.functions";
+import { getPublicContactSettings } from "@/lib/settings.functions";
 import {
   generateDailySlots,
   isClosedDay,
@@ -49,7 +49,7 @@ function AgendarPage() {
 
   const settingsQ = useQuery({
     queryKey: ["public-contact-settings"],
-    queryFn: () => getContactSettings(),
+    queryFn: () => getPublicContactSettings(),
   });
   const waPhone = settingsQ.data?.whatsapp_phone || BOOKING_PHONE;
   const igUrl = settingsQ.data?.instagram_url || INSTAGRAM_URL;

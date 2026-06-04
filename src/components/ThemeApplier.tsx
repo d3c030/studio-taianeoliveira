@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getContactSettings, THEMES, type ThemeName } from "@/lib/settings.functions";
+import { getPublicContactSettings, THEMES, type ThemeName } from "@/lib/settings.functions";
 
 const THEME_CLASSES = THEMES.map((t) => `theme-${t}`);
 
 export function ThemeApplier() {
   const q = useQuery({
     queryKey: ["public-contact-settings"],
-    queryFn: () => getContactSettings(),
+    queryFn: () => getPublicContactSettings(),
     staleTime: 60_000,
   });
 
