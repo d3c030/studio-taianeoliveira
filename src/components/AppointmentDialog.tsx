@@ -23,7 +23,10 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   initial?: Appointment | null;
   procedureSuggestions?: string[];
-  onSubmit: (data: AppointmentInput) => Promise<void>;
+  onSubmit: (
+    data: AppointmentInput,
+    extras?: { deposit?: { amount: number; payment_method: string } | null },
+  ) => Promise<void>;
   onDelete?: () => Promise<void>;
 };
 
