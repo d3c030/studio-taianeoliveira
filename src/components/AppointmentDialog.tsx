@@ -340,6 +340,40 @@ export function AppointmentDialog({
             </div>
           )}
 
+          {initial && (paymentsQ.data?.length ?? 0) > 0 && (
+            <div className="rounded-lg border border-border bg-secondary/30 p-3 grid gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Histórico de pagamentos</span>
+                <span className="text-xs text-muted-foreground">
+                  Total pago:{" "}
+                  <strong className="text-foreground">
+                    {formatBRL((paymentsQ.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0))}
+                  </strong>
+                </span>
+              </div>
+              <ul className="grid gap-1.5">
+                {(paymentsQ.data ?? []).map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between gap-2 rounded-md bg-background border border-border/60 px-2.5 py-1.5 text-xs"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{formatBRL(Number(p.amount))}</span>
+                      {p.notes && (
+                        <span className="text-muted-foreground">{p.notes}</span>
+                      )}
+                    </div>
+                    <div className="text-right text-muted-foreground">
+                      <div>{formatDateBR(p.paid_at)}</div>
+                      {p.payment_method && <div>{p.payment_method}</div>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+
           <div className="grid gap-1.5">
             <Label htmlFor="notes">Observações</Label>
             <Textarea
