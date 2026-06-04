@@ -55,6 +55,11 @@ export function AppointmentDialog({
 
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const procsQ = useQuery({ queryKey: ["procedures"], queryFn: fetchProcedures });
+  const paymentsQ = useQuery({
+    queryKey: ["appointment_payments", initial?.id],
+    queryFn: () => fetchAppointmentPayments(initial!.id),
+    enabled: !!initial?.id && open,
+  });
 
   const priceByName = useMemo(() => {
     const map = new Map<string, number>();
@@ -80,11 +85,13 @@ export function AppointmentDialog({
     }
   }, [open, initial]);
 
-  // Auto-fill phone from selected client when no phone has been typed yet
+  // Pull phone & notes from registered client when no value typed yet
   useEffect(() => {
     if (!open || !clientId) return;
     const c = (clientsQ.data ?? []).find((x) => x.id === clientId);
-    if (c?.phone && !clientPhone) setClientPhone(c.phone);
+    if (!c) return;
+    if (c.phone && !clientPhone) setClientPhone(c.phone);
+    if (c.notes && !notes.trim()) setNotes(c.notes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, clientsQ.data, open]);
 
