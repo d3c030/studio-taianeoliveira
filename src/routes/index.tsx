@@ -8,6 +8,7 @@ import {
 import {
   fetchAppointments, fetchExpenses, fetchUpcomingAppointments,
   fetchDistinctProcedures, updateAppointment, updateAppointmentStatus,
+  createAppointment,
   deleteAppointment, fetchReceivables, APPOINTMENT_STATUS_LABEL,
   createExpense, updateExpense, deleteExpense,
   type Appointment, type AppointmentStatus, type Expense,
