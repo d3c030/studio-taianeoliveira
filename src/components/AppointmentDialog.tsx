@@ -173,7 +173,10 @@ export function AppointmentDialog({
                 setClientName(name);
                 setClientId(id);
                 const picked = (clientsQ.data ?? []).find((c) => c.id === id);
-                if (picked?.phone) setClientPhone(picked.phone);
+                if (picked) {
+                  if (picked.phone && !clientPhone) setClientPhone(picked.phone);
+                  if (picked.notes && !notes.trim()) setNotes(picked.notes);
+                }
               }}
               placeholder="Procurar ou criar novo cliente"
             />
