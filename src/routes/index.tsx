@@ -256,6 +256,7 @@ function Dashboard() {
                 });
                 const time = a.time ? String(a.time).slice(0, 5) : null;
                 const isToday = a.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
+                const waLink = whatsappFor(a, a.client_phone, settingsQ.data?.whatsapp_message_template);
                 return (
                   <li key={a.id} className="py-3">
                     <div className="flex items-center gap-3">
@@ -270,6 +271,84 @@ function Dashboard() {
                           {time && (
                             <> · <Clock className="inline h-3 w-3 -mt-0.5" /> {time}</>
                           )}
+                        </div>
+                      </div>
+                      {a.amount > 0 && (
+                        <span className="hidden sm:inline text-sm tabular-nums text-muted-foreground shrink-0">{formatBRL(Number(a.amount))}</span>
+                      )}
+                      <div className="hidden sm:block">
+                        <Select
+                          value={a.status}
+                          onValueChange={(v) => handleStatusChange(a.id, v as AppointmentStatus)}
+                        >
+                          <SelectTrigger className="h-8 w-[120px] text-xs shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(Object.keys(APPOINTMENT_STATUS_LABEL) as AppointmentStatus[]).map((s) => (
+                              <SelectItem key={s} value={s} className="text-xs">
+                                {APPOINTMENT_STATUS_LABEL[s]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {waLink && (
+                        
+                          href={waLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hidden sm:inline-flex items-center justify-center h-8 w-8 rounded-md border border-success/40 text-success hover:bg-success/15 shrink-0"
+                          aria-label="Confirmar via WhatsApp"
+                          title="Confirmar via WhatsApp"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </a>
+                      )}
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="hidden sm:inline-flex h-8 shrink-0"
+                        onClick={() => { setCheckoutAppt(a); setCheckoutOpen(true); }}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Finalizar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        aria-label="Ver / editar"
+                        onClick={() => { setEditing(a); setDialogOpen(true); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="mt-2 sm:hidden flex gap-2">
+                      {waLink && (
+                        
+                          href={waLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-success/40 text-success hover:bg-success/15 shrink-0"
+                          aria-label="Confirmar via WhatsApp"
+                          title="Confirmar via WhatsApp"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </a>
+                      )}
+                      <Button
+                        size="sm"
+                        className="flex-1 h-8"
+                        onClick={() => { setCheckoutAppt(a); setCheckoutOpen(true); }}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Finalizar
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
                         </div>
                       </div>
                       {a.amount > 0 && (
