@@ -360,7 +360,7 @@ function Dashboard() {
                       </Button>
 
                     </div>
-                    <div className="mt-2 pl-13 sm:pl-0 sm:mt-0 sm:hidden flex gap-2">
+                    <div className="mt-2 sm:hidden flex gap-2">
                       {(() => {
                         const wa = waHrefFor(a);
                         if (a.status !== "a_fazer") return null;
