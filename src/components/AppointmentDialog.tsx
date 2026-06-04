@@ -12,8 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { PAYMENT_METHODS } from "@/lib/format";
-import { fetchClients, type Appointment, type AppointmentInput } from "@/lib/data";
+import { PAYMENT_METHODS, formatBRL, formatDateBR } from "@/lib/format";
+import {
+  fetchClients, fetchAppointmentPayments,
+  type Appointment, type AppointmentInput,
+} from "@/lib/data";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { fetchProcedures, joinProcedureNames, splitProcedureNames } from "@/lib/procedures";
 import { cn } from "@/lib/utils";
@@ -52,6 +55,11 @@ export function AppointmentDialog({
 
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const procsQ = useQuery({ queryKey: ["procedures"], queryFn: fetchProcedures });
+  const paymentsQ = useQuery({
+    queryKey: ["appointment_payments", initial?.id],
+    queryFn: () => fetchAppointmentPayments(initial!.id),
+    enabled: !!initial?.id && open,
+  });
 
   const priceByName = useMemo(() => {
     const map = new Map<string, number>();
@@ -77,11 +85,13 @@ export function AppointmentDialog({
     }
   }, [open, initial]);
 
-  // Auto-fill phone from selected client when no phone has been typed yet
+  // Pull phone & notes from registered client when no value typed yet
   useEffect(() => {
     if (!open || !clientId) return;
     const c = (clientsQ.data ?? []).find((x) => x.id === clientId);
-    if (c?.phone && !clientPhone) setClientPhone(c.phone);
+    if (!c) return;
+    if (c.phone && !clientPhone) setClientPhone(c.phone);
+    if (c.notes && !notes.trim()) setNotes(c.notes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, clientsQ.data, open]);
 
@@ -163,7 +173,10 @@ export function AppointmentDialog({
                 setClientName(name);
                 setClientId(id);
                 const picked = (clientsQ.data ?? []).find((c) => c.id === id);
-                if (picked?.phone) setClientPhone(picked.phone);
+                if (picked) {
+                  if (picked.phone && !clientPhone) setClientPhone(picked.phone);
+                  if (picked.notes && !notes.trim()) setNotes(picked.notes);
+                }
               }}
               placeholder="Procurar ou criar novo cliente"
             />
@@ -326,6 +339,40 @@ export function AppointmentDialog({
               )}
             </div>
           )}
+
+          {initial && (paymentsQ.data?.length ?? 0) > 0 && (
+            <div className="rounded-lg border border-border bg-secondary/30 p-3 grid gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Histórico de pagamentos</span>
+                <span className="text-xs text-muted-foreground">
+                  Total pago:{" "}
+                  <strong className="text-foreground">
+                    {formatBRL((paymentsQ.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0))}
+                  </strong>
+                </span>
+              </div>
+              <ul className="grid gap-1.5">
+                {(paymentsQ.data ?? []).map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between gap-2 rounded-md bg-background border border-border/60 px-2.5 py-1.5 text-xs"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{formatBRL(Number(p.amount))}</span>
+                      {p.notes && (
+                        <span className="text-muted-foreground">{p.notes}</span>
+                      )}
+                    </div>
+                    <div className="text-right text-muted-foreground">
+                      <div>{formatDateBR(p.paid_at)}</div>
+                      {p.payment_method && <div>{p.payment_method}</div>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
 
           <div className="grid gap-1.5">
             <Label htmlFor="notes">Observações</Label>
