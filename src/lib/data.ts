@@ -106,6 +106,8 @@ export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
     ...a,
     client_phone: a.client_phone ?? a.clients?.phone ?? null,
   })) as Appointment[];
+}
+
 
 export async function updateAppointmentStatus(id: string, status: AppointmentStatus) {
   const { error } = await supabase.from("appointments").update({ status }).eq("id", id);
