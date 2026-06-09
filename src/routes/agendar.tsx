@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Instagram, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Instagram, MessageCircle, Sparkles } from "lucide-react";
 import { getBookedSlots, getAgendaOverrides } from "@/lib/public-booking.functions";
 import { getPublicContactSettings } from "@/lib/settings.functions";
 import {
@@ -245,6 +245,17 @@ function AgendarPage() {
           </div>
         </div>
 
+        {/* Direct WhatsApp CTA */}
+        <a
+          href={`https://wa.me/${waPhone}?text=${encodeURIComponent("Olá! Gostaria de agendar um horário.")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 flex items-center justify-center gap-2 rounded-full bg-[#25D366] text-white px-5 py-3 text-sm font-semibold shadow-md hover:opacity-90 transition-opacity w-full"
+        >
+          <MessageCircle className="h-5 w-5" />
+          Falar no WhatsApp
+        </a>
+
         {/* Social */}
         <div className="mt-6 rounded-3xl bg-gradient-to-br from-accent/50 to-secondary/60 border border-border p-6 text-center">
           <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary uppercase tracking-wider">
@@ -266,6 +277,17 @@ function AgendarPage() {
         </div>
 
       </main>
+
+      {/* Sticky WhatsApp FAB (mobile) */}
+      <a
+        href={`https://wa.me/${waPhone}?text=${encodeURIComponent("Olá! Gostaria de agendar um horário.")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Falar no WhatsApp"
+        className="fixed bottom-5 right-5 z-50 inline-flex items-center justify-center h-14 w-14 rounded-full bg-[#25D366] text-white shadow-xl hover:opacity-90 transition-opacity"
+      >
+        <MessageCircle className="h-7 w-7" />
+      </a>
     </div>
   );
 }
