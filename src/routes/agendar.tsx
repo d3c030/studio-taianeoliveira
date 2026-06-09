@@ -291,8 +291,3 @@ function AgendarPage() {
     </div>
   );
 }
-
-      </main>
-    </div>
-  );
-}
