@@ -13,7 +13,7 @@ import {
   type Appointment, type AppointmentStatus,
 } from "@/lib/data";
 import { getContactSettings } from "@/lib/settings.functions";
-import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { whatsappFor } from "@/lib/whatsapp";
 import { formatBRL, formatDateBR, PAYMENT_METHODS } from "@/lib/format";
 import { MonthPicker } from "@/components/MonthPicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
