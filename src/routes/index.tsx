@@ -114,7 +114,7 @@ function Dashboard() {
     if (a.status !== "a_fazer") return null;
     const phone = a.client_id ? phonesByClientId.get(a.client_id) ?? "" : "";
     if (!phone) return null;
-    return buildWhatsAppLink(phone, settingsQ.data?.whatsapp_message_template ?? "", a);
+    return whatsappFor(a, phone, settingsQ.data?.whatsapp_message_template);
   };
   const handleWaClick = (a: Appointment, e: React.MouseEvent) => {
     const wa = waHrefFor(a);
