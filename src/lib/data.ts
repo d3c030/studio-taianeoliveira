@@ -91,6 +91,18 @@ export async function fetchAppointments(year: number, monthIdx: number): Promise
   return (data ?? []) as Appointment[];
 }
 
+export async function fetchAppointmentsRange(startDate: string, endDate: string): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date", { ascending: true })
+    .order("time", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Appointment[];
+}
+
 export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
   const today = new Date();
   const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
