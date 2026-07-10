@@ -261,14 +261,20 @@ function Dashboard() {
       </div>
 
       <Card className="border-border/70 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-3 flex-wrap">
           <CardTitle className="flex items-center gap-2 text-base">
             <ClipboardList className="h-4 w-4 text-primary" />
             A fazer
           </CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {(upcomingQ.data?.length ?? 0)} agendamento{(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"} futuro{(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"}
-          </span>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-muted-foreground">
+              {(upcomingQ.data?.length ?? 0)} agendamento{(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"} futuro{(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-1 font-medium">
+              <TrendingUp className="h-3.5 w-3.5" />
+              Previsão: {formatBRL((upcomingQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+            </span>
+          </div>
         </CardHeader>
         <CardContent>
           {upcomingQ.isLoading ? (
