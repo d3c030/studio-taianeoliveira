@@ -95,12 +95,8 @@ export function AppointmentDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, clientsQ.data, open]);
 
-  // Auto-sum suggestion: only updates the amount while the user hasn't typed manually.
-  useEffect(() => {
-    if (!open || amountTouched) return;
-    const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
-    setAmount(sum > 0 ? sum.toFixed(2) : "");
-  }, [selectedProcs, priceByName, open, amountTouched]);
+  // Amount is fully manual. Suggested sum is shown as a hint with a "Use sum" button.
+
 
   const toggleProc = (name: string) => {
     setSelectedProcs((prev) =>
