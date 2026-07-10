@@ -402,7 +402,14 @@ function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <StatCard
+          icon={ClipboardList}
+          label="Previsão A Fazer"
+          value={formatBRL((upcomingQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+          accent="primary"
+          hint={`${upcomingQ.data?.length ?? 0} agendamento${(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"} futuro${(upcomingQ.data?.length ?? 0) === 1 ? "" : "s"}`}
+        />
         <StatCard
           icon={TrendingUp}
           label="Faturamento Bruto"
