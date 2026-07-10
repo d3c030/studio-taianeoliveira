@@ -262,7 +262,22 @@ export function AppointmentDialog({
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="amount">Valor total (R$)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="amount">Valor final (R$)</Label>
+                {selectedProcs.length > 0 && amountTouched && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
+                      setAmount(sum > 0 ? sum.toFixed(2) : "");
+                      setAmountTouched(false);
+                    }}
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    Recalcular
+                  </button>
+                )}
+              </div>
               <Input
                 id="amount"
                 type="number"
@@ -276,11 +291,32 @@ export function AppointmentDialog({
                 }}
                 placeholder="0,00"
               />
-              {!amountTouched && selectedProcs.length > 0 && (
-                <p className="text-[11px] text-muted-foreground">
-                  Soma sugerida automaticamente — pode editar livremente.
-                </p>
-              )}
+              {(() => {
+                const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
+                const current = parseFloat(amount.replace(",", ".")) || 0;
+                const diff = current - sum;
+                if (selectedProcs.length === 0) return null;
+                if (!amountTouched) {
+                  return (
+                    <p className="text-[11px] text-muted-foreground">
+                      Soma sugerida — edite livremente para aplicar desconto ou acréscimo.
+                    </p>
+                  );
+                }
+                return (
+                  <p className="text-[11px] text-muted-foreground">
+                    Soma dos procedimentos: <strong className="text-foreground">{formatBRL(sum)}</strong>
+                    {Math.abs(diff) > 0.001 && (
+                      <>
+                        {" · "}
+                        <span className={diff < 0 ? "text-emerald-600" : "text-amber-600"}>
+                          {diff < 0 ? "Desconto" : "Acréscimo"} de {formatBRL(Math.abs(diff))}
+                        </span>
+                      </>
+                    )}
+                  </p>
+                );
+              })()}
             </div>
           </div>
 
