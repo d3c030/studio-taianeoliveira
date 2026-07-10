@@ -95,12 +95,8 @@ export function AppointmentDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, clientsQ.data, open]);
 
-  // Auto-sum suggestion: only updates the amount while the user hasn't typed manually.
-  useEffect(() => {
-    if (!open || amountTouched) return;
-    const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
-    setAmount(sum > 0 ? sum.toFixed(2) : "");
-  }, [selectedProcs, priceByName, open, amountTouched]);
+  // Amount is fully manual. Suggested sum is shown as a hint with a "Use sum" button.
+
 
   const toggleProc = (name: string) => {
     setSelectedProcs((prev) =>
@@ -264,17 +260,17 @@ export function AppointmentDialog({
             <div className="grid gap-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="amount">Valor final (R$)</Label>
-                {selectedProcs.length > 0 && amountTouched && (
+                {selectedProcs.length > 0 && (
                   <button
                     type="button"
                     onClick={() => {
                       const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
                       setAmount(sum > 0 ? sum.toFixed(2) : "");
-                      setAmountTouched(false);
+                      setAmountTouched(true);
                     }}
                     className="text-[11px] text-primary hover:underline"
                   >
-                    Recalcular
+                    Usar soma dos procedimentos
                   </button>
                 )}
               </div>
@@ -292,21 +288,14 @@ export function AppointmentDialog({
                 placeholder="0,00"
               />
               {(() => {
+                if (selectedProcs.length === 0) return null;
                 const sum = selectedProcs.reduce((acc, n) => acc + (priceByName.get(n) ?? 0), 0);
                 const current = parseFloat(amount.replace(",", ".")) || 0;
                 const diff = current - sum;
-                if (selectedProcs.length === 0) return null;
-                if (!amountTouched) {
-                  return (
-                    <p className="text-[11px] text-muted-foreground">
-                      Soma sugerida — edite livremente para aplicar desconto ou acréscimo.
-                    </p>
-                  );
-                }
                 return (
                   <p className="text-[11px] text-muted-foreground">
                     Soma dos procedimentos: <strong className="text-foreground">{formatBRL(sum)}</strong>
-                    {Math.abs(diff) > 0.001 && (
+                    {current > 0 && Math.abs(diff) > 0.001 && (
                       <>
                         {" · "}
                         <span className={diff < 0 ? "text-emerald-600" : "text-amber-600"}>
