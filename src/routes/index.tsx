@@ -288,7 +288,7 @@ function Dashboard() {
             <p className="text-sm text-muted-foreground py-6 text-center">Carregando…</p>
           ) : (upcomingQ.data?.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
-              Nenhum agendamento futuro. <Link to="/atendimentos" className="text-primary hover:underline">Novo atendimento</Link>
+              Nenhum agendamento futuro. <Link to="/agenda" className="text-primary hover:underline">Novo atendimento</Link>
             </p>
           ) : (
             <ul className="divide-y divide-border/70">
