@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardCheck, FileEdit, CheckCircle2, UserPlus, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatBRL } from "@/lib/format";
+import { loadFinanceiroGeral } from "../lib/financeiro";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -37,6 +39,8 @@ export function ConsultoriasPainel() {
     },
   });
   const rows = q.data ?? [];
+  const fin = useQuery({ queryKey: ["diag-fin-geral"], queryFn: loadFinanceiroGeral });
+  const g = fin.data?.geral;
 
   const stats = useMemo(() => {
     const rascunho = rows.filter((r) => r.status !== "finalizado").length;
@@ -84,6 +88,14 @@ export function ConsultoriasPainel() {
           <Mini icon={UserPlus} label="Novas (7 dias)" value={stats.novos} hint="inclui cadastros do site" />
         </div>
 
+        {g && g.total > 0 && (
+          <div className="grid grid-cols-3 gap-3">
+            <Mini icon={ClipboardCheck} label="Contratado" value={formatBRL(g.total)} hint={g.desconto ? `${formatBRL(g.desconto)} em descontos` : undefined} />
+            <Mini icon={CheckCircle2} label="Recebido" value={formatBRL(g.pago)} />
+            <Mini icon={FileEdit} label="Em aberto" value={formatBRL(g.aberto)} />
+          </div>
+        )}
+
         <div>
           <div className="mb-1 flex justify-between text-xs text-muted-foreground"><span>Andamento geral</span><span>{pct}% concluído</span></div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -125,6 +137,9 @@ export function ConsultoriasPainel() {
                         {r.cliente?.instagram ? `@${r.cliente.instagram} · ` : ""}{r.cliente?.objetivo || r.titulo}
                       </div>
                     </div>
+                    {(() => { const rf = fin.data?.porDiag.get(r.id); return rf && rf.total > 0 ? (
+                      <span className={`text-xs font-medium ${rf.aberto > 0 ? "text-destructive" : "text-primary"}`}>{rf.aberto > 0 ? `${formatBRL(rf.aberto)} em aberto` : "Pago"}</span>
+                    ) : null; })()}
                     <span className="hidden text-xs text-muted-foreground sm:inline">{quando(r.atualizado_em)}</span>
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${fin ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"}`}>
                       {fin ? "Finalizada" : "Em andamento"}
