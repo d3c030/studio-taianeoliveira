@@ -33,9 +33,10 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
   const novo = async () => {
     setCreating(true);
     try {
-      await createDiagnostico(clienteId);
+      const id = await createDiagnostico(clienteId);
       toast.success("Diagnóstico criado com o checklist padrão");
       refresh();
+      navigate({ to: "/diagnosticos/editor/$diagnosticoId", params: { diagnosticoId: id } });
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao criar diagnóstico");
     } finally {
@@ -129,11 +130,17 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
           <ul className="space-y-2">
             {dq.data.map((d) => (
               <li key={d.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                <FileText className="h-5 w-5 text-primary shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{d.titulo}</p>
-                  <p className="text-xs text-muted-foreground">Criado em {fmtDate(d.criado_em)} · atualizado {fmtDate(d.atualizado_em)}</p>
-                </div>
+                <Link
+                  to="/diagnosticos/editor/$diagnosticoId"
+                  params={{ diagnosticoId: d.id }}
+                  className="flex min-w-0 flex-1 items-center gap-3"
+                >
+                  <FileText className="h-5 w-5 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{d.titulo}</p>
+                    <p className="text-xs text-muted-foreground">Criado em {fmtDate(d.criado_em)} · atualizado {fmtDate(d.atualizado_em)}</p>
+                  </div>
+                </Link>
                 <span className={d.status === "finalizado"
                   ? "rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground"
                   : "rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"}>

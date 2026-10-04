@@ -22,6 +22,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
+import { Route as DiagnosticosEditorDiagnosticoIdRouteImport } from './routes/diagnosticos.editor.$diagnosticoId'
 import { Route as DiagnosticosClientesClienteIdRouteImport } from './routes/diagnosticos.clientes.$clienteId'
 
 const UsuariosRoute = UsuariosRouteImport.update({
@@ -89,6 +90,12 @@ const AgendarDateRoute = AgendarDateRouteImport.update({
   path: '/$date',
   getParentRoute: () => AgendarRoute,
 } as any)
+const DiagnosticosEditorDiagnosticoIdRoute =
+  DiagnosticosEditorDiagnosticoIdRouteImport.update({
+    id: '/editor/$diagnosticoId',
+    path: '/editor/$diagnosticoId',
+    getParentRoute: () => DiagnosticosRoute,
+  } as any)
 const DiagnosticosClientesClienteIdRoute =
   DiagnosticosClientesClienteIdRouteImport.update({
     id: '/clientes/$clienteId',
@@ -111,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
+  '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +134,7 @@ export interface FileRoutesByTo {
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos': typeof DiagnosticosIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
+  '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +152,7 @@ export interface FileRoutesById {
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
+  '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/agendar/$date'
     | '/diagnosticos/'
     | '/diagnosticos/clientes/$clienteId'
+    | '/diagnosticos/editor/$diagnosticoId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/agendar/$date'
     | '/diagnosticos'
     | '/diagnosticos/clientes/$clienteId'
+    | '/diagnosticos/editor/$diagnosticoId'
   id:
     | '__root__'
     | '/'
@@ -192,6 +204,7 @@ export interface FileRouteTypes {
     | '/agendar/$date'
     | '/diagnosticos/'
     | '/diagnosticos/clientes/$clienteId'
+    | '/diagnosticos/editor/$diagnosticoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendarDateRouteImport
       parentRoute: typeof AgendarRoute
     }
+    '/diagnosticos/editor/$diagnosticoId': {
+      id: '/diagnosticos/editor/$diagnosticoId'
+      path: '/editor/$diagnosticoId'
+      fullPath: '/diagnosticos/editor/$diagnosticoId'
+      preLoaderRoute: typeof DiagnosticosEditorDiagnosticoIdRouteImport
+      parentRoute: typeof DiagnosticosRoute
+    }
     '/diagnosticos/clientes/$clienteId': {
       id: '/diagnosticos/clientes/$clienteId'
       path: '/clientes/$clienteId'
@@ -325,11 +345,13 @@ const AgendarRouteWithChildren =
 interface DiagnosticosRouteChildren {
   DiagnosticosIndexRoute: typeof DiagnosticosIndexRoute
   DiagnosticosClientesClienteIdRoute: typeof DiagnosticosClientesClienteIdRoute
+  DiagnosticosEditorDiagnosticoIdRoute: typeof DiagnosticosEditorDiagnosticoIdRoute
 }
 
 const DiagnosticosRouteChildren: DiagnosticosRouteChildren = {
   DiagnosticosIndexRoute: DiagnosticosIndexRoute,
   DiagnosticosClientesClienteIdRoute: DiagnosticosClientesClienteIdRoute,
+  DiagnosticosEditorDiagnosticoIdRoute: DiagnosticosEditorDiagnosticoIdRoute,
 }
 
 const DiagnosticosRouteWithChildren = DiagnosticosRoute._addFileChildren(
