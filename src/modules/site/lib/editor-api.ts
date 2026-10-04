@@ -16,11 +16,24 @@ export async function loadDraft(): Promise<SiteDraft> {
     .eq("user_id", u.user.id)
     .maybeSingle();
   if (error) throw error;
+  let src: any = data;
+  // Se a página desta conta estiver vazia, carrega a página da equipe que tem conteúdo
+  if (!src || norm(src.rascunho_json).sections.length === 0) {
+    const { data: rows } = await supabase
+      .from("site_paginas")
+      .select("rascunho_json, publicado_json, seo, atualizado_em")
+      .order("atualizado_em", { ascending: false })
+      .limit(10);
+    const shared = (rows ?? []).find((r: any) => norm(r.rascunho_json).sections.length > 0 || norm(r.publicado_json).sections.length > 0);
+    if (shared) {
+      src = { ...shared, rascunho_json: norm(shared.rascunho_json).sections.length ? shared.rascunho_json : shared.publicado_json };
+    }
+  }
   return {
-    rascunho: norm(data?.rascunho_json),
-    publicado: norm(data?.publicado_json),
-    seo: (data?.seo ?? {}) as SiteSeo,
-    atualizado_em: data?.atualizado_em,
+    rascunho: norm(src?.rascunho_json),
+    publicado: norm(src?.publicado_json),
+    seo: (src?.seo ?? {}) as SiteSeo,
+    atualizado_em: src?.atualizado_em,
   };
 }
 
