@@ -16,27 +16,15 @@ import { submitSiteLead } from "@/lib/site-leads.functions";
 import { loadPublishedPage } from "../lib/api";
 import { contatoWhatsapp, orderSections } from "../components/SectionView";
 import { waLink } from "../lib/sections";
+import { DEF } from "../lib/landing-defaults";
 
 /* ====== Conteúdo fácil de editar ====== */
-const SERVICOS = [
-  { icon: Search, nome: "Análise de Perfil", objetivo: "Análise de perfil", preco: "a partir de R$ ___", desc: "Diagnóstico completo do seu perfil com relatório e pontos de melhoria.", inclui: ["Bio e destaques", "Feed e linha editorial", "Conteúdo e métricas", "Relatório em PDF"] },
-  { icon: MessageSquareText, nome: "Consultoria 1:1", objetivo: "Consultoria 1:1", preco: "a partir de R$ ___", desc: "Sessão individual para montar sua estratégia de crescimento.", inclui: ["Estratégia de conteúdo", "Engajamento", "Crescimento de seguidores", "Plano de ação"] },
-  { icon: Handshake, nome: "Mentoria para Parcerias", objetivo: "Atrair marcas", preco: "a partir de R$ ___", desc: "Posicionamento e abordagem para atrair e negociar com marcas.", inclui: ["Posicionamento", "Mídia kit", "Abordagem às marcas", "Negociação"] },
-];
+const ICONES = [Search, MessageSquareText, Handshake];
 const PASSOS = [
   ["Preencha o cadastro", "Conte seu objetivo e seu @."],
   ["Receba o diagnóstico", "Analiso seu perfil e te mostro o que ajustar."],
   ["Coloque o plano em ação", "Estratégia clara para crescer e atrair marcas."],
 ];
-const NUMEROS = [["+X mil", "seguidores"], ["+X", "parcerias fechadas"], ["X anos", "criando conteúdo"]];
-const FAQ = [
-  ["A consultoria é online?", "Sim, 100% online, por videochamada e WhatsApp."],
-  ["Para quem é indicada?", "Influenciadores e aspirantes de beleza, moda e lifestyle."],
-  ["Quanto tempo dura?", "[Defina a duração da consultoria]"],
-  ["Preciso ter muitos seguidores?", "Não, a estratégia se adapta ao momento do seu perfil."],
-  ["Como funciona o pagamento?", "[Descreva as formas de pagamento]"],
-];
-const EMAIL = "[seu-email@exemplo.com]";
 const OBJETIVOS = ["Engajamento", "Seguidores", "Atrair marcas", "Organizar o perfil", "Análise de perfil", "Consultoria 1:1"];
 const NAV = [["Serviços", "#servicos"], ["Sobre", "#sobre"], ["Parcerias", "#parcerias"], ["Contato", "#contato"]];
 
@@ -182,12 +170,19 @@ export function Landing() {
   const sobre = get("sobre"), hero = get("hero"), cupSec = get("cupons"), gal = get("galeria");
   const wa = contatoWhatsapp(sections) || st.data?.whatsapp_phone;
   const ig = get("contato").instagram || st.data?.instagram_url;
-  const fotoHero: string = sobre.imagem || hero.imagem || ""; // troque aqui para usar outra foto
+  const fotoHero: string = hero.imagem || sobre.imagem || "";
   const fotos: { url: string; legenda?: string }[] = (gal.fotos ?? []).filter((f: any) => f?.url);
   const depo = ((get("depoimentos").itens ?? []) as any[]).filter((d) => d?.texto?.trim());
   const cupons = cq.data ?? [];
   const marcas = cupons.filter((c) => c.logo_url);
   const link = cupSec.link ? (/^https?:\/\//.test(cupSec.link) ? cupSec.link : `https://${cupSec.link}`) : "";
+  const SERVICOS = ((get("servicos").itens?.length ? get("servicos").itens : DEF.servicos) as any[]).map((it, i) => ({
+    icon: ICONES[i % 3], nome: it.nome, objetivo: it.objetivo || it.nome, preco: it.preco, desc: it.descricao,
+    inclui: String(it.inclui ?? "").split("\n").map((x) => x.trim()).filter(Boolean),
+  }));
+  const NUMEROS = ((sobre.numeros ?? DEF.numeros) as any[]).filter((n) => n.valor).map((n) => [n.valor, n.rotulo]);
+  const FAQ = ((get("faq").itens ?? DEF.faq) as any[]).filter((f) => f.pergunta).map((f) => [f.pergunta, f.resposta]);
+  const EMAIL: string = get("contato").email || "";
   const paragrafos: string[] = String(sobre.texto ?? "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
   const queroEste = (obj: string) => {
@@ -231,12 +226,12 @@ export function Landing() {
       <section id="topo" className="pt-24 sm:pt-28">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 md:grid-cols-[1.1fr_1fr]">
           <div className="text-center md:text-left">
-            <Eyebrow>Consultora especialista em redes sociais</Eyebrow>
-            <h1 className="mt-4 font-display text-4xl leading-[1.08] sm:text-6xl">Transformo seu perfil em uma vitrine que atrai marcas</h1>
-            <p className="mt-5 text-lg text-muted-foreground">Diagnóstico, estratégia e posicionamento para influenciadores de beleza, moda e lifestyle que querem crescer e fechar parcerias.</p>
+            <Eyebrow>{hero.eyebrow || DEF.eyebrow}</Eyebrow>
+            <h1 className="mt-4 font-display text-4xl leading-[1.08] sm:text-6xl">{hero.chamada || DEF.chamada}</h1>
+            <p className="mt-5 text-lg text-muted-foreground">{hero.descricao || DEF.descricao}</p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row md:justify-start">
-              <Button asChild size="lg" className="h-12 rounded-full bg-ink px-7 text-ink-foreground hover:bg-ink/90"><a href="#contato">Quero meu diagnóstico<ArrowRight className="ml-2 h-4 w-4" /></a></Button>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-7"><a href="#como-funciona">Como funciona</a></Button>
+              <Button asChild size="lg" className="h-12 rounded-full bg-ink px-7 text-ink-foreground hover:bg-ink/90"><a href="#contato">{hero.botao_texto || DEF.botao_texto}<ArrowRight className="ml-2 h-4 w-4" /></a></Button>
+              <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-7"><a href="#como-funciona">{hero.botao2_texto || DEF.botao2_texto}</a></Button>
             </div>
           </div>
           {fotoHero && <img src={fotoHero} alt="Taiane Oliveira" className="mx-auto aspect-[4/5] w-full max-w-md rounded-3xl object-cover object-top shadow-xl" />}
@@ -255,7 +250,7 @@ export function Landing() {
 
       {/* Serviços */}
       <Reveal id="servicos">
-        <Title eyebrow="Serviços" titulo="Como posso te ajudar" />
+        <Title eyebrow="Serviços" titulo={get("servicos").titulo || "Como posso te ajudar"} />
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {SERVICOS.map((s) => (
             <div key={s.nome} className="flex flex-col rounded-3xl border border-border bg-card p-7 shadow-sm transition-shadow hover:shadow-md">
@@ -263,9 +258,9 @@ export function Landing() {
               <h3 className="mt-4 font-display text-2xl">{s.nome}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
               <ul className="mt-5 flex-1 space-y-2 text-sm">
-                {s.inclui.map((i) => <li key={i} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" />{i}</li>)}
+                {s.inclui.map((i: string) => <li key={i} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" />{i}</li>)}
               </ul>
-              <p className="mt-5 text-sm font-medium text-muted-foreground">{s.preco}</p>
+              {s.preco && <p className="mt-5 text-sm font-medium text-muted-foreground">{s.preco}</p>}
               <Button onClick={() => queroEste(s.objetivo)} className="mt-4 rounded-full bg-ink text-ink-foreground hover:bg-ink/90">Quero este</Button>
             </div>
           ))}
@@ -385,7 +380,7 @@ export function Landing() {
       <Reveal>
         <Title eyebrow="Dúvidas" titulo="Perguntas frequentes" />
         <div className="mx-auto mt-10 max-w-2xl divide-y divide-border rounded-3xl border border-border bg-card">
-          {FAQ.map(([p, r]) => (
+          {FAQ.length > 0 && FAQ.map(([p, r]) => (
             <details key={p} className="group px-6 py-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium">{p}<ChevronDown className="h-4 w-4 shrink-0 text-brand transition-transform group-open:rotate-180" /></summary>
               <p className="mt-3 text-sm text-muted-foreground">{r}</p>
@@ -401,7 +396,7 @@ export function Landing() {
           <div className="flex flex-wrap justify-center gap-5">
             {ig && <a href={ig} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-brand"><Instagram className="h-4 w-4" />Instagram</a>}
             {wa && <a href={waLink(wa, "Olá, Taiane! Vim pelo seu site.")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-brand"><WhatsIcon className="h-4 w-4" />WhatsApp</a>}
-            <span className="inline-flex items-center gap-1.5"><Mail className="h-4 w-4" />{EMAIL}</span>
+            {EMAIL && <a href={`mailto:${EMAIL}`} className="inline-flex items-center gap-1.5 hover:text-brand"><Mail className="h-4 w-4" />{EMAIL}</a>}
           </div>
           <Link to="/privacidade" className="hover:text-brand">Política de privacidade</Link>
           <p>© 2026 Studio Taiane Oliveira</p>
