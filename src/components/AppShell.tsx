@@ -36,6 +36,7 @@ export function AppShell() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((e, session) => {
       if (!session) setAuthState("out");
       else if (e === "SIGNED_IN") {
+        setAuthState((s) => (s === "in" ? s : "loading"));
         supabase.auth.getUser().then(({ data, error }) => setAuthState(!error && data.user ? "in" : "out"));
       }
     });
