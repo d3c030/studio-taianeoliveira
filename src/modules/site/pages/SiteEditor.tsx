@@ -101,6 +101,16 @@ export function SiteEditor() {
   }, [q.data]);
 
   const change = (fn: (s: SiteSection[]) => SiteSection[]) => { setSections(fn); setDirty(true); };
+
+  // Salva o rascunho sozinho para não perder fotos e textos
+  useEffect(() => {
+    if (!dirty || saving) return;
+    const t = setTimeout(async () => {
+      try { await saveDraft({ sections }, seo, false); setDirty(false); qc.invalidateQueries({ queryKey: ["site-rascunho"] }); }
+      catch (e: any) { toast.error(e.message ?? "Erro ao salvar rascunho"); }
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [sections, seo, dirty, saving]);
   const move = (i: number, dir: -1 | 1) => change((arr) => {
     const j = i + dir; if (j < 0 || j >= arr.length) return arr;
     const c = [...arr]; [c[i], c[j]] = [c[j], c[i]]; return c;
