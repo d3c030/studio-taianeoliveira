@@ -42,7 +42,7 @@ const mk = (cor: string) =>
     grid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 },
     imgBox: { width: "50%", paddingHorizontal: 6, paddingBottom: 12 },
     imgFrame: { borderWidth: 1, borderColor: LINHA, borderRadius: 6, padding: 4, backgroundColor: "#FAF7F5", alignItems: "center" },
-    img: { maxWidth: "100%", maxHeight: 330, objectFit: "contain" },
+    img: { width: "100%", height: 300, objectFit: "contain" },
     caption: { fontSize: 8.5, color: "#5E534F", lineHeight: 1.4, marginTop: 4 },
     secHead: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1.2, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 6, marginBottom: 12, marginTop: 6 },
     footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8, fontSize: 8, lineHeight: 1.2, color: SUAVE },
