@@ -9,72 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AgendaRouteImport } from './routes/agenda'
-import { Route as AgendarRouteImport } from './routes/agendar'
-import { Route as AtendimentosRouteImport } from './routes/atendimentos'
-import { Route as ClientesRouteImport } from './routes/clientes'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as CustosRouteImport } from './routes/custos'
-import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
-import { Route as SiteRouteImport } from './routes/site'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
-import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
+import { Route as SiteRouteImport } from './routes/site'
+import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
+import { Route as CustosRouteImport } from './routes/custos'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as AtendimentosRouteImport } from './routes/atendimentos'
+import { Route as AgendarRouteImport } from './routes/agendar'
+import { Route as AgendaRouteImport } from './routes/agenda'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
 import { Route as DiagnosticosConfiguracoesRouteImport } from './routes/diagnosticos.configuracoes'
-import { Route as DiagnosticosClientesClienteIdRouteImport } from './routes/diagnosticos.clientes.$clienteId'
+import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 import { Route as DiagnosticosEditorDiagnosticoIdRouteImport } from './routes/diagnosticos.editor.$diagnosticoId'
+import { Route as DiagnosticosClientesClienteIdRouteImport } from './routes/diagnosticos.clientes.$clienteId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgendaRoute = AgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgendarRoute = AgendarRouteImport.update({
-  id: '/agendar',
-  path: '/agendar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AtendimentosRoute = AtendimentosRouteImport.update({
-  id: '/atendimentos',
-  path: '/atendimentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientesRoute = ClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CustosRoute = CustosRouteImport.update({
-  id: '/custos',
-  path: '/custos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagnosticosRoute = DiagnosticosRouteImport.update({
-  id: '/diagnosticos',
-  path: '/diagnosticos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProcedimentosRoute = ProcedimentosRouteImport.update({
-  id: '/procedimentos',
-  path: '/procedimentos',
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SiteRoute = SiteRouteImport.update({
@@ -82,15 +37,55 @@ const SiteRoute = SiteRouteImport.update({
   path: '/site',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UsuariosRoute = UsuariosRouteImport.update({
-  id: '/usuarios',
-  path: '/usuarios',
+const ProcedimentosRoute = ProcedimentosRouteImport.update({
+  id: '/procedimentos',
+  path: '/procedimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgendarDateRoute = AgendarDateRouteImport.update({
-  id: '/$date',
-  path: '/$date',
-  getParentRoute: () => AgendarRoute,
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticosRoute = DiagnosticosRouteImport.update({
+  id: '/diagnosticos',
+  path: '/diagnosticos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustosRoute = CustosRouteImport.update({
+  id: '/custos',
+  path: '/custos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtendimentosRoute = AtendimentosRouteImport.update({
+  id: '/atendimentos',
+  path: '/atendimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendarRoute = AgendarRouteImport.update({
+  id: '/agendar',
+  path: '/agendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DiagnosticosIndexRoute = DiagnosticosIndexRouteImport.update({
   id: '/',
@@ -103,16 +98,21 @@ const DiagnosticosConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => DiagnosticosRoute,
   } as any)
-const DiagnosticosClientesClienteIdRoute =
-  DiagnosticosClientesClienteIdRouteImport.update({
-    id: '/clientes/$clienteId',
-    path: '/clientes/$clienteId',
-    getParentRoute: () => DiagnosticosRoute,
-  } as any)
+const AgendarDateRoute = AgendarDateRouteImport.update({
+  id: '/$date',
+  path: '/$date',
+  getParentRoute: () => AgendarRoute,
+} as any)
 const DiagnosticosEditorDiagnosticoIdRoute =
   DiagnosticosEditorDiagnosticoIdRouteImport.update({
     id: '/editor/$diagnosticoId',
     path: '/editor/$diagnosticoId',
+    getParentRoute: () => DiagnosticosRoute,
+  } as any)
+const DiagnosticosClientesClienteIdRoute =
+  DiagnosticosClientesClienteIdRouteImport.update({
+    id: '/clientes/$clienteId',
+    path: '/clientes/$clienteId',
     getParentRoute: () => DiagnosticosRoute,
   } as any)
 
@@ -249,74 +249,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agenda': {
-      id: '/agenda'
-      path: '/agenda'
-      fullPath: '/agenda'
-      preLoaderRoute: typeof AgendaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agendar': {
-      id: '/agendar'
-      path: '/agendar'
-      fullPath: '/agendar'
-      preLoaderRoute: typeof AgendarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/atendimentos': {
-      id: '/atendimentos'
-      path: '/atendimentos'
-      fullPath: '/atendimentos'
-      preLoaderRoute: typeof AtendimentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clientes': {
-      id: '/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof ClientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/custos': {
-      id: '/custos'
-      path: '/custos'
-      fullPath: '/custos'
-      preLoaderRoute: typeof CustosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagnosticos': {
-      id: '/diagnosticos'
-      path: '/diagnosticos'
-      fullPath: '/diagnosticos'
-      preLoaderRoute: typeof DiagnosticosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/procedimentos': {
-      id: '/procedimentos'
-      path: '/procedimentos'
-      fullPath: '/procedimentos'
-      preLoaderRoute: typeof ProcedimentosRouteImport
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/site': {
@@ -326,19 +263,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/usuarios': {
-      id: '/usuarios'
-      path: '/usuarios'
-      fullPath: '/usuarios'
-      preLoaderRoute: typeof UsuariosRouteImport
+    '/procedimentos': {
+      id: '/procedimentos'
+      path: '/procedimentos'
+      fullPath: '/procedimentos'
+      preLoaderRoute: typeof ProcedimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/agendar/$date': {
-      id: '/agendar/$date'
-      path: '/$date'
-      fullPath: '/agendar/$date'
-      preLoaderRoute: typeof AgendarDateRouteImport
-      parentRoute: typeof AgendarRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnosticos': {
+      id: '/diagnosticos'
+      path: '/diagnosticos'
+      fullPath: '/diagnosticos'
+      preLoaderRoute: typeof DiagnosticosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/custos': {
+      id: '/custos'
+      path: '/custos'
+      fullPath: '/custos'
+      preLoaderRoute: typeof CustosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atendimentos': {
+      id: '/atendimentos'
+      path: '/atendimentos'
+      fullPath: '/atendimentos'
+      preLoaderRoute: typeof AtendimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agendar': {
+      id: '/agendar'
+      path: '/agendar'
+      fullPath: '/agendar'
+      preLoaderRoute: typeof AgendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/diagnosticos/': {
       id: '/diagnosticos/'
@@ -354,18 +347,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiagnosticosConfiguracoesRouteImport
       parentRoute: typeof DiagnosticosRoute
     }
-    '/diagnosticos/clientes/$clienteId': {
-      id: '/diagnosticos/clientes/$clienteId'
-      path: '/clientes/$clienteId'
-      fullPath: '/diagnosticos/clientes/$clienteId'
-      preLoaderRoute: typeof DiagnosticosClientesClienteIdRouteImport
-      parentRoute: typeof DiagnosticosRoute
+    '/agendar/$date': {
+      id: '/agendar/$date'
+      path: '/$date'
+      fullPath: '/agendar/$date'
+      preLoaderRoute: typeof AgendarDateRouteImport
+      parentRoute: typeof AgendarRoute
     }
     '/diagnosticos/editor/$diagnosticoId': {
       id: '/diagnosticos/editor/$diagnosticoId'
       path: '/editor/$diagnosticoId'
       fullPath: '/diagnosticos/editor/$diagnosticoId'
       preLoaderRoute: typeof DiagnosticosEditorDiagnosticoIdRouteImport
+      parentRoute: typeof DiagnosticosRoute
+    }
+    '/diagnosticos/clientes/$clienteId': {
+      id: '/diagnosticos/clientes/$clienteId'
+      path: '/clientes/$clienteId'
+      fullPath: '/diagnosticos/clientes/$clienteId'
+      preLoaderRoute: typeof DiagnosticosClientesClienteIdRouteImport
       parentRoute: typeof DiagnosticosRoute
     }
   }
