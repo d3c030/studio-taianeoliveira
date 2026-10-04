@@ -79,11 +79,6 @@ function Footer({ d, s }: { d: PdfData; s: ReturnType<typeof mk> }) {
         {d.logo && <Image src={d.logo} style={s.footerLogo} />}
         <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape].filter(Boolean).join(" · ")}</Text>
       </View>
-      <Text
-        fixed
-        style={s.pageNum}
-        render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-      />
     </>
   );
 }
@@ -162,6 +157,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
             );
           })}
           <Footer d={d} s={s} />
+          <Text fixed style={s.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </Page>
       ))}
 
@@ -181,6 +177,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
             </View>
           )}
           <Footer d={d} s={s} />
+          <Text fixed style={s.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </Page>
       )}
 
@@ -188,6 +185,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
         <Text style={s.h1}>Plano de Ação – Seus Próximos Passos</Text>
         <Rich text={d.plano} s={s} />
         <Footer d={d} s={s} />
+          <Text fixed style={s.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
       </Page>
     </Document>
   );
