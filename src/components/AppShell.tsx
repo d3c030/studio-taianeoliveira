@@ -34,10 +34,11 @@ export function AppShell() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setAuthState(session ? "in" : "out");
+      if (!session) setAuthState("out");
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setAuthState(data.session ? "in" : "out");
+    // Valida a sessão no servidor (não confia só no que está salvo no aparelho)
+    supabase.auth.getUser().then(({ data, error }) => {
+      setAuthState(!error && data.user ? "in" : "out");
     });
     return () => subscription.unsubscribe();
   }, []);
