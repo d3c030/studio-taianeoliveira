@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Landing } from "@/modules/site/pages/Landing";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Instagram, MessageCircle, Sparkles } from "lucide-react";
@@ -20,7 +21,11 @@ import defaultLogo from "@/assets/logo.png";
 export const Route = createFileRoute("/agendar")({
   head: () => ({
     meta: [
-      { title: "Agendar — Studio Taiane Oliveira" },
+      { title: "Studio Taiane Oliveira" },
+      { property: "og:title", content: "Studio Taiane Oliveira" },
+      { property: "og:description", content: "Conheça o Studio Taiane Oliveira." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         name: "description",
         content:
@@ -28,10 +33,10 @@ export const Route = createFileRoute("/agendar")({
       },
     ],
   }),
-  component: AgendarPage,
+  component: Landing,
 });
 
-function AgendarPage() {
+export function AgendarPage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const [year, setYear] = useState(today.getFullYear());
