@@ -18,8 +18,9 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
     try {
       await beforeBuild();
       const blob = await buildPdfBlob(diag, itens, midias);
-      setUrl(URL.createObjectURL(blob));
-      return URL.createObjectURL(blob);
+      const href = URL.createObjectURL(blob);
+      setUrl(href);
+      return href;
     } catch (e: any) {
       console.error(e);
       toast.error("Erro ao gerar o PDF");
