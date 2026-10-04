@@ -296,9 +296,10 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
               ))}
             </View>
           )}
-          <Footer d={d} s={s} />
-        </Page>
+        </View>
       )}
+      <Footer d={d} s={s} />
+      </Page>
     </Document>
   );
 }
