@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Instagram, ClipboardCheck } from "lucide-react";
+import { Plus, Search, Instagram, ClipboardCheck, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listClientes } from "../lib/api";
@@ -29,9 +29,14 @@ export function DiagnosticosHome() {
           <h1 className="text-2xl font-semibold">Diagnósticos</h1>
           <p className="text-sm text-muted-foreground">Clientes e análises de perfil</p>
         </div>
-        <Button onClick={() => setOpen(true)}>
-          <Plus className="h-4 w-4" /> Nova cliente
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="icon" aria-label="Configurações">
+            <Link to="/diagnosticos/configuracoes"><Settings className="h-4 w-4" /></Link>
+          </Button>
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="h-4 w-4" /> Nova cliente
+          </Button>
+        </div>
       </div>
 
       <div className="relative">
