@@ -15,7 +15,6 @@ const navItems = [
   { to: "/diagnosticos", label: "Diagnósticos", icon: ClipboardCheck },
   { to: "/site", label: "Site", icon: Globe },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
-  { to: "/usuarios", label: "Usuários", icon: Shield },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
@@ -66,7 +65,7 @@ export function AppShell() {
 const GROUPS: { titulo: string; itens: readonly string[] }[] = [
   { titulo: "Studio", itens: ["/", "/agenda", "/custos"] },
   { titulo: "Consultoria", itens: ["/diagnosticos", "/site", "/relatorios"] },
-  { titulo: "Sistema", itens: ["/usuarios", "/configuracoes"] },
+  { titulo: "Sistema", itens: ["/configuracoes"] },
 ];
 const BOTTOM = ["/", "/agenda", "/diagnosticos", "/site"] as const;
 const item = (to: string) => navItems.find((n) => n.to === to)!;

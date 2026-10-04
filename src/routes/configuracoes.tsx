@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { UsuariosPage } from "@/components/pages/UsuariosLista";
 import { ProcedimentosPage } from "@/components/pages/ProcedimentosLista";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -407,6 +408,9 @@ function ConfiguracoesPage() {
       </div>
       <div className="border-t border-border pt-6">
         <ProcedimentosPage />
+      </div>
+      <div className="border-t border-border pt-6">
+        <UsuariosPage />
       </div>
     </div>
   );
