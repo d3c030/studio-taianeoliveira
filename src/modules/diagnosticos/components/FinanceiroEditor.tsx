@@ -44,7 +44,7 @@ export function FinanceiroEditor({ diagId }: { diagId: string }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["diag-fin", diagId], queryFn: () => loadFinanceiro(diagId) });
   const planos = useQuery({ queryKey: ["diag-planos"], queryFn: loadPlanos });
-  const [pg, setPg] = useState({ valor: "", forma: "pix", data: hoje() });
+  const [pg, setPg] = useState({ valor: "", forma: "Pix", data: hoje() });
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["diag-fin", diagId] });
     qc.invalidateQueries({ queryKey: ["diag-fin-geral"] });
@@ -102,7 +102,7 @@ export function FinanceiroEditor({ diagId }: { diagId: string }) {
         <div className="flex flex-wrap items-end gap-2">
           <Input className="w-32" inputMode="decimal" placeholder="Valor" value={pg.valor} onChange={(e) => setPg({ ...pg, valor: e.target.value })} />
           <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={pg.forma} onChange={(e) => setPg({ ...pg, forma: e.target.value })}>
-            {PAYMENT_METHODS.map((m: any) => <option key={m.value ?? m} value={m.value ?? m}>{m.label ?? m}</option>)}
+            {PAYMENT_METHODS.filter((m) => m !== "A Receber").map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
           <Input type="date" className="w-40" value={pg.data} onChange={(e) => setPg({ ...pg, data: e.target.value })} />
           <Button onClick={pagar}><Plus className="h-4 w-4" /> Registrar</Button>
@@ -115,7 +115,7 @@ export function FinanceiroEditor({ diagId }: { diagId: string }) {
             {pag.map((p) => (
               <li key={p.id} className="flex items-center gap-3 py-2 text-sm">
                 <span className="w-24 text-muted-foreground">{formatDateBR(p.pago_em)}</span>
-                <span className="flex-1 capitalize">{(PAYMENT_METHODS as any[]).find((m) => (m.value ?? m) === p.forma)?.label ?? p.forma ?? "—"}</span>
+                <span className="flex-1">{p.forma ?? "—"}</span>
                 <span className="font-medium">{formatBRL(Number(p.valor))}</span>
                 <Button variant="ghost" size="icon" aria-label="Excluir" onClick={async () => { await deletePagamento(p.id); refresh(); }}>
                   <Trash2 className="h-4 w-4" />

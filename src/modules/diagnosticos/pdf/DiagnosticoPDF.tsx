@@ -13,7 +13,14 @@ export type PdfData = {
   itens: DiagItem[];
   imagens: PdfImagem[];
   plano: string;
+  financeiro: null | {
+    itens: { descricao: string; valor: number; desconto: number }[];
+    pagamentos: { data: string; forma: string; valor: number }[];
+    bruto: number; desconto: number; total: number; pago: number; aberto: number;
+  };
 };
+
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const VERDE = "#3F7D5A";
 const LARANJA = "#C2622D";
@@ -50,6 +57,10 @@ const mk = (cor: string) =>
     li: { flexDirection: "row", marginBottom: 3 },
     bullet: { width: 12, color: cor },
     para: { marginBottom: 4 },
+    tRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: LINHA, paddingVertical: 7, paddingHorizontal: 10 },
+    tCell: { fontSize: 10 },
+    tNum: { flex: 1.2, fontSize: 10, textAlign: "right" },
+    sumRow: { flexDirection: "row", justifyContent: "space-between", fontSize: 10, marginBottom: 3 },
   });
 
 type S = ReturnType<typeof mk>;
@@ -248,6 +259,47 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
         {!!d.plano.trim() && <View style={{ marginTop: 6 }}><Rich text={d.plano} s={s} /></View>}
         <Footer d={d} s={s} />
       </Page>
+      {d.financeiro && (
+        <Page size="A4" style={s.page}>
+          <Titulo t="Investimento da Consultoria" s={s} />
+          <View style={{ borderWidth: 1, borderColor: LINHA, borderRadius: 8 }}>
+            <View style={[s.tRow, { backgroundColor: "#F8F1EE" }]}>
+              <Text style={[s.tCell, { flex: 3, fontFamily: "Helvetica-Bold" }]}>Descrição</Text>
+              <Text style={[s.tNum, { fontFamily: "Helvetica-Bold" }]}>Valor</Text>
+              <Text style={[s.tNum, { fontFamily: "Helvetica-Bold" }]}>Desconto</Text>
+              <Text style={[s.tNum, { fontFamily: "Helvetica-Bold" }]}>Total</Text>
+            </View>
+            {d.financeiro.itens.map((it, i) => (
+              <View key={i} style={s.tRow} wrap={false}>
+                <Text style={[s.tCell, { flex: 3 }]}>{it.descricao}</Text>
+                <Text style={s.tNum}>{brl(it.valor)}</Text>
+                <Text style={s.tNum}>{it.desconto ? `- ${brl(it.desconto)}` : "—"}</Text>
+                <Text style={s.tNum}>{brl(Math.max(0, it.valor - it.desconto))}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={{ alignSelf: "flex-end", width: 240, marginTop: 14 }} wrap={false}>
+            {([["Subtotal", d.financeiro.bruto], ["Descontos", -d.financeiro.desconto], ["Total contratado", d.financeiro.total], ["Valor pago", d.financeiro.pago]] as const).map(([l, v]) => (
+              <View key={l} style={s.sumRow}><Text>{l}</Text><Text>{v < 0 ? `- ${brl(-v)}` : brl(v)}</Text></View>
+            ))}
+            <View style={[s.sumRow, { borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 6, marginTop: 4 }]}>
+              <Text style={{ fontFamily: "Helvetica-Bold" }}>{d.financeiro.aberto > 0 ? "Em aberto" : "Situação"}</Text>
+              <Text style={{ fontFamily: "Helvetica-Bold", color: d.financeiro.aberto > 0 ? LARANJA : VERDE }}>
+                {d.financeiro.aberto > 0 ? brl(d.financeiro.aberto) : "Quitado"}
+              </Text>
+            </View>
+          </View>
+          {d.financeiro.pagamentos.length > 0 && (
+            <View style={{ marginTop: 22 }} wrap={false}>
+              <Text style={s.blockLabel}>Pagamentos recebidos</Text>
+              {d.financeiro.pagamentos.map((p, i) => (
+                <View key={i} style={s.sumRow}><Text>{p.data}{p.forma ? ` · ${p.forma}` : ""}</Text><Text>{brl(p.valor)}</Text></View>
+              ))}
+            </View>
+          )}
+          <Footer d={d} s={s} />
+        </Page>
+      )}
     </Document>
   );
 }
