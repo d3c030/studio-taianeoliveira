@@ -10,7 +10,6 @@ import defaultLogo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", label: "Início", icon: Home },
-  { to: "/atendimentos", label: "Atendimentos", icon: CalendarDays },
   { to: "/agenda", label: "Agenda e Clientes", icon: CalendarCheck },
   { to: "/custos", label: "Custos", icon: Receipt },
   { to: "/diagnosticos", label: "Diagnósticos", icon: ClipboardCheck },
@@ -65,11 +64,11 @@ export function AppShell() {
 }
 
 const GROUPS: { titulo: string; itens: readonly string[] }[] = [
-  { titulo: "Studio", itens: ["/", "/atendimentos", "/agenda", "/custos"] },
+  { titulo: "Studio", itens: ["/", "/agenda", "/custos"] },
   { titulo: "Consultoria", itens: ["/diagnosticos", "/site", "/relatorios"] },
   { titulo: "Sistema", itens: ["/usuarios", "/configuracoes"] },
 ];
-const BOTTOM = ["/", "/agenda", "/atendimentos", "/diagnosticos"] as const;
+const BOTTOM = ["/", "/agenda", "/diagnosticos", "/site"] as const;
 const item = (to: string) => navItems.find((n) => n.to === to)!;
 
 function NavList({ isActive, collapsed, onNavigate }: { isActive: (to: string) => boolean; collapsed?: boolean; onNavigate?: () => void }) {
