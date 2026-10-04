@@ -41,7 +41,7 @@ const mk = (cor: string) =>
     caption: { fontSize: 9, color: "#5E534F", marginTop: 3 },
     secHead: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#FFFFFF", paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, marginBottom: 10, marginTop: 6 },
     footer: { position: "absolute", bottom: 22, left: 44, right: 44, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: "#E8DEDA", paddingTop: 8, fontSize: 8, color: "#8A7B76" },
-    pageNum: { position: "absolute", bottom: 28, right: 44, fontSize: 8, color: "#8A7B76" },
+    pageNum: { position: "absolute", bottom: 28, left: 44, right: 44, textAlign: "right", fontSize: 8, color: "#8A7B76" },
     footerLogo: { width: 34, height: 20, objectFit: "contain", marginRight: 8 },
     li: { flexDirection: "row", marginBottom: 3 },
     bullet: { width: 12, color: cor },
