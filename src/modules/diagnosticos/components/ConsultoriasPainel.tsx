@@ -39,8 +39,8 @@ export function ConsultoriasPainel() {
     },
   });
   const rows = q.data ?? [];
-  const fin = useQuery({ queryKey: ["diag-fin-geral"], queryFn: loadFinanceiroGeral });
-  const g = fin.data?.geral;
+  const finQ = useQuery({ queryKey: ["diag-fin-geral"], queryFn: loadFinanceiroGeral });
+  const g = finQ.data?.geral;
 
   const stats = useMemo(() => {
     const rascunho = rows.filter((r) => r.status !== "finalizado").length;
@@ -137,7 +137,7 @@ export function ConsultoriasPainel() {
                         {r.cliente?.instagram ? `@${r.cliente.instagram} · ` : ""}{r.cliente?.objetivo || r.titulo}
                       </div>
                     </div>
-                    {(() => { const rf = fin.data?.porDiag.get(r.id); return rf && rf.total > 0 ? (
+                    {(() => { const rf = finQ.data?.porDiag.get(r.id); return rf && rf.total > 0 ? (
                       <span className={`text-xs font-medium ${rf.aberto > 0 ? "text-destructive" : "text-primary"}`}>{rf.aberto > 0 ? `${formatBRL(rf.aberto)} em aberto` : "Pago"}</span>
                     ) : null; })()}
                     <span className="hidden text-xs text-muted-foreground sm:inline">{quando(r.atualizado_em)}</span>
