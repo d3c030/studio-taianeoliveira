@@ -22,6 +22,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
+import { Route as DiagnosticosClientesClienteIdRouteImport } from './routes/diagnosticos.clientes.$clienteId'
 
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
@@ -88,6 +89,12 @@ const AgendarDateRoute = AgendarDateRouteImport.update({
   path: '/$date',
   getParentRoute: () => AgendarRoute,
 } as any)
+const DiagnosticosClientesClienteIdRoute =
+  DiagnosticosClientesClienteIdRouteImport.update({
+    id: '/clientes/$clienteId',
+    path: '/clientes/$clienteId',
+    getParentRoute: () => DiagnosticosRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
+  '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -117,6 +125,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos': typeof DiagnosticosIndexRoute
+  '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,6 +142,7 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
+  '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/'
+    | '/diagnosticos/clientes/$clienteId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos'
+    | '/diagnosticos/clientes/$clienteId'
   id:
     | '__root__'
     | '/'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/'
+    | '/diagnosticos/clientes/$clienteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendarDateRouteImport
       parentRoute: typeof AgendarRoute
     }
+    '/diagnosticos/clientes/$clienteId': {
+      id: '/diagnosticos/clientes/$clienteId'
+      path: '/clientes/$clienteId'
+      fullPath: '/diagnosticos/clientes/$clienteId'
+      preLoaderRoute: typeof DiagnosticosClientesClienteIdRouteImport
+      parentRoute: typeof DiagnosticosRoute
+    }
   }
 }
 
@@ -304,10 +324,12 @@ const AgendarRouteWithChildren =
 
 interface DiagnosticosRouteChildren {
   DiagnosticosIndexRoute: typeof DiagnosticosIndexRoute
+  DiagnosticosClientesClienteIdRoute: typeof DiagnosticosClientesClienteIdRoute
 }
 
 const DiagnosticosRouteChildren: DiagnosticosRouteChildren = {
   DiagnosticosIndexRoute: DiagnosticosIndexRoute,
+  DiagnosticosClientesClienteIdRoute: DiagnosticosClientesClienteIdRoute,
 }
 
 const DiagnosticosRouteWithChildren = DiagnosticosRoute._addFileChildren(
