@@ -53,17 +53,17 @@ export function parsePreco(s: string): number {
 }
 
 /** Planos/serviços publicados no site (com preço), para lançar com um toque. */
-export async function loadPlanos(): Promise<{ nome: string; valor: number }[]> {
+export async function loadPlanos(): Promise<{ nome: string; objetivo: string; valor: number }[]> {
   const { data } = await supabase.from("site_paginas").select("publicado_json, atualizado_em").order("atualizado_em", { ascending: false });
   for (const row of data ?? []) {
     const secs = ((row.publicado_json as any)?.sections ?? []) as any[];
     const sv = secs.find((s) => s?.tipo === "servicos");
     const lista = sv?.data?.itens ?? sv?.data?.servicos ?? sv?.itens;
     if (Array.isArray(lista) && lista.length) {
-      return lista.filter((x: any) => x?.nome).map((x: any) => ({ nome: String(x.nome), valor: parsePreco(String(x.preco ?? "")) }));
+      return lista.filter((x: any) => x?.nome).map((x: any) => ({ nome: String(x.nome), objetivo: String(x.objetivo || x.nome), valor: parsePreco(String(x.preco ?? "")) }));
     }
   }
-  return DEF.servicos.map((x) => ({ nome: x.nome, valor: parsePreco(x.preco) }));
+  return DEF.servicos.map((x) => ({ nome: x.nome, objetivo: x.objetivo || x.nome, valor: parsePreco(x.preco) }));
 }
 
 /** Totais de todas as consultorias (para o painel inicial). */
@@ -82,4 +82,12 @@ export async function loadFinanceiroGeral() {
     porDiag.set(id, resumo(cob.filter((x) => x.diagnostico_id === id), pag.filter((x) => x.diagnostico_id === id)));
   }
   return { geral: resumo(cob, pag), porDiag, pagamentos: pag };
+}
+
+const norm = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+/** Planos que a cliente marcou no cadastro do site (pelo texto do objetivo). */
+export function planosEscolhidos<T extends { nome: string; objetivo: string }>(planos: T[], objetivo: string | null): T[] {
+  const o = norm(objetivo ?? "");
+  if (!o) return [];
+  return planos.filter((p) => o.includes(norm(p.objetivo)) || o.includes(norm(p.nome)));
 }
