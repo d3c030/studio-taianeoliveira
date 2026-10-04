@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ProcedimentosPage } from "@/components/pages/ProcedimentosLista";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -403,6 +404,9 @@ function ConfiguracoesPage() {
           <Save className="h-4 w-4 mr-2" />
           {m.isPending ? "Salvando…" : "Salvar alterações"}
         </Button>
+      </div>
+      <div className="border-t border-border pt-6">
+        <ProcedimentosPage />
       </div>
     </div>
   );

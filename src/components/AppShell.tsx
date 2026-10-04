@@ -11,9 +11,7 @@ import defaultLogo from "@/assets/logo.png";
 const navItems = [
   { to: "/", label: "Início", icon: Home },
   { to: "/atendimentos", label: "Atendimentos", icon: CalendarDays },
-  { to: "/agenda", label: "Agenda", icon: CalendarCheck },
-  { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/procedimentos", label: "Procedimentos", icon: Sparkles },
+  { to: "/agenda", label: "Agenda e Clientes", icon: CalendarCheck },
   { to: "/custos", label: "Custos", icon: Receipt },
   { to: "/diagnosticos", label: "Diagnósticos", icon: ClipboardCheck },
   { to: "/site", label: "Site", icon: Globe },
@@ -67,7 +65,7 @@ export function AppShell() {
 }
 
 const GROUPS: { titulo: string; itens: readonly string[] }[] = [
-  { titulo: "Studio", itens: ["/", "/atendimentos", "/agenda", "/clientes", "/procedimentos", "/custos"] },
+  { titulo: "Studio", itens: ["/", "/atendimentos", "/agenda", "/custos"] },
   { titulo: "Consultoria", itens: ["/diagnosticos", "/site", "/relatorios"] },
   { titulo: "Sistema", itens: ["/usuarios", "/configuracoes"] },
 ];
