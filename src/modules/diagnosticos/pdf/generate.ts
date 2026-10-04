@@ -38,8 +38,14 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
     loadConfig(),
   ]);
 
-  const logoSrc = cfg?.logo_url ? (cfg.logo_url.startsWith("http") ? cfg.logo_url : await signedUrl(cfg.logo_url)) : defaultLogo;
-  const logo = await toDataUrl(logoSrc);
+  let logoSrc: string = defaultLogo;
+  if (cfg?.logo_url) {
+    logoSrc = cfg.logo_url.startsWith("http") ? cfg.logo_url : await signedUrl(cfg.logo_url);
+  } else {
+    const { data: studio } = await supabase.from("contact_settings").select("logo_url").limit(1).maybeSingle();
+    if (studio?.logo_url) logoSrc = studio.logo_url;
+  }
+  const logo = (await toDataUrl(logoSrc)) ?? (await toDataUrl(defaultLogo));
 
   const ordered = [...midias].sort((a, b) => (a.tipo === b.tipo ? a.ordem - b.ordem : a.tipo === "positivo" ? -1 : 1));
   const imagens = (
