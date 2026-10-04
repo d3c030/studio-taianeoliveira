@@ -36,6 +36,13 @@
       "when": 1791083377244,
       "tag": "0004_cupom_codigo_por_empresa",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791086485496,
+      "tag": "0005_diag_clientes_objetivo",
+      "breakpoints": true
     }
   ]
 }
