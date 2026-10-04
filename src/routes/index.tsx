@@ -1072,7 +1072,7 @@ function ConsultoriasAFazer() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("diag_diagnosticos")
-        .select("id, criado_em, diag_clientes!inner(nome, instagram, objetivo, criado_em)")
+        .select("id, criado_em, atualizado_em, diag_clientes!inner(nome, instagram, objetivo, criado_em)")
         .neq("status", "finalizado");
       if (error) throw error;
       return (data ?? []).sort((a: any, b: any) =>
@@ -1094,11 +1094,13 @@ function ConsultoriasAFazer() {
         <ul className="divide-y divide-border/70">
           {list.map((d: any, i: number) => {
             const c = d.diag_clientes;
+            const andamento = new Date(d.atualizado_em).getTime() - new Date(d.criado_em).getTime() > 60_000;
             return (
               <li key={d.id} className="py-3 flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{i + 1}º</div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{c.nome}{c.instagram && <span className="text-muted-foreground font-normal"> · @{String(c.instagram).replace(/^@/, "")}</span>}</div>
+                  <div className="text-sm font-medium truncate">{c.nome}{c.instagram && <span className="text-muted-foreground font-normal"> · @{String(c.instagram).replace(/^@/, "")}</span>}
+                    <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium align-middle ${andamento ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>{andamento ? "Em andamento" : "Novo"}</span></div>
                   <div className="text-xs text-muted-foreground truncate">
                     Cadastro em {new Date(c.criado_em).toLocaleDateString("pt-BR")}{c.objetivo ? ` · ${c.objetivo}` : ""}
                   </div>
