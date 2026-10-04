@@ -10,7 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SiteSection, SiteSeo } from "../lib/api";
 import { loadDraft, saveDraft, uploadSiteImage } from "../lib/editor-api";
 import { TIPOS, labelTipo, novaSecao, type SectionTipo } from "../lib/sections";
-import { SectionView, contatoWhatsapp } from "../components/SectionView";
+import { SectionView, contatoWhatsapp, orderSections } from "../components/SectionView";
+import { CuponsManager } from "../components/CuponsManager";
+import defaultLogo from "@/assets/logo.png";
+import { getPublicContactSettings } from "@/lib/settings.functions";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
@@ -73,9 +76,9 @@ function SectionForm({ s, set }: { s: SiteSection; set: (d: Record<string, any>)
         campos={[{ k: "nome", label: "Nome do serviço" }, { k: "preco", label: "Preço (ex: R$ 60)" }, { k: "descricao", label: "Descrição", area: true }]} />}
       {s.tipo === "depoimentos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", texto: "" }} onChange={(v) => up("itens", v)}
         campos={[{ k: "nome", label: "Nome" }, { k: "texto", label: "Depoimento", area: true }]} />}
-      {s.tipo === "contato" && <>{txt("whatsapp", "WhatsApp (DDD + número)")}{txt("instagram", "Link do Instagram")}</>}
+      {s.tipo === "contato" && <>{txt("whatsapp", "Seu WhatsApp (recebe os cadastros)")}{txt("instagram", "Link do Instagram")}<p className="text-xs text-muted-foreground">Este bloco mostra o formulário de cadastro (nome, @, WhatsApp, e-mail e objetivo). Ao enviar, abre o WhatsApp da cliente com a mensagem para você.</p></>}
       {s.tipo === "cupons" && <>{txt("link", "Link do Linktree")}{txt("link_texto", "Texto do botão (ex: Ver todos os cupons)")}</>}
-      {s.tipo === "cupons" && <p className="text-xs text-muted-foreground">Os cupons ativos aparecem aqui automaticamente.</p>}
+      {s.tipo === "cupons" && <p className="text-xs text-muted-foreground">Cadastre os cupons na aba Cupons. Este bloco sempre aparece no final da página.</p>}
     </div>
   );
 }
@@ -83,6 +86,8 @@ function SectionForm({ s, set }: { s: SiteSection; set: (d: Record<string, any>)
 export function SiteEditor() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["site-rascunho"], queryFn: loadDraft });
+  const st = useQuery({ queryKey: ["public-contact-settings"], queryFn: () => getPublicContactSettings() });
+  const logo = st.data?.logo_url || defaultLogo;
   const [sections, setSections] = useState<SiteSection[]>([]);
   const [seo, setSeo] = useState<SiteSeo>({});
   const [aberta, setAberta] = useState<string | null>(null);
@@ -131,6 +136,7 @@ export function SiteEditor() {
       <Tabs defaultValue="blocos">
         <TabsList>
           <TabsTrigger value="blocos">Blocos</TabsTrigger>
+          <TabsTrigger value="cupons">Cupons</TabsTrigger>
           <TabsTrigger value="previa">Prévia</TabsTrigger>
           <TabsTrigger value="seo">Google</TabsTrigger>
         </TabsList>
@@ -175,10 +181,12 @@ export function SiteEditor() {
 
         <TabsContent value="previa">
           <div className="overflow-hidden rounded-xl border border-border bg-background">
-            {sections.filter((s) => s.visivel !== false).map((s) => <SectionView key={s.id} s={s} whatsapp={wa} />)}
+            {orderSections(sections).map((s) => <SectionView key={s.id} s={s} whatsapp={wa} logo={logo} preview />)}
             {sections.length === 0 && <p className="p-10 text-center text-sm text-muted-foreground">Sem blocos.</p>}
           </div>
         </TabsContent>
+
+        <TabsContent value="cupons"><CuponsManager /></TabsContent>
 
         <TabsContent value="seo" className="space-y-3">
           <p className="text-sm text-muted-foreground">Como a página aparece no Google e ao compartilhar o link.</p>
