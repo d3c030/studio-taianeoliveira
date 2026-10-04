@@ -23,7 +23,12 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
       return href;
     } catch (e: any) {
       console.error(e);
-      toast.error("Erro ao gerar o PDF");
+      if (String(e?.message ?? "").includes("dynamically imported module")) {
+        toast.error("O app foi atualizado. Recarregando a página…");
+        setTimeout(() => window.location.reload(), 1200);
+      } else {
+        toast.error("Erro ao gerar o PDF");
+      }
       return null;
     } finally {
       setLoading(false);
