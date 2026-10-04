@@ -144,8 +144,9 @@ function LeadForm({ phone, chips, setChips }: { phone?: string; chips: string[];
   );
 }
 
-export function Landing() {
-  const q = useQuery({ queryKey: ["site-publicado"], queryFn: loadPublishedPage });
+export function Landing({ previewSections }: { previewSections?: any[] } = {}) {
+  const q0 = useQuery({ queryKey: ["site-publicado"], queryFn: loadPublishedPage, enabled: !previewSections });
+  const q = previewSections ? { isLoading: false, data: { pagina: { sections: previewSections } } } as any : q0;
   const st = useQuery({ queryKey: ["public-contact-settings"], queryFn: () => getPublicContactSettings() });
   const cq = useQuery({
     queryKey: ["site-cupons-ativos"],
