@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Instagram, MessageCircle } from "lucide-react";
+import { ExternalLink, Instagram, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import type { SiteSection } from "../lib/api";
@@ -42,6 +42,15 @@ function Cupons({ d }: { d: Record<string, any> }) {
               <p className="mt-3 inline-block rounded-md bg-muted px-3 py-1 font-mono text-sm">{c.codigo}</p>
             </div>
           ))}
+        </div>
+      )}
+      {d.link && (
+        <div className="mt-8 text-center">
+          <Button asChild variant="outline">
+            <a href={/^https?:\/\//.test(d.link) ? d.link : `https://${d.link}`} target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />{d.link_texto || "Ver no Linktree"}
+            </a>
+          </Button>
         </div>
       )}
     </Wrap>
