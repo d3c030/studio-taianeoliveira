@@ -1,7 +1,7 @@
 import { DEF } from "../lib/landing-defaults";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Plus, Trash2, ExternalLink } from "lucide-react";
+import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,6 +209,9 @@ export function SiteEditor() {
                   <p className="text-xs text-muted-foreground">{labelTipo(s.tipo)}</p>
                   <p className={`font-medium ${s.visivel === false ? "text-muted-foreground line-through" : ""}`}>{s.dados?.titulo || "Sem título"}</p>
                 </button>
+                <Button variant={aberta === s.id ? "secondary" : "outline"} size="sm" aria-label="Editar" onClick={() => setAberta(aberta === s.id ? null : s.id)}>
+                  <Pencil className="mr-1 h-3.5 w-3.5" />{aberta === s.id ? "Fechar" : "Editar"}
+                </Button>
                 <Button variant="ghost" size="icon" aria-label="Subir" onClick={() => move(i, -1)}><ArrowUp className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" aria-label="Descer" onClick={() => move(i, 1)}><ArrowDown className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" aria-label="Mostrar/ocultar" onClick={() => change((arr) => arr.map((x) => x.id === s.id ? { ...x, visivel: x.visivel === false } : x))}>
