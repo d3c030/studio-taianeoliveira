@@ -1,0 +1,2 @@
+ALTER TABLE public.diag_diagnosticos ALTER COLUMN resumo_plano_acao SET DEFAULT 'Obrigada por confiar no meu trabalho, tenho certeza que aplicando essas mudanças seu perfil tem tudo para explodir e chamar mais a atenção.';
+UPDATE public.diag_diagnosticos SET resumo_plano_acao = replace(resumo_plano_acao, 'Obrigada por confiar no meu trabalho! Agora é aplicar e ver as marcas chegando.', 'Obrigada por confiar no meu trabalho, tenho certeza que aplicando essas mudanças seu perfil tem tudo para explodir e chamar mais a atenção.') WHERE resumo_plano_acao LIKE '%marcas chegando%';
