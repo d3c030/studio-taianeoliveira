@@ -193,6 +193,13 @@ export function Landing({ previewSections }: { previewSections?: any[] } = {}) {
   const copy = async (c: string) => { try { await navigator.clipboard.writeText(c); toast.success("Código copiado!"); } catch { /* ignore */ } };
 
   if (q.isLoading) {
+    return <LandingLoading logo={logo} />;
+  }
+  return <LandingBody {...{ rootRefOff: !!previewSections }} render={() => null} />;
+}
+function __unused() {
+  const q = { isLoading: true }; const logo = "";
+  if (q.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="relative flex h-32 w-32 items-center justify-center">
