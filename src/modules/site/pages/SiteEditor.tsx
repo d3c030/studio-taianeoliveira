@@ -12,6 +12,7 @@ import type { SiteSection, SiteSeo } from "../lib/api";
 import { loadDraft, saveDraft, uploadSiteImage } from "../lib/editor-api";
 import { TIPOS, labelTipo, novaSecao, type SectionTipo } from "../lib/sections";
 import { SectionView, contatoWhatsapp, orderSections } from "../components/SectionView";
+import { Landing } from "./Landing";
 import { CuponsManager } from "../components/CuponsManager";
 import defaultLogo from "@/assets/logo.png";
 import { getPublicContactSettings } from "@/lib/settings.functions";
@@ -245,9 +246,8 @@ export function SiteEditor() {
         </TabsContent>
 
         <TabsContent value="previa">
-          <div className="overflow-hidden rounded-xl border border-border bg-background">
-            {orderSections(sections).map((s) => <SectionView key={s.id} s={s} whatsapp={wa} logo={logo} preview />)}
-            {sections.length === 0 && <p className="p-10 text-center text-sm text-muted-foreground">Sem blocos.</p>}
+          <div className="relative h-[80vh] overflow-y-auto overflow-x-hidden rounded-xl border border-border bg-background [transform:translateZ(0)]">
+            <Landing previewSections={sections} />
           </div>
         </TabsContent>
 
