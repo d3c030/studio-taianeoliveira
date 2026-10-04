@@ -1,0 +1,14 @@
+DROP POLICY IF EXISTS "diag_clientes own" ON public.diag_clientes;
+CREATE POLICY "diag_clientes staff" ON public.diag_clientes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "diag_diagnosticos own" ON public.diag_diagnosticos;
+CREATE POLICY "diag_diagnosticos staff" ON public.diag_diagnosticos FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "diag_itens own" ON public.diag_itens;
+CREATE POLICY "diag_itens staff" ON public.diag_itens FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "diag_midias own" ON public.diag_midias;
+CREATE POLICY "diag_midias staff" ON public.diag_midias FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "diag storage select own" ON storage.objects;
+DROP POLICY IF EXISTS "diag storage update own" ON storage.objects;
+DROP POLICY IF EXISTS "diag storage delete own" ON storage.objects;
+CREATE POLICY "diag storage select staff" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'diagnosticos');
+CREATE POLICY "diag storage update staff" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'diagnosticos');
+CREATE POLICY "diag storage delete staff" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'diagnosticos');
