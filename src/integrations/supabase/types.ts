@@ -210,6 +210,193 @@ export type Database = {
         }
         Relationships: []
       }
+      diag_clientes: {
+        Row: {
+          criado_em: string
+          email: string | null
+          foto_perfil: string | null
+          id: string
+          instagram: string | null
+          nome: string
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          criado_em?: string
+          email?: string | null
+          foto_perfil?: string | null
+          id?: string
+          instagram?: string | null
+          nome: string
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          criado_em?: string
+          email?: string | null
+          foto_perfil?: string | null
+          id?: string
+          instagram?: string | null
+          nome?: string
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      diag_configuracoes: {
+        Row: {
+          cor_destaque: string
+          logo_url: string | null
+          nome_exibicao: string
+          rodape: string
+          template_json: Json | null
+          user_id: string
+        }
+        Insert: {
+          cor_destaque?: string
+          logo_url?: string | null
+          nome_exibicao?: string
+          rodape?: string
+          template_json?: Json | null
+          user_id?: string
+        }
+        Update: {
+          cor_destaque?: string
+          logo_url?: string | null
+          nome_exibicao?: string
+          rodape?: string
+          template_json?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      diag_diagnosticos: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          criado_em: string
+          id: string
+          resumo_plano_acao: string
+          status: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          criado_em?: string
+          id?: string
+          resumo_plano_acao?: string
+          status?: string
+          titulo?: string
+          user_id?: string
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          criado_em?: string
+          id?: string
+          resumo_plano_acao?: string
+          status?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diag_diagnosticos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "diag_clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diag_itens: {
+        Row: {
+          diagnostico_id: string
+          id: string
+          o_que_eu_vi: string
+          ordem: number
+          secao: string
+          status: string
+          sua_tarefa: string
+          titulo: string
+        }
+        Insert: {
+          diagnostico_id: string
+          id?: string
+          o_que_eu_vi?: string
+          ordem?: number
+          secao?: string
+          status?: string
+          sua_tarefa?: string
+          titulo?: string
+        }
+        Update: {
+          diagnostico_id?: string
+          id?: string
+          o_que_eu_vi?: string
+          ordem?: number
+          secao?: string
+          status?: string
+          sua_tarefa?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diag_itens_diagnostico_id_fkey"
+            columns: ["diagnostico_id"]
+            isOneToOne: false
+            referencedRelation: "diag_diagnosticos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diag_midias: {
+        Row: {
+          diagnostico_id: string
+          id: string
+          item_id: string | null
+          legenda: string
+          ordem: number
+          tipo: string
+          url_arquivo: string
+        }
+        Insert: {
+          diagnostico_id: string
+          id?: string
+          item_id?: string | null
+          legenda?: string
+          ordem?: number
+          tipo: string
+          url_arquivo: string
+        }
+        Update: {
+          diagnostico_id?: string
+          id?: string
+          item_id?: string | null
+          legenda?: string
+          ordem?: number
+          tipo?: string
+          url_arquivo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diag_midias_diagnostico_id_fkey"
+            columns: ["diagnostico_id"]
+            isOneToOne: false
+            referencedRelation: "diag_diagnosticos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diag_midias_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "diag_itens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           category: string | null
