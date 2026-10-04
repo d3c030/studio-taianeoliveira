@@ -45,7 +45,7 @@ export function AppShell() {
   }, []);
 
   // Public pages render standalone (no admin shell, no auth required)
-  const isPublic = pathname === "/login" || pathname === "/agendar" || pathname.startsWith("/agendar/");
+  const isPublic = pathname === "/login" || pathname === "/agendar" || pathname.startsWith("/agendar/") || pathname.startsWith("/pdf/");
   if (isPublic) return <Outlet />;
 
   if (authState === "loading") {
