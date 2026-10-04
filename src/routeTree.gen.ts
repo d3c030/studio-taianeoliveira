@@ -22,6 +22,7 @@ import { Route as AgendarRouteImport } from './routes/agendar'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
+import { Route as PdfTokenRouteImport } from './routes/pdf.$token'
 import { Route as DiagnosticosConfiguracoesRouteImport } from './routes/diagnosticos.configuracoes'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 import { Route as DiagnosticosEditorDiagnosticoIdRouteImport } from './routes/diagnosticos.editor.$diagnosticoId'
@@ -92,6 +93,11 @@ const DiagnosticosIndexRoute = DiagnosticosIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DiagnosticosRoute,
 } as any)
+const PdfTokenRoute = PdfTokenRouteImport.update({
+  id: '/pdf/$token',
+  path: '/pdf/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiagnosticosConfiguracoesRoute =
   DiagnosticosConfiguracoesRouteImport.update({
     id: '/configuracoes',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos': typeof DiagnosticosIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/pdf/$token'
     | '/diagnosticos/'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/pdf/$token'
     | '/diagnosticos'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/pdf/$token'
     | '/diagnosticos/'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   ProcedimentosRoute: typeof ProcedimentosRoute
   SiteRoute: typeof SiteRoute
   UsuariosRoute: typeof UsuariosRoute
+  PdfTokenRoute: typeof PdfTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiagnosticosIndexRouteImport
       parentRoute: typeof DiagnosticosRoute
     }
+    '/pdf/$token': {
+      id: '/pdf/$token'
+      path: '/pdf/$token'
+      fullPath: '/pdf/$token'
+      preLoaderRoute: typeof PdfTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/diagnosticos/configuracoes': {
       id: '/diagnosticos/configuracoes'
       path: '/configuracoes'
@@ -413,6 +433,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProcedimentosRoute: ProcedimentosRoute,
   SiteRoute: SiteRoute,
   UsuariosRoute: UsuariosRoute,
+  PdfTokenRoute: PdfTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
