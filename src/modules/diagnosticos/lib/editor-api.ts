@@ -76,11 +76,11 @@ export async function deleteItem(id: string) {
   if (error) throw error;
 }
 
-export async function addMidia(diagnosticoId: string, tipo: MidiaTipo, file: File, ordem: number): Promise<DiagMidia> {
+export async function addMidia(diagnosticoId: string, tipo: MidiaTipo, file: File, ordem: number, itemId: string | null = null): Promise<DiagMidia> {
   const path = await uploadImage(diagnosticoId, file);
   const { data, error } = await supabase
     .from("diag_midias")
-    .insert({ diagnostico_id: diagnosticoId, tipo, url_arquivo: path, ordem })
+    .insert({ diagnostico_id: diagnosticoId, tipo, url_arquivo: path, ordem, item_id: itemId })
     .select("*")
     .single();
   if (error) {

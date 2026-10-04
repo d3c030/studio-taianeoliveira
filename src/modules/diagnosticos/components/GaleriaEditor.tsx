@@ -100,7 +100,7 @@ export function GaleriaEditor({ tipo, midias, itens, uploading, onUpload, onChan
   );
 }
 
-function Thumb({ path }: { path: string }) {
+export function Thumb({ path }: { path: string }) {
   const q = useQuery({ queryKey: ["diag-signed", path], queryFn: () => signedUrl(path), staleTime: 50 * 60 * 1000 });
   return (
     <div className="aspect-[4/5] w-full overflow-hidden rounded-lg bg-muted">

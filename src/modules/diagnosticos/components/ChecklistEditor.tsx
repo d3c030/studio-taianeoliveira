@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { CheckCircle2, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Plus, Trash2, Camera, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { DiagItem } from "../lib/editor-api";
+import type { DiagItem, DiagMidia } from "../lib/editor-api";
+import { Thumb } from "./GaleriaEditor";
 import { SortableList } from "./SortableList";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -15,9 +16,13 @@ type Props = {
   onAdd: () => void;
   onDelete: (id: string) => void;
   onReorder: (next: DiagItem[]) => void;
+  midias: DiagMidia[];
+  uploadingItem: string | null;
+  onUploadFotos: (item: DiagItem, files: File[]) => void;
+  onDeleteMidia: (m: DiagMidia) => void;
 };
 
-export function ChecklistEditor({ itens, onChange, onAdd, onDelete, onReorder }: Props) {
+export function ChecklistEditor({ itens, onChange, onAdd, onDelete, onReorder, midias, uploadingItem, onUploadFotos, onDeleteMidia }: Props) {
   const [del, setDel] = useState<string | null>(null);
   return (
     <div className="space-y-3">
@@ -75,6 +80,36 @@ export function ChecklistEditor({ itens, onChange, onAdd, onDelete, onReorder }:
               <div className={cn("space-y-1", ideal && "opacity-60")}>
                 <Label className="text-xs">Sua tarefa {ideal && "(oculta no PDF — item aprovado)"}</Label>
                 <Textarea rows={4} value={it.sua_tarefa} onChange={(e) => onChange(it.id, { sua_tarefa: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Fotos do que foi analisado</Label>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {midias.filter((m) => m.item_id === it.id).map((m) => (
+                    <div key={m.id} className="relative">
+                      <Thumb path={m.url_arquivo} />
+                      <button
+                        type="button"
+                        aria-label="Remover foto"
+                        onClick={() => onDeleteMidia(m)}
+                        className="absolute right-1 top-1 rounded-full bg-background/90 p-1 shadow"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="flex aspect-[4/5] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-xs text-muted-foreground hover:bg-muted">
+                    {uploadingItem === it.id ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                    {uploadingItem === it.id ? "Enviando…" : "Adicionar"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      disabled={uploadingItem === it.id}
+                      onChange={(e) => { const f = Array.from(e.target.files ?? []); e.target.value = ""; if (f.length) onUploadFotos(it, f); }}
+                    />
+                  </label>
+                </div>
               </div>
             </div>
           );
