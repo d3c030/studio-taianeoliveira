@@ -1104,7 +1104,7 @@ function ConsultoriasAFazer() {
                   </div>
                 </div>
                 <Button asChild size="sm" variant="outline" className="h-8 shrink-0">
-                  <Link to="/diagnosticos/editor/$id" params={{ id: d.id }}>Abrir</Link>
+                  <Link to="/diagnosticos/editor/$diagnosticoId" params={{ diagnosticoId: d.id }}>Abrir</Link>
                 </Button>
               </li>
             );
