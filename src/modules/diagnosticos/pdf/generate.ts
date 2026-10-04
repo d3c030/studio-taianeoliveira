@@ -38,9 +38,9 @@ async function circleLogo(src: string): Promise<string | null> {
   const im = await loadImg(src);
   if (!im) return null;
   const W = im.naturalWidth, H = im.naturalHeight;
-  const side = Math.min(W, H) / 1.5;
+  const side = Math.min(W, H) / 1.35;
   const sx = (W - side) / 2;
-  const sy = Math.max(0, Math.min(H - side, H * 0.62 - side / 2));
+  const sy = Math.max(0, Math.min(H - side, H * 0.52 - side / 2));
   const c = document.createElement("canvas");
   c.width = c.height = 300;
   const ctx = c.getContext("2d")!;
