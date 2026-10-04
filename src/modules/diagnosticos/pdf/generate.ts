@@ -23,6 +23,33 @@ async function toDataUrl(url: string): Promise<string | null> {
   }
 }
 
+function loadImg(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((res) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+}
+
+// Recorte circular da personagem, igual ao carregamento do site
+async function circleLogo(src: string): Promise<string | null> {
+  const im = await loadImg(src);
+  if (!im) return null;
+  const W = im.naturalWidth, H = im.naturalHeight;
+  const side = Math.min(W, H) / 1.5;
+  const sx = (W - side) / 2;
+  const sy = Math.max(0, Math.min(H - side, H * 0.62 - side / 2));
+  const c = document.createElement("canvas");
+  c.width = c.height = 300;
+  const ctx = c.getContext("2d")!;
+  ctx.beginPath();
+  ctx.arc(150, 150, 150, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(im, sx, sy, side, side, 0, 0, 300, 300);
+  return c.toDataURL("image/png");
+}
+
 async function loadConfig() {
   const { data } = await supabase
     .from("diag_configuracoes")
@@ -45,14 +72,17 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
     const { data: studio } = await supabase.from("contact_settings").select("logo_url").limit(1).maybeSingle();
     if (studio?.logo_url) logoSrc = studio.logo_url;
   }
-  const logo = (await toDataUrl(logoSrc)) ?? (await toDataUrl(defaultLogo));
+  const rawLogo = (await toDataUrl(logoSrc)) ?? (await toDataUrl(defaultLogo));
+  const logo = rawLogo ? (await circleLogo(rawLogo)) ?? rawLogo : null;
 
   const ordered = [...midias].sort((a, b) => (a.tipo === b.tipo ? a.ordem - b.ordem : a.tipo === "positivo" ? -1 : 1));
   const imagens = (
     await Promise.all(
       ordered.map(async (m) => {
         const src = await toDataUrl(await signedUrl(m.url_arquivo));
-        return src ? { src, legenda: m.legenda, tipo: m.tipo, item_id: m.item_id } : null;
+        const im = src ? await loadImg(src) : null;
+        const ratio = im && im.naturalHeight ? im.naturalWidth / im.naturalHeight : 0.75;
+        return src ? { src, ratio, legenda: m.legenda, tipo: m.tipo, item_id: m.item_id } : null;
       }),
     )
   ).filter(Boolean) as PdfData["imagens"];
