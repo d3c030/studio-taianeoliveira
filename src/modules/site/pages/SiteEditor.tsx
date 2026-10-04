@@ -1,3 +1,4 @@
+import { DEF } from "../lib/landing-defaults";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Plus, Trash2, ExternalLink } from "lucide-react";
