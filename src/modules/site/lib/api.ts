@@ -13,13 +13,15 @@ export async function loadPublishedPage(): Promise<{ pagina: SitePagina; seo: Si
   const { data, error } = await supabase
     .from("site_paginas")
     .select("publicado_json, seo")
+    .not("publicado_json", "is", null)
     .order("atualizado_em", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(10);
   if (error) throw error;
-  const pj = (data?.publicado_json ?? {}) as Partial<SitePagina>;
+  // Usa a página publicada mais recente que tenha conteúdo, para nunca sumir
+  const row = (data ?? []).find((r: any) => Array.isArray(r?.publicado_json?.sections) && r.publicado_json.sections.length > 0);
+  const pj = (row?.publicado_json ?? {}) as Partial<SitePagina>;
   return {
     pagina: { sections: Array.isArray(pj.sections) ? pj.sections : [] },
-    seo: (data?.seo ?? {}) as SiteSeo,
+    seo: (row?.seo ?? {}) as SiteSeo,
   };
 }
