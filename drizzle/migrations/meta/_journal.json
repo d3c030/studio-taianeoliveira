@@ -50,6 +50,13 @@
       "when": 1791087471071,
       "tag": "0006_diag_shared_access",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791087675669,
+      "tag": "0007_diag_compartilhamentos",
+      "breakpoints": true
     }
   ]
 }

@@ -246,6 +246,44 @@ export type Database = {
         }
         Relationships: []
       }
+      diag_compartilhamentos: {
+        Row: {
+          arquivo: string
+          cliente_nome: string
+          criado_em: string
+          diagnostico_id: string
+          expira_em: string
+          nome_arquivo: string
+          token: string
+        }
+        Insert: {
+          arquivo: string
+          cliente_nome?: string
+          criado_em?: string
+          diagnostico_id: string
+          expira_em?: string
+          nome_arquivo: string
+          token?: string
+        }
+        Update: {
+          arquivo?: string
+          cliente_nome?: string
+          criado_em?: string
+          diagnostico_id?: string
+          expira_em?: string
+          nome_arquivo?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diag_compartilhamentos_diagnostico_id_fkey"
+            columns: ["diagnostico_id"]
+            isOneToOne: false
+            referencedRelation: "diag_diagnosticos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diag_configuracoes: {
         Row: {
           cor_destaque: string
