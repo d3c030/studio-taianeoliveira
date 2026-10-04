@@ -218,8 +218,11 @@ export function Landing({ previewSections }: { previewSections?: any[] } = {}) {
           <nav className="hidden items-center gap-7 text-sm md:flex">
             {NAV.map(([l, h]) => <a key={h} href={h} className="text-muted-foreground transition-colors hover:text-brand">{l}</a>)}
           </nav>
-          <Button asChild size="sm" className="hidden rounded-full bg-ink text-ink-foreground hover:bg-ink/90 md:inline-flex"><a href="#contato">Agendar diagnóstico</a></Button>
-          <button className="md:hidden" aria-label="Menu" onClick={() => setMenu((m) => !m)}>{menu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}</button>
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="rounded-full"><Link to="/login">Login</Link></Button>
+            <Button asChild size="sm" className="hidden rounded-full bg-ink text-ink-foreground hover:bg-ink/90 md:inline-flex"><a href="#contato">Agendar diagnóstico</a></Button>
+            <button className="md:hidden" aria-label="Menu" onClick={() => setMenu((m) => !m)}>{menu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}</button>
+          </div>
         </div>
         {menu && (
           <nav className="flex flex-col gap-1 border-t border-border px-5 pb-5 pt-2 md:hidden">
