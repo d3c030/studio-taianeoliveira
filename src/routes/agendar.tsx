@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Landing } from "@/modules/site/pages/Landing";
+import { loadPublishedPage } from "@/modules/site/lib/api";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Instagram, MessageCircle, Sparkles } from "lucide-react";
@@ -19,13 +20,17 @@ import { cn } from "@/lib/utils";
 import defaultLogo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/agendar")({
-  head: () => ({
+  loader: async () => {
+    try { const r = await loadPublishedPage(); return { og: r.seo?.og_image || "" }; } catch { return { og: "" }; }
+  },
+  head: ({ loaderData }) => ({
     meta: [
+      ...(loaderData?.og && /^https:\/\//.test(loaderData.og) ? [{ property: "og:image", content: loaderData.og }, { name: "twitter:image", content: loaderData.og }] : []),
       { title: "Taiane Oliveira | Consultoria de Redes Sociais" },
       { property: "og:title", content: "Taiane Oliveira | Consultoria de Redes Sociais" },
       { property: "og:description", content: "Diagnóstico, estratégia e posicionamento para influenciadores que querem crescer e fechar parcerias com marcas." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "description",
         content:
