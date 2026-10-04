@@ -21,15 +21,15 @@ import defaultLogo from "@/assets/logo.png";
 export const Route = createFileRoute("/agendar")({
   head: () => ({
     meta: [
-      { title: "Studio Taiane Oliveira" },
-      { property: "og:title", content: "Studio Taiane Oliveira" },
-      { property: "og:description", content: "Conheça o Studio Taiane Oliveira." },
+      { title: "Taiane Oliveira | Consultoria de Redes Sociais" },
+      { property: "og:title", content: "Taiane Oliveira | Consultoria de Redes Sociais" },
+      { property: "og:description", content: "Diagnóstico, estratégia e posicionamento para influenciadores que querem crescer e fechar parcerias com marcas." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {
         name: "description",
         content:
-          "Conheça o Studio Taiane Oliveira.",
+          "Diagnóstico, estratégia e posicionamento para influenciadores de beleza, moda e lifestyle que querem crescer e fechar parcerias.",
       },
     ],
   }),

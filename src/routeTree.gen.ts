@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as SiteRouteImport } from './routes/site'
 import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
 import { Route as CustosRouteImport } from './routes/custos'
@@ -41,6 +42,11 @@ const SiteRoute = SiteRouteImport.update({
 const ProcedimentosRoute = ProcedimentosRouteImport.update({
   id: '/procedimentos',
   path: '/procedimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/custos': typeof CustosRoute
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/custos': typeof CustosRoute
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/custos'
     | '/diagnosticos'
     | '/login'
+    | '/privacidade'
     | '/procedimentos'
     | '/site'
     | '/usuarios'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/custos'
     | '/login'
+    | '/privacidade'
     | '/procedimentos'
     | '/site'
     | '/usuarios'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/custos'
     | '/diagnosticos'
     | '/login'
+    | '/privacidade'
     | '/procedimentos'
     | '/site'
     | '/usuarios'
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   CustosRoute: typeof CustosRoute
   DiagnosticosRoute: typeof DiagnosticosRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   ProcedimentosRoute: typeof ProcedimentosRoute
   SiteRoute: typeof SiteRoute
   UsuariosRoute: typeof UsuariosRoute
@@ -281,6 +294,13 @@ declare module '@tanstack/react-router' {
       path: '/procedimentos'
       fullPath: '/procedimentos'
       preLoaderRoute: typeof ProcedimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -430,6 +450,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustosRoute: CustosRoute,
   DiagnosticosRoute: DiagnosticosRouteWithChildren,
   LoginRoute: LoginRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   ProcedimentosRoute: ProcedimentosRoute,
   SiteRoute: SiteRoute,
   UsuariosRoute: UsuariosRoute,

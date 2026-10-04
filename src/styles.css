@@ -209,3 +209,21 @@
   }
   h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
 }
+
+:root {
+  --brand: oklch(0.42 0.15 20); /* bordô discreto */
+  --whatsapp: oklch(0.75 0.19 150);
+  --whatsapp-foreground: oklch(1 0 0);
+  --ink: oklch(0.2 0.01 30);
+  --ink-foreground: oklch(0.99 0 0);
+}
+@theme inline {
+  --color-brand: var(--brand);
+  --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-foreground: var(--whatsapp-foreground);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+}
+html { scroll-behavior: smooth; }
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.is-visible { opacity: 1; transform: none; }
