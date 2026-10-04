@@ -84,6 +84,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
+      { name: "google", content: "notranslate" },
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Studio Taiane Oliveira — Gestão do Estúdio" },
@@ -116,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" translate="no" className="notranslate">
       <head>
         <HeadContent />
       </head>
