@@ -12,4 +12,6 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  // Pre-bundle the PDF renderer at startup so lazy imports never hit a stale dep hash.
+  vite: { optimizeDeps: { include: ["@react-pdf/renderer"] } },
 });
