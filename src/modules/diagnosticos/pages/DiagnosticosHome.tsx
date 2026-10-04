@@ -70,9 +70,13 @@ export function DiagnosticosHome() {
               <div className="min-w-0 flex-1">
                 <p className="font-medium truncate">{c.nome}</p>
                 {c.instagram && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 truncate">
+                  <span
+                    role="link"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(`https://instagram.com/${c.instagram}`, "_blank", "noopener"); }}
+                    className="text-sm text-muted-foreground flex w-fit items-center gap-1 truncate hover:text-primary hover:underline cursor-pointer"
+                  >
                     <Instagram className="h-3.5 w-3.5" />@{c.instagram}
-                  </p>
+                  </span>
                 )}
               </div>
               <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground whitespace-nowrap">

@@ -153,7 +153,9 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
           className="text-lg font-semibold"
         />
         <p className="text-xs text-muted-foreground">
-          Para {diag.cliente.instagram ? `@${diag.cliente.instagram}` : diag.cliente.nome} ·{" "}
+          Para {diag.cliente.instagram ? (
+            <a href={`https://instagram.com/${diag.cliente.instagram}`} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">@{diag.cliente.instagram}</a>
+          ) : diag.cliente.nome} ·{" "}
           {diag.status === "finalizado" ? "Finalizado" : "Rascunho"}
         </p>
       </div>
