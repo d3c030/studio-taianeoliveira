@@ -208,7 +208,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                 )}
                 {imgs.length > 0 && (
                   <View style={{ marginTop: 12 }}>
-                    <Text style={s.blockLabel} minPresenceAhead={120}>Registros da análise</Text>
+                    <Text style={s.blockLabel} minPresenceAhead={270}>Registros da análise</Text>
                     <Imagens imgs={imgs} s={s} />
                   </View>
                 )}
