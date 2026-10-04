@@ -8,6 +8,13 @@
       "when": 1791076686295,
       "tag": "0000_create_diag_module",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791076703595,
+      "tag": "0001_diag_storage_policies",
+      "breakpoints": true
     }
   ]
 }
