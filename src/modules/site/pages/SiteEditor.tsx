@@ -76,13 +76,16 @@ function GaleriaField({ fotos, onChange }: { fotos: { url: string; legenda?: str
 }
 
 function ListEditor({ itens, campos, onChange, novo }: {
-  itens: any[]; campos: { k: string; label: string; area?: boolean }[]; onChange: (v: any[]) => void; novo: any;
+  itens: any[]; campos: { k: string; label: string; area?: boolean; image?: boolean }[]; onChange: (v: any[]) => void; novo: any;
 }) {
   return (
     <div className="space-y-3">
       {itens.map((it, i) => (
         <div key={i} className="space-y-2 rounded-lg border border-border p-3">
-          {campos.map((c) => c.area ? (
+          {campos.map((c) => c.image ? (
+            <div key={c.k} className="space-y-1"><p className="text-xs text-muted-foreground">{c.label}</p>
+              <ImageField value={it[c.k]} onChange={(v) => onChange(itens.map((x, j) => j === i ? { ...x, [c.k]: v } : x))} /></div>
+          ) : c.area ? (
             <Textarea key={c.k} placeholder={c.label} value={it[c.k] ?? ""} onChange={(e) => onChange(itens.map((x, j) => j === i ? { ...x, [c.k]: e.target.value } : x))} />
           ) : (
             <Input key={c.k} placeholder={c.label} value={it[c.k] ?? ""} onChange={(e) => onChange(itens.map((x, j) => j === i ? { ...x, [c.k]: e.target.value } : x))} />
@@ -120,8 +123,8 @@ function SectionForm({ s, set }: { s: SiteSection; set: (d: Record<string, any>)
           campos={[{ k: "valor", label: "Número (ex: +50 mil)" }, { k: "rotulo", label: "Legenda (ex: seguidores)" }]} /></Field></>}
       {s.tipo === "servicos" && <ListEditor itens={d.itens?.length ? d.itens : DEF.servicos} novo={{ nome: "", descricao: "", preco: "", inclui: "", objetivo: "" }} onChange={(v) => up("itens", v)}
         campos={[{ k: "nome", label: "Nome do serviço" }, { k: "preco", label: "Preço (ex: a partir de R$ 300)" }, { k: "descricao", label: "Descrição curta", area: true }, { k: "inclui", label: "O que inclui (um por linha)", area: true }]} />}
-      {s.tipo === "depoimentos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", instagram: "", texto: "", resultado: "", foto: "" }} onChange={(v) => up("itens", v)}
-        campos={[{ k: "nome", label: "Nome" }, { k: "instagram", label: "@ da cliente" }, { k: "resultado", label: "Resultado em destaque (ex: +3 parcerias)" }, { k: "foto", label: "Link da foto (opcional)" }, { k: "texto", label: "Depoimento", area: true }]} />}
+      {s.tipo === "depoimentos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", instagram: "", texto: "", resultado: "", foto: "", print: "" }} onChange={(v) => up("itens", v)}
+        campos={[{ k: "print", label: "Print do depoimento (foto da conversa)", image: true }, { k: "nome", label: "Nome" }, { k: "instagram", label: "@ da cliente" }, { k: "resultado", label: "Resultado em destaque (ex: +3 parcerias)" }, { k: "foto", label: "Link da foto (opcional)" }, { k: "texto", label: "Depoimento (opcional se tiver print)", area: true }]} />}
       {s.tipo === "faq" && <ListEditor itens={d.itens ?? DEF.faq} novo={{ pergunta: "", resposta: "" }} onChange={(v) => up("itens", v)}
         campos={[{ k: "pergunta", label: "Pergunta" }, { k: "resposta", label: "Resposta", area: true }]} />}
       {s.tipo === "contato" && <>{txt("whatsapp", "Seu WhatsApp (recebe os cadastros)")}{txt("instagram", "Link do Instagram")}{txt("email", "Seu e-mail (aparece no rodapé)")}<p className="text-xs text-muted-foreground">Este bloco mostra o formulário de cadastro (nome, @, WhatsApp, e-mail e objetivo). Ao enviar, abre o WhatsApp da cliente com a mensagem para você.</p></>}
