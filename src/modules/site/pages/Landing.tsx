@@ -23,7 +23,7 @@ export function Landing() {
           <div className="flex min-h-screen items-center justify-center">
             <div className="relative flex h-32 w-32 items-center justify-center">
               <div className="absolute inset-0 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-              <img src={logo} alt="Carregando" className="h-24 w-24 animate-pulse rounded-full object-cover" />
+              <div className="h-24 w-24 overflow-hidden rounded-full animate-pulse"><img src={logo} alt="Carregando" className="h-full w-full scale-150 object-cover object-[center_60%]" style={{ transformOrigin: "center 65%" }} /></div>
             </div>
           </div>
         ) : (
