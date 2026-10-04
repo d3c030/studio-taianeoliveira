@@ -105,6 +105,10 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
     itens: [...itens].sort((a, b) => a.ordem - b.ordem),
     imagens: imagens.map((i) => (i.item_id && !itemIds.has(i.item_id) ? { ...i, item_id: null } : i)),
     plano: diag.resumo_plano_acao,
+    convite: !(fin?.cobrancas ?? []).some((c) => {
+      const t = (c.descricao || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      return /consultoria\s*1\s*[:x]?\s*1|mentoria/.test(t);
+    }),
     financeiro: fin && fin.cobrancas.length
       ? {
           itens: fin.cobrancas.map((c) => ({ descricao: c.descricao, valor: Number(c.valor), desconto: Number(c.desconto) })),
