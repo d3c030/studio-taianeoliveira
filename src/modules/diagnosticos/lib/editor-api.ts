@@ -50,15 +50,15 @@ export async function loadDiagnostico(id: string) {
 }
 
 export async function updateDiag(id: string, patch: Record<string, unknown>) {
-  const { error } = await supabase.from("diag_diagnosticos").update(patch).eq("id", id);
+  const { error } = await supabase.from("diag_diagnosticos").update(patch as never).eq("id", id);
   if (error) throw error;
 }
 export async function updateItem(id: string, patch: Record<string, unknown>) {
-  const { error } = await supabase.from("diag_itens").update(patch).eq("id", id);
+  const { error } = await supabase.from("diag_itens").update(patch as never).eq("id", id);
   if (error) throw error;
 }
 export async function updateMidia(id: string, patch: Record<string, unknown>) {
-  const { error } = await supabase.from("diag_midias").update(patch).eq("id", id);
+  const { error } = await supabase.from("diag_midias").update(patch as never).eq("id", id);
   if (error) throw error;
 }
 
