@@ -40,7 +40,7 @@ const mk = (cor: string) =>
     coverBar: { width: 60, height: 3, backgroundColor: cor, marginVertical: 26 },
     h1: { fontSize: 18, fontFamily: "Helvetica-Bold", color: cor, lineHeight: 1.3, marginBottom: 6 },
     h1Bar: { width: 40, height: 2, backgroundColor: cor, marginBottom: 18 },
-    card: { padding: 16, marginBottom: 16 },
+    card: { borderWidth: 1, borderColor: LINHA, padding: 16, marginBottom: 16 },
     itemTitle: { fontSize: 13, fontFamily: "Helvetica-Bold", lineHeight: 1.35 },
     badgeRow: { flexDirection: "row", marginTop: 6, marginBottom: 12 },
     badge: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1, paddingTop: 4, paddingBottom: 3, paddingHorizontal: 8, borderRadius: 8, letterSpacing: 0.5 },
