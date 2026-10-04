@@ -115,7 +115,7 @@ function tamanho(r: number) {
   const largo = ratio >= 1.15;
   let w = largo ? AREA - 12 : (AREA - 24) / 2;
   let h = w / ratio;
-  const maxH = largo ? 380 : 360;
+  const maxH = largo ? 280 : 250;
   if (h > maxH) { h = maxH; w = h * ratio; }
   return { w, h, largo };
 }
@@ -140,7 +140,7 @@ function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
 
 function Titulo({ t, s }: { t: string; s: S }) {
   return (
-    <View wrap={false}>
+    <View wrap={false} minPresenceAhead={140} style={{ marginTop: 8 }}>
       <Text style={s.h1}>{t}</Text>
       <View style={s.h1Bar} />
     </View>
@@ -164,6 +164,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
   return (
     <Document title={d.titulo} author={d.feitoPor}>
       <Page size="A4" style={s.cover}>
+        {d.logo && <Image src={d.logo} style={{ width: 120, height: 120, borderRadius: 60, marginBottom: 28 }} />}
         <Text style={s.coverTitle}>{d.titulo}</Text>
         <View style={s.coverBar} />
         {!!d.feitoPor && <Text style={s.coverLine}>Feito por: {d.feitoPor}</Text>}
@@ -171,8 +172,9 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
         <Text style={[s.coverLine, { color: SUAVE, marginTop: 10 }]}>{d.data}</Text>
       </Page>
 
+      <Page size="A4" style={s.page}>
       {grupos.map((g, gi) => (
-        <Page key={gi} size="A4" style={s.page}>
+        <View key={gi} style={{ marginBottom: 10 }}>
           <Titulo t={g.secao || "Diagnóstico"} s={s} />
           {g.itens.map((it) => {
             const n = numero.get(it.id);
@@ -213,12 +215,11 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
               </View>
             );
           })}
-          <Footer d={d} s={s} />
-        </Page>
+        </View>
       ))}
 
       {(pos.length > 0 || neg.length > 0) && (
-        <Page size="A4" style={s.page}>
+        <View>
           <Titulo t="Destaques visuais" s={s} />
           {pos.length > 0 && (
             <View>
@@ -232,11 +233,10 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
               <Imagens imgs={neg} s={s} />
             </View>
           )}
-          <Footer d={d} s={s} />
-        </Page>
+        </View>
       )}
 
-      <Page size="A4" style={s.page}>
+      <View>
         <Titulo t="Plano de Ação – Seus Próximos Passos" s={s} />
         {tarefas.map((it) => {
           const n = numero.get(it.id);
@@ -257,10 +257,9 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
           );
         })}
         {!!d.plano.trim() && <View style={{ marginTop: 6 }}><Rich text={d.plano} s={s} /></View>}
-        <Footer d={d} s={s} />
-      </Page>
+      </View>
       {d.financeiro && (
-        <Page size="A4" style={s.page}>
+        <View>
           <Titulo t="Investimento da Consultoria" s={s} />
           <View style={{ borderWidth: 1, borderColor: LINHA, borderRadius: 8 }}>
             <View style={[s.tRow, { backgroundColor: "#F8F1EE" }]}>
