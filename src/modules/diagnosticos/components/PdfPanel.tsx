@@ -28,7 +28,7 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
         toast.error("O app foi atualizado. Recarregando a página…");
         setTimeout(() => window.location.reload(), 1200);
       } else {
-        toast.error("Erro ao gerar o PDF");
+        toast.error(`Erro ao gerar o PDF: ${e?.message ?? "erro desconhecido"}`, { duration: 15000 });
       }
       return null;
     } finally {
