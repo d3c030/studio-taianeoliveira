@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { startLandingTracking } from "../lib/track";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, ChevronDown, Copy, ExternalLink, Handshake, Instagram, Loader2, Mail, Menu, MessageSquareText, Search, Send, X } from "lucide-react";
@@ -209,7 +210,7 @@ export function Landing({ previewSections }: { previewSections?: any[] } = {}) {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div ref={rootRef} className="min-h-screen bg-background text-foreground">
       {/* Cabeçalho */}
       <header className={`fixed inset-x-0 top-0 z-40 transition-all ${scrolled || menu ? "border-b border-border bg-background/80 backdrop-blur-md" : "bg-transparent"}`}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
