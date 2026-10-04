@@ -97,24 +97,35 @@ function ListEditor({ itens, campos, onChange, novo }: {
 function SectionForm({ s, set }: { s: SiteSection; set: (d: Record<string, any>) => void }) {
   const d = s.dados ?? {};
   const up = (k: string, v: any) => set({ ...d, [k]: v });
-  const txt = (k: string, label: string, area = false) => (
+  const txt = (k: string, label: string, area = false, ph = "") => (
     <Field label={label}>
-      {area ? <Textarea rows={5} value={d[k] ?? ""} onChange={(e) => up(k, e.target.value)} /> : <Input value={d[k] ?? ""} onChange={(e) => up(k, e.target.value)} />}
+      {area ? <Textarea rows={5} placeholder={ph} value={d[k] ?? ""} onChange={(e) => up(k, e.target.value)} /> : <Input placeholder={ph} value={d[k] ?? ""} onChange={(e) => up(k, e.target.value)} />}
     </Field>
   );
   return (
     <div className="space-y-3">
-      {txt("titulo", "Título")}
-      {["hero", "cupons", "contato"].includes(s.tipo) && txt("subtitulo", "Frase")}
-      {s.tipo === "hero" && <>{txt("botao_texto", "Texto do botão (abre o WhatsApp)")}<Field label="Foto de fundo"><ImageField value={d.imagem} onChange={(v) => up("imagem", v)} /></Field></>}
-      {s.tipo === "sobre" && <>{txt("texto", "Texto", true)}<Field label="Foto"><ImageField value={d.imagem} onChange={(v) => up("imagem", v)} /></Field></>}
-      {s.tipo === "servicos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", descricao: "", preco: "" }} onChange={(v) => up("itens", v)}
-        campos={[{ k: "nome", label: "Nome do serviço" }, { k: "preco", label: "Preço (ex: R$ 60)" }, { k: "descricao", label: "Descrição", area: true }]} />}
-      {s.tipo === "depoimentos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", texto: "" }} onChange={(v) => up("itens", v)}
-        campos={[{ k: "nome", label: "Nome" }, { k: "texto", label: "Depoimento", area: true }]} />}
-      {s.tipo === "contato" && <>{txt("whatsapp", "Seu WhatsApp (recebe os cadastros)")}{txt("instagram", "Link do Instagram")}<p className="text-xs text-muted-foreground">Este bloco mostra o formulário de cadastro (nome, @, WhatsApp, e-mail e objetivo). Ao enviar, abre o WhatsApp da cliente com a mensagem para você.</p></>}
+      {s.tipo !== "hero" && txt("titulo", "Título")}
+      {["cupons", "contato"].includes(s.tipo) && txt("subtitulo", "Frase")}
+      {s.tipo === "hero" && <>
+        {txt("eyebrow", "Frase pequena acima do título", false, DEF.eyebrow)}
+        {txt("chamada", "Título principal", false, DEF.chamada)}
+        {txt("descricao", "Texto abaixo do título", true, DEF.descricao)}
+        {txt("botao_texto", "Botão principal", false, DEF.botao_texto)}
+        {txt("botao2_texto", "Botão secundário", false, DEF.botao2_texto)}
+        <Field label="Foto da capa (se vazio, usa a foto do Sobre)"><ImageField value={d.imagem} onChange={(v) => up("imagem", v)} /></Field>
+      </>}
+      {s.tipo === "sobre" && <>{txt("texto", "Texto (deixe uma linha em branco entre parágrafos)", true)}<Field label="Foto"><ImageField value={d.imagem} onChange={(v) => up("imagem", v)} /></Field>
+        <Field label="Números em destaque"><ListEditor itens={d.numeros ?? DEF.numeros} novo={{ valor: "", rotulo: "" }} onChange={(v) => up("numeros", v)}
+          campos={[{ k: "valor", label: "Número (ex: +50 mil)" }, { k: "rotulo", label: "Legenda (ex: seguidores)" }]} /></Field></>}
+      {s.tipo === "servicos" && <ListEditor itens={d.itens?.length ? d.itens : DEF.servicos} novo={{ nome: "", descricao: "", preco: "", inclui: "", objetivo: "" }} onChange={(v) => up("itens", v)}
+        campos={[{ k: "nome", label: "Nome do serviço" }, { k: "preco", label: "Preço (ex: a partir de R$ 300)" }, { k: "descricao", label: "Descrição curta", area: true }, { k: "inclui", label: "O que inclui (um por linha)", area: true }]} />}
+      {s.tipo === "depoimentos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", instagram: "", texto: "", resultado: "", foto: "" }} onChange={(v) => up("itens", v)}
+        campos={[{ k: "nome", label: "Nome" }, { k: "instagram", label: "@ da cliente" }, { k: "resultado", label: "Resultado em destaque (ex: +3 parcerias)" }, { k: "foto", label: "Link da foto (opcional)" }, { k: "texto", label: "Depoimento", area: true }]} />}
+      {s.tipo === "faq" && <ListEditor itens={d.itens ?? DEF.faq} novo={{ pergunta: "", resposta: "" }} onChange={(v) => up("itens", v)}
+        campos={[{ k: "pergunta", label: "Pergunta" }, { k: "resposta", label: "Resposta", area: true }]} />}
+      {s.tipo === "contato" && <>{txt("whatsapp", "Seu WhatsApp (recebe os cadastros)")}{txt("instagram", "Link do Instagram")}{txt("email", "Seu e-mail (aparece no rodapé)")}<p className="text-xs text-muted-foreground">Este bloco mostra o formulário de cadastro (nome, @, WhatsApp, e-mail e objetivo). Ao enviar, abre o WhatsApp da cliente com a mensagem para você.</p></>}
       {s.tipo === "cupons" && <>{txt("link", "Link do Linktree")}{txt("link_texto", "Texto do botão (ex: Ver todos os cupons)")}</>}
-      {s.tipo === "cupons" && <p className="text-xs text-muted-foreground">Cadastre os cupons na aba Cupons. Este bloco sempre aparece no final da página.</p>}
+      {s.tipo === "cupons" && <p className="text-xs text-muted-foreground">Cadastre os cupons na aba Cupons. As fotos da Galeria aparecem junto, na seção Parcerias.</p>}
       {s.tipo === "galeria" && <GaleriaField fotos={d.fotos ?? []} onChange={(v) => up("fotos", v)} />}
     </div>
   );
@@ -239,6 +250,7 @@ export function SiteEditor() {
           <p className="text-sm text-muted-foreground">Como a página aparece no Google e ao compartilhar o link.</p>
           <Field label="Título"><Input value={seo.title ?? ""} onChange={(e) => { setSeo({ ...seo, title: e.target.value }); setDirty(true); }} /></Field>
           <Field label="Descrição"><Textarea value={seo.description ?? ""} onChange={(e) => { setSeo({ ...seo, description: e.target.value }); setDirty(true); }} /></Field>
+          <Field label="Foto ao compartilhar o link"><ImageField value={seo.og_image} onChange={(v) => { setSeo({ ...seo, og_image: v }); setDirty(true); }} /></Field>
         </TabsContent>
       </Tabs>
 

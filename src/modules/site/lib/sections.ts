@@ -1,6 +1,6 @@
 import type { SiteSection } from "./api";
 
-export type SectionTipo = "hero" | "sobre" | "servicos" | "depoimentos" | "galeria" | "cupons" | "contato";
+export type SectionTipo = "hero" | "sobre" | "servicos" | "depoimentos" | "galeria" | "cupons" | "contato" | "faq";
 
 export const TIPOS: { tipo: SectionTipo; label: string; descricao: string }[] = [
   { tipo: "hero", label: "Capa", descricao: "Título grande, frase e botão" },
@@ -9,18 +9,20 @@ export const TIPOS: { tipo: SectionTipo; label: string; descricao: string }[] = 
   { tipo: "depoimentos", label: "Depoimentos", descricao: "O que as clientes dizem" },
   { tipo: "galeria", label: "Galeria", descricao: "Carrossel de fotos" },
   { tipo: "cupons", label: "Cupons", descricao: "Cupons de parceiras + Linktree" },
+  { tipo: "faq", label: "Perguntas", descricao: "Perguntas frequentes" },
   { tipo: "contato", label: "Cadastro", descricao: "Formulário que abre o WhatsApp" },
 ];
 
 export function novaSecao(tipo: SectionTipo): SiteSection {
   const id = crypto.randomUUID();
   const dados: Record<string, any> = {
-    hero: { titulo: "Studio Taiane Oliveira", subtitulo: "Sobrancelhas e piercing com carinho e técnica.", botao_texto: "Agendar pelo WhatsApp", imagem: "" },
+    hero: { titulo: "Capa", imagem: "" },
     sobre: { titulo: "Sobre mim", texto: "Conte aqui sua história.", imagem: "" },
-    servicos: { titulo: "Serviços", itens: [{ nome: "Design de sobrancelhas", descricao: "", preco: "" }] },
+    servicos: { titulo: "Como posso te ajudar" },
     depoimentos: { titulo: "Depoimentos", itens: [{ nome: "Cliente", texto: "Amei o resultado!" }] },
     galeria: { titulo: "Galeria", fotos: [] },
     cupons: { titulo: "Cupons disponíveis", subtitulo: "Mostre o código no atendimento." },
+    faq: { titulo: "Perguntas frequentes" },
     contato: { titulo: "Quero levar meu perfil para o próximo nível", subtitulo: "Preencha o cadastro e continue a conversa comigo direto no WhatsApp.", whatsapp: "", instagram: "" },
   }[tipo];
   return { id, tipo, visivel: true, dados };
