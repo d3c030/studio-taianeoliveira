@@ -102,7 +102,7 @@ function Footer({ d, s }: { d: PdfData; s: S }) {
       <Text>{d.paraInstagram}</Text>
     </View>
     <View style={s.footer} fixed>
-      <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape].filter(Boolean).join(" · ")}</Text>
+      <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape, `© ${new Date().getFullYear()} Todos os direitos reservados`].filter(Boolean).join(" · ")}</Text>
       <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
     </View>
     </>
