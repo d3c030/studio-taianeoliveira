@@ -29,6 +29,13 @@
       "when": 1791082164916,
       "tag": "0003_site_cupons_empresa_logo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791083377244,
+      "tag": "0004_cupom_codigo_por_empresa",
+      "breakpoints": true
     }
   ]
 }

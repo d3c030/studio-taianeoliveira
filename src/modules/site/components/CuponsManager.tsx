@@ -35,7 +35,7 @@ export function CuponsManager() {
       empresa: novo.empresa.trim(), codigo: novo.codigo.trim(), titulo: novo.empresa.trim(),
       desconto: novo.desconto.trim(), logo_url: novo.logo_url || null, ordem: q.data?.length ?? 0,
     });
-    if (error) return toast.error(error.message.includes("duplicate") ? "Esse código já existe" : error.message);
+    if (error) return toast.error(error.message.includes("duplicate") ? "Essa empresa já tem esse cupom" : error.message);
     setNovo({ empresa: "", codigo: "", desconto: "", logo_url: "" });
     toast.success("Cupom cadastrado");
     refresh();
