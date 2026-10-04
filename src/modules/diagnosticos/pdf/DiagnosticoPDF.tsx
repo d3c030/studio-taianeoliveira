@@ -1,7 +1,7 @@
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { DiagItem } from "../lib/editor-api";
 
-export type PdfImagem = { src: string; legenda: string; tipo: "positivo" | "negativo"; item_id: string | null };
+export type PdfImagem = { src: string; ratio: number; legenda: string; tipo: "positivo" | "negativo"; item_id: string | null };
 export type PdfData = {
   titulo: string;
   feitoPor: string;
@@ -23,9 +23,10 @@ const LINHA = "#E8DEDA";
 
 const mk = (cor: string) =>
   StyleSheet.create({
-    page: { paddingTop: 48, paddingBottom: 70, paddingHorizontal: 48, fontFamily: "Helvetica", fontSize: 10.5, lineHeight: 1.5, color: TEXTO },
+    page: { paddingTop: 62, paddingBottom: 70, paddingHorizontal: 48, fontFamily: "Helvetica", fontSize: 10.5, lineHeight: 1.5, color: TEXTO },
     cover: { paddingHorizontal: 60, paddingVertical: 80, fontFamily: "Helvetica", color: TEXTO, justifyContent: "center", alignItems: "center", textAlign: "center" },
-    coverLogo: { width: 170, height: 120, objectFit: "contain", marginBottom: 36 },
+    header: { position: "absolute", top: 18, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: LINHA, paddingBottom: 6, fontSize: 8, lineHeight: 1.2, color: SUAVE },
+    headerLogo: { width: 22, height: 22, borderRadius: 11, marginRight: 8 },
     coverTitle: { fontSize: 24, fontFamily: "Helvetica-Bold", color: cor, lineHeight: 1.35, marginBottom: 8 },
     coverLine: { fontSize: 12, lineHeight: 1.6 },
     coverBar: { width: 60, height: 3, backgroundColor: cor, marginVertical: 26 },
@@ -39,11 +40,10 @@ const mk = (cor: string) =>
     block: { marginBottom: 10 },
     tarefa: { backgroundColor: "#F8F1EE", borderRadius: 6, padding: 12, marginBottom: 4 },
     parabens: { backgroundColor: "#EAF3EE", borderRadius: 6, padding: 12, color: VERDE },
-    grid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 },
-    imgBox: { width: "50%", paddingHorizontal: 6, paddingBottom: 12 },
-    imgFrame: { borderWidth: 1, borderColor: LINHA, borderRadius: 6, padding: 4, backgroundColor: "#FAF7F5", alignItems: "center" },
-    img: { width: "100%", height: 300, objectFit: "contain" },
-    caption: { fontSize: 8.5, color: "#5E534F", lineHeight: 1.4, marginTop: 4 },
+    grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+    imgBox: { paddingHorizontal: 6, paddingBottom: 14, alignItems: "center" },
+    imgFrame: { borderWidth: 1, borderColor: LINHA, borderRadius: 6, padding: 3, backgroundColor: "#FFFFFF" },
+    caption: { fontSize: 8.5, color: "#5E534F", lineHeight: 1.4, marginTop: 4, textAlign: "center" },
     secHead: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1.2, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 6, marginBottom: 12, marginTop: 6 },
     footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8, fontSize: 8, lineHeight: 1.2, color: SUAVE },
     footerLogo: { width: 30, height: 18, objectFit: "contain", marginRight: 8 },
@@ -84,25 +84,45 @@ function Rich({ text, s }: { text: string; s: S }) {
 
 function Footer({ d, s }: { d: PdfData; s: S }) {
   return (
+    <>
+    <View style={s.header} fixed>
+      {d.logo && <Image src={d.logo} style={s.headerLogo} />}
+      <Text style={{ flex: 1 }}>{d.titulo}</Text>
+      <Text>{d.paraInstagram}</Text>
+    </View>
     <View style={s.footer} fixed>
-      {d.logo && <Image src={d.logo} style={s.footerLogo} />}
       <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape].filter(Boolean).join(" · ")}</Text>
       <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
     </View>
+    </>
   );
+}
+
+const AREA = 450;
+function tamanho(r: number) {
+  const ratio = r > 0 ? r : 0.75;
+  const largo = ratio >= 1.15;
+  let w = largo ? AREA - 12 : (AREA - 24) / 2;
+  let h = w / ratio;
+  const maxH = largo ? 380 : 360;
+  if (h > maxH) { h = maxH; w = h * ratio; }
+  return { w, h, largo };
 }
 
 function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
   return (
     <View style={s.grid}>
-      {imgs.map((im, i) => (
-        <View key={i} style={s.imgBox} wrap={false}>
+      {imgs.map((im, i) => {
+        const t = tamanho(im.ratio);
+        return (
+        <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]} wrap={false}>
           <View style={s.imgFrame}>
-            <Image src={im.src} style={s.img} />
+            <Image src={im.src} style={{ width: t.w, height: t.h, borderRadius: 4 }} />
           </View>
-          {!!im.legenda && <Text style={s.caption}>{im.legenda}</Text>}
+          {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
         </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -133,7 +153,6 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
   return (
     <Document title={d.titulo} author={d.feitoPor}>
       <Page size="A4" style={s.cover}>
-        {d.logo && <Image src={d.logo} style={s.coverLogo} />}
         <Text style={s.coverTitle}>{d.titulo}</Text>
         <View style={s.coverBar} />
         {!!d.feitoPor && <Text style={s.coverLine}>Feito por: {d.feitoPor}</Text>}
