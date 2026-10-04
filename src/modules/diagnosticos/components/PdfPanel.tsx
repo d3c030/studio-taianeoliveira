@@ -53,13 +53,26 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
   const compartilhar = async () => {
     const href = url ?? (await gerar());
     if (!href) return;
+    const nome = diag.cliente.nome.split(" ")[0];
+    const msg = `Oi ${nome}! Seu diagnóstico de perfil ficou pronto 💖 Estou te enviando o PDF aqui. Qualquer dúvida, me chama!`;
+    // Tenta compartilhar o arquivo já anexado (celular/tablet e alguns navegadores)
+    try {
+      const blob = await (await fetch(href)).blob();
+      const file = new File([blob], pdfFileName(diag), { type: "application/pdf" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      if (nav.share && nav.canShare?.({ files: [file] })) {
+        await nav.share({ files: [file], text: msg, title: diag.titulo });
+        return;
+      }
+    } catch (e: any) {
+      if (e?.name === "AbortError") return;
+    }
+    // Alternativa: baixa o PDF e abre o WhatsApp com a mensagem
     baixar(href);
     const num = (diag.cliente.whatsapp ?? "").replace(/\D/g, "");
     const phone = num && num.length <= 11 ? `55${num}` : num;
-    const nome = diag.cliente.nome.split(" ")[0];
-    const msg = `Oi ${nome}! Seu diagnóstico de perfil ficou pronto 💖 Estou te enviando o PDF aqui. Qualquer dúvida, me chama!`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
-    toast.info("PDF baixado — anexe-o na conversa do WhatsApp.");
+    toast.info("Neste aparelho o WhatsApp não aceita anexo direto — o PDF foi baixado, anexe-o na conversa.");
   };
 
   return (
