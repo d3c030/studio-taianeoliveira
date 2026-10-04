@@ -15,6 +15,7 @@ import { ChecklistEditor } from "../components/ChecklistEditor";
 import { GaleriaEditor } from "../components/GaleriaEditor";
 import { PlanoAcaoEditor } from "../components/PlanoAcaoEditor";
 import { PdfPanel } from "../components/PdfPanel";
+import { FinanceiroEditor } from "../components/FinanceiroEditor";
 
 export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) {
   const qc = useQueryClient();
@@ -161,10 +162,11 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
       </div>
 
       <Tabs defaultValue="checklist">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
           <TabsTrigger value="destaques">Destaques</TabsTrigger>
           <TabsTrigger value="plano">Plano</TabsTrigger>
+          <TabsTrigger value="valores">Valores</TabsTrigger>
           <TabsTrigger value="pdf">PDF</TabsTrigger>
         </TabsList>
         <TabsContent value="checklist" className="mt-4">
@@ -191,6 +193,9 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
           <TarefasDoChecklist itens={itens} />
           <p className="pt-2 text-sm font-medium">Mensagem final / observações</p>
           <PlanoAcaoEditor value={diag.resumo_plano_acao} onChange={(v) => patchDiag({ resumo_plano_acao: v })} />
+        </TabsContent>
+        <TabsContent value="valores" className="mt-4">
+          <FinanceiroEditor diagId={diag.id} />
         </TabsContent>
         <TabsContent value="pdf" className="mt-4">
           <PdfPanel diag={diag} itens={itens} midias={midias} beforeBuild={flush} />

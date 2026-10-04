@@ -4,6 +4,7 @@ import defaultLogo from "@/assets/logo.png";
 import { signedUrl } from "../lib/api";
 import type { DiagCompleto, DiagItem, DiagMidia } from "../lib/editor-api";
 import type { PdfData } from "./DiagnosticoPDF";
+import { loadFinanceiro, resumo } from "../lib/financeiro";
 
 const COR_PADRAO = "#B06F68";
 
@@ -64,6 +65,7 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
     import("./DiagnosticoPDF"),
     loadConfig(),
   ]);
+  const fin = await loadFinanceiro(diag.id).catch(() => null);
 
   let logoSrc: string = defaultLogo;
   if (cfg?.logo_url) {
@@ -99,6 +101,13 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
     itens: [...itens].sort((a, b) => a.ordem - b.ordem),
     imagens: imagens.map((i) => (i.item_id && !itemIds.has(i.item_id) ? { ...i, item_id: null } : i)),
     plano: diag.resumo_plano_acao,
+    financeiro: fin && fin.cobrancas.length
+      ? {
+          itens: fin.cobrancas.map((c) => ({ descricao: c.descricao, valor: Number(c.valor), desconto: Number(c.desconto) })),
+          pagamentos: fin.pagamentos.map((p) => ({ data: new Date(p.pago_em + "T12:00:00").toLocaleDateString("pt-BR"), forma: p.forma ?? "", valor: Number(p.valor) })),
+          ...resumo(fin.cobrancas, fin.pagamentos),
+        }
+      : null,
   };
 
   return pdf(createElement(DiagnosticoPDF, { d: data }) as any).toBlob();

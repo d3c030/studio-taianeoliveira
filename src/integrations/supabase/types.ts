@@ -246,6 +246,44 @@ export type Database = {
         }
         Relationships: []
       }
+      diag_cobrancas: {
+        Row: {
+          criado_em: string
+          desconto: number
+          descricao: string
+          diagnostico_id: string
+          id: string
+          ordem: number
+          valor: number
+        }
+        Insert: {
+          criado_em?: string
+          desconto?: number
+          descricao?: string
+          diagnostico_id: string
+          id?: string
+          ordem?: number
+          valor?: number
+        }
+        Update: {
+          criado_em?: string
+          desconto?: number
+          descricao?: string
+          diagnostico_id?: string
+          id?: string
+          ordem?: number
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diag_cobrancas_diagnostico_id_fkey"
+            columns: ["diagnostico_id"]
+            isOneToOne: false
+            referencedRelation: "diag_diagnosticos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diag_compartilhamentos: {
         Row: {
           arquivo: string
@@ -434,6 +472,44 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "diag_itens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diag_pagamentos: {
+        Row: {
+          criado_em: string
+          diagnostico_id: string
+          forma: string | null
+          id: string
+          obs: string | null
+          pago_em: string
+          valor: number
+        }
+        Insert: {
+          criado_em?: string
+          diagnostico_id: string
+          forma?: string | null
+          id?: string
+          obs?: string | null
+          pago_em?: string
+          valor?: number
+        }
+        Update: {
+          criado_em?: string
+          diagnostico_id?: string
+          forma?: string | null
+          id?: string
+          obs?: string | null
+          pago_em?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diag_pagamentos_diagnostico_id_fkey"
+            columns: ["diagnostico_id"]
+            isOneToOne: false
+            referencedRelation: "diag_diagnosticos"
             referencedColumns: ["id"]
           },
         ]

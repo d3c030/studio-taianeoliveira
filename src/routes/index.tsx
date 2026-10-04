@@ -30,6 +30,7 @@ import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ConsultoriasPainel } from "@/modules/diagnosticos/components/ConsultoriasPainel";
+import { loadFinanceiroGeral } from "@/modules/diagnosticos/lib/financeiro";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Painel — Studio Taiane Oliveira" }] }),
@@ -100,6 +101,11 @@ function Dashboard() {
     queryFn: fetchReceivables,
   });
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const finQ = useQuery({ queryKey: ["diag-fin-geral"], queryFn: loadFinanceiroGeral });
+  const mesKey = `${year}-${String(monthIdx + 1).padStart(2, "0")}`;
+  const consultMes = (finQ.data?.pagamentos ?? []).filter((p) => String(p.pago_em).startsWith(mesKey)).reduce((s, p) => s + Number(p.valor || 0), 0);
+  const consultAberto = finQ.data?.geral.aberto ?? 0;
+  const consultAbertoN = [...(finQ.data?.porDiag.values() ?? [])].filter((r) => r.aberto > 0).length;
   const settingsQ = useQuery({
     queryKey: ["contact-settings"],
     queryFn: () => getContactSettings(),
@@ -149,8 +155,8 @@ function Dashboard() {
   };
 
   const bruto = useMemo(
-    () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0),
-    [apptsQ.data]
+    () => (apptsQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0) + consultMes,
+    [apptsQ.data, consultMes]
   );
   const custos = useMemo(
     () => (expQ.data ?? []).reduce((s, e) => s + Number(e.total || 0), 0),
@@ -416,7 +422,7 @@ function Dashboard() {
           label="Faturamento Bruto"
           value={formatBRL(bruto)}
           accent="primary"
-          hint={`${total} atendimento${total === 1 ? "" : "s"}`}
+          hint={`${total} atendimento${total === 1 ? "" : "s"}${consultMes ? ` + ${formatBRL(consultMes)} em consultorias` : ""}`}
         />
         <StatCard
           icon={TrendingDown}
@@ -435,9 +441,9 @@ function Dashboard() {
         <StatCard
           icon={HandCoins}
           label="A Receber"
-          value={formatBRL((receivablesQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0))}
+          value={formatBRL((receivablesQ.data ?? []).reduce((s, a) => s + Number(a.amount || 0), 0) + consultAberto)}
           accent="primary"
-          hint={`${receivablesQ.data?.length ?? 0} cliente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"} pendente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"}`}
+          hint={`${receivablesQ.data?.length ?? 0} atendimento${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"} · ${consultAbertoN} consultoria${consultAbertoN === 1 ? "" : "s"}`}
         />
       </div>
 
