@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as SiteRouteImport } from './routes/site'
 import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
@@ -29,6 +30,11 @@ import { Route as DiagnosticosClientesClienteIdRouteImport } from './routes/diag
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteRoute = SiteRouteImport.update({
+  id: '/site',
+  path: '/site',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProcedimentosRoute = ProcedimentosRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
+  '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/custos': typeof CustosRoute
   '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
+  '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
+  '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/diagnosticos'
     | '/login'
     | '/procedimentos'
+    | '/site'
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/custos'
     | '/login'
     | '/procedimentos'
+    | '/site'
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/diagnosticos'
     | '/login'
     | '/procedimentos'
+    | '/site'
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   DiagnosticosRoute: typeof DiagnosticosRouteWithChildren
   LoginRoute: typeof LoginRoute
   ProcedimentosRoute: typeof ProcedimentosRoute
+  SiteRoute: typeof SiteRoute
   UsuariosRoute: typeof UsuariosRoute
 }
 
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/site': {
+      id: '/site'
+      path: '/site'
+      fullPath: '/site'
+      preLoaderRoute: typeof SiteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/procedimentos': {
@@ -391,6 +411,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnosticosRoute: DiagnosticosRouteWithChildren,
   LoginRoute: LoginRoute,
   ProcedimentosRoute: ProcedimentosRoute,
+  SiteRoute: SiteRoute,
   UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport

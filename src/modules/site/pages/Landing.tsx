@@ -2,22 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import defaultLogo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
-import { loadPublishedPage, type SiteSection } from "../lib/api";
-
-function Section({ s }: { s: SiteSection }) {
-  const d = s.dados ?? {};
-  return (
-    <section className="mx-auto w-full max-w-3xl px-5 py-12 text-center">
-      {d.titulo && <h2 className="text-2xl font-semibold sm:text-3xl">{d.titulo}</h2>}
-      {d.subtitulo && <p className="mt-3 text-muted-foreground">{d.subtitulo}</p>}
-      {d.texto && <p className="mt-4 whitespace-pre-line text-left">{d.texto}</p>}
-    </section>
-  );
-}
+import { loadPublishedPage } from "../lib/api";
+import { SectionView, contatoWhatsapp } from "../components/SectionView";
 
 export function Landing() {
   const q = useQuery({ queryKey: ["site-publicado"], queryFn: loadPublishedPage });
   const sections = (q.data?.pagina.sections ?? []).filter((s) => s.visivel !== false);
+  const wa = contatoWhatsapp(sections);
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -28,7 +19,7 @@ export function Landing() {
         {q.isLoading ? (
           <p className="py-20 text-center text-sm text-muted-foreground">Carregando…</p>
         ) : sections.length ? (
-          sections.map((s) => <Section key={s.id} s={s} />)
+          sections.map((s) => <SectionView key={s.id} s={s} whatsapp={wa} />)
         ) : (
           <div className="mx-auto max-w-md px-5 py-20 text-center">
             <h1 className="text-2xl font-semibold">Studio Taiane Oliveira</h1>
