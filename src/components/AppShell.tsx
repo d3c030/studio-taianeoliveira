@@ -33,8 +33,11 @@ export function AppShell() {
   const logo = settingsQ.data?.logo_url || defaultLogo;
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((e, session) => {
       if (!session) setAuthState("out");
+      else if (e === "SIGNED_IN") {
+        supabase.auth.getUser().then(({ data, error }) => setAuthState(!error && data.user ? "in" : "out"));
+      }
     });
     // Valida a sessão no servidor (não confia só no que está salvo no aparelho)
     supabase.auth.getUser().then(({ data, error }) => {
