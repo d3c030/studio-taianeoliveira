@@ -88,7 +88,7 @@ function LeadForm({ phone, chips, setChips }: { phone?: string; chips: string[];
     }
     setErrs({});
     const ig = r.data.instagram.replace(/^@?/, "@");
-    const msg = `Olá, Taiane! Tudo bem? 😊\nAcabei de preencher o cadastro para atendimento no seu site.\n\nNome: ${r.data.nome}\nInstagram: ${ig}\nE-mail: ${r.data.email}\nObjetivo: ${r.data.objetivo}`;
+    const msg = `Olá, Taiane! Tudo bem? 😊\nAcabei de preencher a ficha de atendimento no seu site e gostaria de agendar o meu diagnóstico de perfil.\n\n*Minha ficha:*\n• Nome: ${r.data.nome}\n• Instagram: ${ig}\n• WhatsApp: ${r.data.whatsapp}\n• E-mail: ${r.data.email}\n• Objetivo: ${r.data.objetivo}\n\nAguardo seu retorno! 💖`;
     const url = waLink(phone, msg);
     const win = url ? window.open("", "_blank") : null;
     setBusy(true);
@@ -407,7 +407,7 @@ export function Landing({ previewSections }: { previewSections?: any[] } = {}) {
           <img src={logo} alt="Taiane Oliveira" className="h-14 w-14 rounded-full object-cover" />
           <div className="flex flex-wrap justify-center gap-5">
             {ig && <a href={ig} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-brand"><Instagram className="h-4 w-4" />Instagram</a>}
-            {wa && <a href={waLink(wa, "Olá, Taiane! Vim pelo seu site.")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-brand"><WhatsIcon className="h-4 w-4" />WhatsApp</a>}
+            {wa && <a href="#contato" className="inline-flex items-center gap-1.5 hover:text-brand"><WhatsIcon className="h-4 w-4" />WhatsApp</a>}
             {EMAIL && <a href={`mailto:${EMAIL}`} className="inline-flex items-center gap-1.5 hover:text-brand"><Mail className="h-4 w-4" />{EMAIL}</a>}
           </div>
           <Link to="/privacidade" className="hover:text-brand">Política de privacidade</Link>
@@ -417,7 +417,7 @@ export function Landing({ previewSections }: { previewSections?: any[] } = {}) {
       </footer>
 
       {wa && (
-        <a href={waLink(wa, "Olá, Taiane! Vim pelo seu site.")} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-xl transition-transform hover:scale-105">
+        <a href="#contato" aria-label="Preencher ficha de atendimento" className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-xl transition-transform hover:scale-105">
           <WhatsIcon />
         </a>
       )}
