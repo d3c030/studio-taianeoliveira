@@ -57,7 +57,7 @@ function Rich({ text, s }: { text: string; s: ReturnType<typeof mk> }) {
       ),
     );
   return (
-    <View style={{ lineHeight: 1.45 }}>
+    <View>
       {text.split("\n").map((line, i) =>
         line.startsWith("• ") ? (
           <View key={i} style={s.li}>
