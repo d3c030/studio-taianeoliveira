@@ -172,7 +172,7 @@ export function Landing() {
   const ig = get("contato").instagram || st.data?.instagram_url;
   const fotoHero: string = hero.imagem || sobre.imagem || "";
   const fotos: { url: string; legenda?: string }[] = (gal.fotos ?? []).filter((f: any) => f?.url);
-  const depo = ((get("depoimentos").itens ?? []) as any[]).filter((d) => d?.texto?.trim());
+  const depo = ((get("depoimentos").itens ?? []) as any[]).filter((d) => d?.texto?.trim() || d?.print);
   const cupons = cq.data ?? [];
   const marcas = cupons.filter((c) => c.logo_url);
   const link = cupSec.link ? (/^https?:\/\//.test(cupSec.link) ? cupSec.link : `https://${cupSec.link}`) : "";
@@ -362,10 +362,15 @@ export function Landing() {
         <Reveal className="bg-secondary/40">
           <Title eyebrow="Depoimentos" titulo="Quem já passou por aqui" />
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {depo.slice(0, 3).map((d, i) => (
+            {depo.map((d, i) => (
               <figure key={i} className="flex flex-col rounded-3xl border border-border bg-card p-6">
+                {d.print && (
+                  <a href={d.print} target="_blank" rel="noopener noreferrer" className="mb-4 block overflow-hidden rounded-2xl border border-border bg-background">
+                    <img src={d.print} alt={`Print do depoimento de ${d.nome || "cliente"}`} loading="lazy" className="max-h-[28rem] w-full object-contain" />
+                  </a>
+                )}
                 {d.resultado && <p className="font-display text-xl text-brand">{d.resultado}</p>}
-                <blockquote className="mt-3 flex-1 leading-relaxed text-muted-foreground">“{d.texto}”</blockquote>
+                {d.texto?.trim() && <blockquote className="mt-3 flex-1 leading-relaxed text-muted-foreground">“{d.texto}”</blockquote>}
                 <figcaption className="mt-5 flex items-center gap-3">
                   {d.foto && <img src={d.foto} alt={d.nome} className="h-10 w-10 rounded-full object-cover" />}
                   <div><p className="text-sm font-medium">{d.nome}</p>{d.instagram && <p className="text-xs text-muted-foreground">{d.instagram}</p>}</div>
