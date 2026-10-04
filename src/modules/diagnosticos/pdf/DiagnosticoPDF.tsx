@@ -120,6 +120,12 @@ function tamanho(r: number) {
   return { w, h, largo };
 }
 
+function alturaImgs(imgs: PdfImagem[]) {
+  let h = 0, retratos = 0;
+  for (const im of imgs) { const t = tamanho(im.ratio); if (t.largo) h += t.h + 30; else if (retratos++ % 2 === 0) h += t.h + 30; }
+  return h;
+}
+
 function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
   return (
     <View style={s.grid}>
@@ -207,7 +213,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                   )
                 )}
                 {imgs.length > 0 && (
-                  <View style={{ marginTop: 12 }}>
+                  <View style={{ marginTop: 12 }} wrap={alturaImgs(imgs) > 620}>
                     <Text style={s.blockLabel} minPresenceAhead={270}>Registros da análise</Text>
                     <Imagens imgs={imgs} s={s} />
                   </View>
