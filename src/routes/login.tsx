@@ -25,16 +25,28 @@ function LoginPage() {
     });
   }, [navigate]);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast.error("Credenciais inválidas");
+    const fd = new FormData(e.currentTarget);
+    const em = String(fd.get("email") ?? email).trim();
+    const pw = String(fd.get("password") ?? password);
+    if (!em || !pw) {
+      toast.error("Preencha e-mail e senha");
       return;
     }
-    navigate({ to: "/", replace: true });
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw });
+      if (error) {
+        toast.error(error.message.includes("Invalid") ? "E-mail ou senha incorretos" : `Erro: ${error.message}`);
+        return;
+      }
+      navigate({ to: "/", replace: true });
+    } catch (err: any) {
+      toast.error(`Sem conexão com o servidor: ${err?.message ?? ""}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
