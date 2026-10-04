@@ -506,8 +506,11 @@ export type Database = {
           criado_em: string
           desconto: string
           descricao: string
+          empresa: string
           id: string
           limite_usos: number | null
+          logo_url: string | null
+          ordem: number
           titulo: string
           usos: number
           validade_fim: string | null
@@ -519,8 +522,11 @@ export type Database = {
           criado_em?: string
           desconto?: string
           descricao?: string
+          empresa?: string
           id?: string
           limite_usos?: number | null
+          logo_url?: string | null
+          ordem?: number
           titulo?: string
           usos?: number
           validade_fim?: string | null
@@ -532,8 +538,11 @@ export type Database = {
           criado_em?: string
           desconto?: string
           descricao?: string
+          empresa?: string
           id?: string
           limite_usos?: number | null
+          logo_url?: string | null
+          ordem?: number
           titulo?: string
           usos?: number
           validade_fim?: string | null

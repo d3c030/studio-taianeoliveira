@@ -7,8 +7,8 @@ export const TIPOS: { tipo: SectionTipo; label: string; descricao: string }[] = 
   { tipo: "sobre", label: "Sobre", descricao: "Texto com foto" },
   { tipo: "servicos", label: "Serviços", descricao: "Lista de serviços com preço" },
   { tipo: "depoimentos", label: "Depoimentos", descricao: "O que as clientes dizem" },
-  { tipo: "cupons", label: "Cupons", descricao: "Mostra os cupons ativos" },
-  { tipo: "contato", label: "Contato", descricao: "WhatsApp e Instagram" },
+  { tipo: "cupons", label: "Cupons", descricao: "Cupons de parceiras + Linktree" },
+  { tipo: "contato", label: "Cadastro", descricao: "Formulário que abre o WhatsApp" },
 ];
 
 export function novaSecao(tipo: SectionTipo): SiteSection {
@@ -19,7 +19,7 @@ export function novaSecao(tipo: SectionTipo): SiteSection {
     servicos: { titulo: "Serviços", itens: [{ nome: "Design de sobrancelhas", descricao: "", preco: "" }] },
     depoimentos: { titulo: "Depoimentos", itens: [{ nome: "Cliente", texto: "Amei o resultado!" }] },
     cupons: { titulo: "Cupons disponíveis", subtitulo: "Mostre o código no atendimento." },
-    contato: { titulo: "Vamos conversar?", subtitulo: "Me chame no WhatsApp ou no Instagram.", whatsapp: "", instagram: "" },
+    contato: { titulo: "Quero levar meu perfil para o próximo nível", subtitulo: "Preencha o cadastro e continue a conversa comigo direto no WhatsApp.", whatsapp: "", instagram: "" },
   }[tipo];
   return { id, tipo, visivel: true, dados };
 }
