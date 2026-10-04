@@ -1,12 +1,13 @@
 import type { SiteSection } from "./api";
 
-export type SectionTipo = "hero" | "sobre" | "servicos" | "depoimentos" | "cupons" | "contato";
+export type SectionTipo = "hero" | "sobre" | "servicos" | "depoimentos" | "galeria" | "cupons" | "contato";
 
 export const TIPOS: { tipo: SectionTipo; label: string; descricao: string }[] = [
   { tipo: "hero", label: "Capa", descricao: "Título grande, frase e botão" },
   { tipo: "sobre", label: "Sobre", descricao: "Texto com foto" },
   { tipo: "servicos", label: "Serviços", descricao: "Lista de serviços com preço" },
   { tipo: "depoimentos", label: "Depoimentos", descricao: "O que as clientes dizem" },
+  { tipo: "galeria", label: "Galeria", descricao: "Carrossel de fotos" },
   { tipo: "cupons", label: "Cupons", descricao: "Cupons de parceiras + Linktree" },
   { tipo: "contato", label: "Cadastro", descricao: "Formulário que abre o WhatsApp" },
 ];
@@ -18,6 +19,7 @@ export function novaSecao(tipo: SectionTipo): SiteSection {
     sobre: { titulo: "Sobre mim", texto: "Conte aqui sua história.", imagem: "" },
     servicos: { titulo: "Serviços", itens: [{ nome: "Design de sobrancelhas", descricao: "", preco: "" }] },
     depoimentos: { titulo: "Depoimentos", itens: [{ nome: "Cliente", texto: "Amei o resultado!" }] },
+    galeria: { titulo: "Galeria", fotos: [] },
     cupons: { titulo: "Cupons disponíveis", subtitulo: "Mostre o código no atendimento." },
     contato: { titulo: "Quero levar meu perfil para o próximo nível", subtitulo: "Preencha o cadastro e continue a conversa comigo direto no WhatsApp.", whatsapp: "", instagram: "" },
   }[tipo];

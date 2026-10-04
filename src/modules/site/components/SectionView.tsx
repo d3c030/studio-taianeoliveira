@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { submitSiteLead } from "@/lib/site-leads.functions";
 import type { SiteSection } from "../lib/api";
 import { waLink } from "../lib/sections";
@@ -263,6 +264,29 @@ export function SectionView({ s, whatsapp, logo = "", preview }: { s: SiteSectio
           </div>
         </Wrap>
       );
+    case "galeria": {
+      const fotos: { url: string; legenda?: string }[] = (d.fotos ?? []).filter((f: any) => f?.url);
+      if (!fotos.length) return null;
+      return (
+        <Wrap alt>
+          <Heading eyebrow="Galeria" titulo={d.titulo} />
+          <Carousel opts={{ loop: true, align: "start" }} className="mx-auto mt-10 w-full px-10 sm:px-12">
+            <CarouselContent>
+              {fotos.map((f, i) => (
+                <CarouselItem key={i} className="basis-full sm:basis-1/2 lg:basis-1/3">
+                  <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                    <img src={f.url} alt={f.legenda || ""} className="aspect-[4/5] w-full object-cover" loading="lazy" />
+                    {f.legenda && <figcaption className="p-3 text-center text-sm text-muted-foreground">{f.legenda}</figcaption>}
+                  </figure>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-0" />
+            <CarouselNext className="right-0" />
+          </Carousel>
+        </Wrap>
+      );
+    }
     case "cupons":
       return <Cupons d={d} />;
     case "contato":

@@ -38,6 +38,42 @@ function ImageField({ value, onChange }: { value?: string; onChange: (v: string)
   );
 }
 
+function GaleriaField({ fotos, onChange }: { fotos: { url: string; legenda?: string }[]; onChange: (v: { url: string; legenda?: string }[]) => void }) {
+  const [busy, setBusy] = useState(false);
+  const move = (i: number, dir: number) => {
+    const j = i + dir; if (j < 0 || j >= fotos.length) return;
+    const n = [...fotos]; [n[i], n[j]] = [n[j], n[i]]; onChange(n);
+  };
+  return (
+    <Field label="Fotos do carrossel">
+      <div className="space-y-2">
+        {fotos.map((f, i) => (
+          <div key={f.url + i} className="flex items-center gap-2 rounded-lg border border-border p-2">
+            <img src={f.url} alt="" className="h-14 w-14 shrink-0 rounded object-cover" />
+            <Input placeholder="Legenda (opcional)" value={f.legenda ?? ""} onChange={(e) => onChange(fotos.map((x, j) => j === i ? { ...x, legenda: e.target.value } : x))} />
+            <Button variant="ghost" size="icon" onClick={() => move(i, -1)}><ArrowUp className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => move(i, 1)}><ArrowDown className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => onChange(fotos.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+        ))}
+        <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm">
+          <input type="file" accept="image/*" multiple className="hidden" onChange={async (e) => {
+            const files = Array.from(e.target.files ?? []); if (!files.length) return;
+            setBusy(true);
+            try {
+              const urls: { url: string }[] = [];
+              for (const f of files) urls.push({ url: await uploadSiteImage(f) });
+              onChange([...fotos, ...urls]);
+            } catch (err: any) { toast.error(err.message ?? "Erro no envio"); }
+            finally { setBusy(false); e.target.value = ""; }
+          }} />
+          <ImagePlus className="h-4 w-4" />{busy ? "Enviando…" : "Adicionar fotos"}
+        </label>
+      </div>
+    </Field>
+  );
+}
+
 function ListEditor({ itens, campos, onChange, novo }: {
   itens: any[]; campos: { k: string; label: string; area?: boolean }[]; onChange: (v: any[]) => void; novo: any;
 }) {
@@ -79,6 +115,7 @@ function SectionForm({ s, set }: { s: SiteSection; set: (d: Record<string, any>)
       {s.tipo === "contato" && <>{txt("whatsapp", "Seu WhatsApp (recebe os cadastros)")}{txt("instagram", "Link do Instagram")}<p className="text-xs text-muted-foreground">Este bloco mostra o formulário de cadastro (nome, @, WhatsApp, e-mail e objetivo). Ao enviar, abre o WhatsApp da cliente com a mensagem para você.</p></>}
       {s.tipo === "cupons" && <>{txt("link", "Link do Linktree")}{txt("link_texto", "Texto do botão (ex: Ver todos os cupons)")}</>}
       {s.tipo === "cupons" && <p className="text-xs text-muted-foreground">Cadastre os cupons na aba Cupons. Este bloco sempre aparece no final da página.</p>}
+      {s.tipo === "galeria" && <GaleriaField fotos={d.fotos ?? []} onChange={(v) => up("fotos", v)} />}
     </div>
   );
 }
