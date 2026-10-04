@@ -60,6 +60,10 @@ async function loadConfig() {
 }
 
 export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias: DiagMidia[]): Promise<Blob> {
+  if (!(globalThis as any).Buffer) {
+    const { Buffer } = await import("buffer");
+    (globalThis as any).Buffer = Buffer;
+  }
   const [{ pdf }, { DiagnosticoPDF }, cfg] = await Promise.all([
     import("@react-pdf/renderer"),
     import("./DiagnosticoPDF"),
