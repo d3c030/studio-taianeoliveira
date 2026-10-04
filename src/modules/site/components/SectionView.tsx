@@ -94,8 +94,8 @@ function LeadForm({ d, whatsapp }: { d: Record<string, any>; whatsapp?: string }
       <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
         <div className="text-center lg:text-left">
           <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.2em] text-primary"><Sparkles className="h-3.5 w-3.5" />Atendimento</p>
-          <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">{d.titulo || "Quero levar meu perfil para o próximo nível"}</h2>
-          <p className="mt-4 text-muted-foreground">{d.subtitulo || "Preencha o cadastro e continue a conversa comigo direto no WhatsApp."}</p>
+          <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">{(d.titulo && d.titulo !== "Vamos conversar?") ? d.titulo : "Quero levar meu perfil para o próximo nível"}</h2>
+          <p className="mt-4 text-muted-foreground">{(d.subtitulo && !d.subtitulo.startsWith("Me chame")) ? d.subtitulo : "Preencha o cadastro e continue a conversa comigo direto no WhatsApp."}</p>
           <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
             <li>✦ Diagnóstico do seu perfil</li>
             <li>✦ Estratégia para engajamento e seguidores</li>
