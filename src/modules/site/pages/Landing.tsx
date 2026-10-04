@@ -20,7 +20,12 @@ export function Landing() {
       {!hasHero && !q.isLoading && <Hero d={{ titulo: "Studio Taiane Oliveira", subtitulo: "Em breve, novidades por aqui." }} logo={logo} />}
       <main className="flex-1">
         {q.isLoading ? (
-          <div className="flex min-h-[60vh] items-center justify-center"><img src={logo} alt="" className="h-16 w-auto animate-pulse" /></div>
+          <div className="flex min-h-screen items-center justify-center">
+            <div className="relative flex h-32 w-32 items-center justify-center">
+              <div className="absolute inset-0 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+              <img src={logo} alt="Carregando" className="h-24 w-24 animate-pulse rounded-full object-cover" />
+            </div>
+          </div>
         ) : (
           sections.map((s) => <SectionView key={s.id} s={s} whatsapp={wa} logo={logo} />)
         )}
