@@ -195,8 +195,7 @@ export function Hero({ d, logo, preview }: { d: Record<string, any>; logo: strin
     <section className="relative isolate flex min-h-[88vh] flex-col overflow-hidden bg-secondary/50">
       {d.imagem && <img src={d.imagem} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/60 to-background" />
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
-        <img src={logo} alt="Studio Taiane Oliveira" className="h-14 w-auto sm:h-16" />
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-end px-5 py-5">
         {!preview && (
           <Button asChild variant="ghost" size="sm" className="rounded-full">
             <Link to="/login"><LogIn className="mr-1.5 h-4 w-4" />Login</Link>
@@ -204,7 +203,7 @@ export function Hero({ d, logo, preview }: { d: Record<string, any>; logo: strin
         )}
       </header>
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-5 pb-20 text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">Studio Taiane Oliveira</p>
+        <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">Consultora especialista em redes sociais</p>
         <h1 className="mt-4 font-display text-5xl leading-[1.05] sm:text-7xl">{d.titulo}</h1>
         {d.subtitulo && <p className="mt-5 max-w-xl text-lg text-muted-foreground">{d.subtitulo}</p>}
         <Button asChild size="lg" className="mt-9 h-12 rounded-full px-8 shadow-lg">
