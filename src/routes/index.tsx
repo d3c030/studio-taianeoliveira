@@ -406,6 +406,7 @@ function Dashboard() {
             </ul>
 
           )}
+          <ConsultoriasAFazer />
         </CardContent>
       </Card>
 
@@ -1063,5 +1064,53 @@ function ReceivableDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+function ConsultoriasAFazer() {
+  const q = useQuery({
+    queryKey: ["consultorias-a-fazer"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("diag_diagnosticos")
+        .select("id, criado_em, diag_clientes!inner(nome, instagram, objetivo, criado_em)")
+        .neq("status", "finalizado");
+      if (error) throw error;
+      return (data ?? []).sort((a: any, b: any) =>
+        String(a.diag_clientes.criado_em).localeCompare(String(b.diag_clientes.criado_em)));
+    },
+  });
+  const list = q.data ?? [];
+  return (
+    <div className="mt-4 border-t border-border/70 pt-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-medium flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" />Consultorias a fazer</h3>
+        <span className="text-xs text-muted-foreground">{list.length} · por ordem de cadastro</span>
+      </div>
+      {q.isLoading ? (
+        <p className="text-sm text-muted-foreground py-3 text-center">Carregando…</p>
+      ) : list.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-3 text-center">Nenhuma consultoria pendente.</p>
+      ) : (
+        <ul className="divide-y divide-border/70">
+          {list.map((d: any, i: number) => {
+            const c = d.diag_clientes;
+            return (
+              <li key={d.id} className="py-3 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold shrink-0">{i + 1}º</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{c.nome}{c.instagram && <span className="text-muted-foreground font-normal"> · @{String(c.instagram).replace(/^@/, "")}</span>}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    Cadastro em {new Date(c.criado_em).toLocaleDateString("pt-BR")}{c.objetivo ? ` · ${c.objetivo}` : ""}
+                  </div>
+                </div>
+                <Button asChild size="sm" variant="outline" className="h-8 shrink-0">
+                  <Link to="/diagnosticos/editor/$diagnosticoId" params={{ diagnosticoId: d.id }}>Abrir</Link>
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
