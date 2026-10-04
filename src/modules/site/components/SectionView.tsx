@@ -193,7 +193,7 @@ function Cupons({ d }: { d: Record<string, any> }) {
 export function Hero({ d, logo, preview }: { d: Record<string, any>; logo: string; preview?: boolean }) {
   return (
     <section className="relative isolate flex min-h-[88vh] flex-col overflow-hidden bg-secondary/50">
-      {d.imagem && <img src={d.imagem} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />}
+      {d.imagem && <img src={d.imagem} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover object-[center_15%]" />}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/60 to-background" />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-end px-5 py-5">
         {!preview && (
