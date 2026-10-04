@@ -17,8 +17,24 @@ function base() {
 }
 
 /** Sends one event per page load per key (visita, secao:x, clique:y). */
+/** Devices that ever logged into the panel (team) are never counted. */
+function isStaffDevice() {
+  try {
+    if (localStorage.getItem("site_staff") === "1") return true;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i) || "";
+      if (k.startsWith("sb-") && k.endsWith("-auth-token")) {
+        localStorage.setItem("site_staff", "1");
+        return true;
+      }
+    }
+  } catch { /* ignore */ }
+  return false;
+}
+
 export function track(pagina: string) {
   if (typeof window === "undefined" || sent.has(pagina)) return;
+  if (isStaffDevice()) return;
   sent.add(pagina);
   trackSite({ data: { pagina: pagina.slice(0, 160), ...base() } }).catch(() => {});
 }
