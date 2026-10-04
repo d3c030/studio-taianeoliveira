@@ -35,7 +35,13 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
     }
   };
 
-  useEffect(() => { void gerar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Celular/tablet: navegadores móveis não exibem PDF embutido e travam ao montar automaticamente.
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 1024px), (pointer: coarse)").matches;
+    setMobile(m);
+    if (!m) void gerar();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const baixar = (href: string) => {
     const a = document.createElement("a");
@@ -74,18 +80,29 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
           </Button>
         )}
       </div>
-      <div className="overflow-hidden rounded-xl border border-border bg-muted">
-        {loading && !url ? (
-          <div className="flex h-[70vh] items-center justify-center text-sm text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Montando o PDF…
-          </div>
-        ) : url ? (
-          <iframe src={url} title="Pré-visualização do PDF" className="h-[75vh] w-full" />
-        ) : (
-          <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Prévia indisponível.</div>
-        )}
-      </div>
-      <p className="text-xs text-muted-foreground">No celular, se a prévia não aparecer, use "Abrir em tela cheia".</p>
+      {mobile ? (
+        <div className="rounded-xl border border-border bg-muted p-6 text-center text-sm text-muted-foreground">
+          {loading ? (
+            <span className="inline-flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Montando o PDF…</span>
+          ) : url ? (
+            <>PDF pronto. Toque em "Abrir em tela cheia" para ver ou em "Gerar PDF" para baixar.</>
+          ) : (
+            <>No celular, toque em "Atualizar prévia" para montar o PDF e depois em "Abrir em tela cheia".</>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-border bg-muted">
+          {loading && !url ? (
+            <div className="flex h-[70vh] items-center justify-center text-sm text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Montando o PDF…
+            </div>
+          ) : url ? (
+            <iframe src={url} title="Pré-visualização do PDF" className="h-[75vh] w-full" />
+          ) : (
+            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">Prévia indisponível.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

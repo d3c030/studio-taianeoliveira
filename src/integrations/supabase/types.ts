@@ -466,6 +466,159 @@ export type Database = {
         }
         Relationships: []
       }
+      site_acessos: {
+        Row: {
+          data: string
+          dispositivo: string | null
+          id: string
+          pagina: string | null
+          referrer: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          data?: string
+          dispositivo?: string | null
+          id?: string
+          pagina?: string | null
+          referrer?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          data?: string
+          dispositivo?: string | null
+          id?: string
+          pagina?: string | null
+          referrer?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
+      site_cupons: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          criado_em: string
+          desconto: string
+          descricao: string
+          id: string
+          limite_usos: number | null
+          titulo: string
+          usos: number
+          validade_fim: string | null
+          validade_inicio: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          criado_em?: string
+          desconto?: string
+          descricao?: string
+          id?: string
+          limite_usos?: number | null
+          titulo?: string
+          usos?: number
+          validade_fim?: string | null
+          validade_inicio?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          criado_em?: string
+          desconto?: string
+          descricao?: string
+          id?: string
+          limite_usos?: number | null
+          titulo?: string
+          usos?: number
+          validade_fim?: string | null
+          validade_inicio?: string | null
+        }
+        Relationships: []
+      }
+      site_leads: {
+        Row: {
+          cliente_id: string | null
+          criado_em: string
+          email: string | null
+          id: string
+          instagram: string | null
+          mensagem: string | null
+          nicho: string | null
+          nome: string
+          objetivo: string | null
+          origem_cupom: string | null
+          status: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          criado_em?: string
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          mensagem?: string | null
+          nicho?: string | null
+          nome: string
+          objetivo?: string | null
+          origem_cupom?: string | null
+          status?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          criado_em?: string
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          mensagem?: string | null
+          nicho?: string | null
+          nome?: string
+          objetivo?: string | null
+          origem_cupom?: string | null
+          status?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      site_paginas: {
+        Row: {
+          atualizado_em: string
+          publicado_json: Json
+          rascunho_json: Json
+          seo: Json
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          publicado_json?: Json
+          rascunho_json?: Json
+          seo?: Json
+          user_id?: string
+        }
+        Update: {
+          atualizado_em?: string
+          publicado_json?: Json
+          rascunho_json?: Json
+          seo?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
