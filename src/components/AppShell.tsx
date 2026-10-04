@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings, Sparkles, ClipboardCheck } from "lucide-react";
+import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings, Sparkles, ClipboardCheck, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ const navItems = [
   { to: "/procedimentos", label: "Procedimentos", icon: Sparkles },
   { to: "/custos", label: "Custos", icon: Receipt },
   { to: "/diagnosticos", label: "Diagnósticos", icon: ClipboardCheck },
+  { to: "/site", label: "Site", icon: Globe },
   { to: "/usuarios", label: "Usuários", icon: Shield },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
@@ -123,7 +124,7 @@ export function AppShell() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur">
-        <div className="grid grid-cols-9">
+        <div className="grid grid-cols-10">
           {navItems.map(({ to, label, icon: Icon }) => {
             const shortLabel =
               label === "Atendimentos" ? "Atend." :
