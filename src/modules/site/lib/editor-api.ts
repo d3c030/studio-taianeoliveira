@@ -46,6 +46,7 @@ export async function saveDraft(rascunho: SitePagina, seo: SiteSeo, publicar = f
     seo,
     atualizado_em: new Date().toISOString(),
   };
+  if (publicar && rascunho.sections.length === 0) throw new Error("A página está vazia. Adicione blocos antes de publicar.");
   if (publicar) row.publicado_json = rascunho;
   const { error } = await supabase.from("site_paginas").upsert(row, { onConflict: "user_id" });
   if (error) throw error;
