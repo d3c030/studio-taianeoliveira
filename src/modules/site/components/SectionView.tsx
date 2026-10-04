@@ -310,8 +310,9 @@ export function orderSections(sections: SiteSection[]) {
   const vis = sections.filter((s) => s.visivel !== false);
   return [
     ...vis.filter((s) => s.tipo === "hero").slice(0, 1),
-    ...vis.filter((s) => s.tipo !== "hero" && s.tipo !== "cupons"),
+    ...vis.filter((s) => s.tipo !== "hero" && s.tipo !== "cupons" && s.tipo !== "contato"),
     ...vis.filter((s) => s.tipo === "cupons").slice(0, 1),
+    ...vis.filter((s) => s.tipo === "contato").slice(0, 1),
   ];
 }
 
