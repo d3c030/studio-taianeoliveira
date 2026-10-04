@@ -43,6 +43,13 @@
       "when": 1791086485496,
       "tag": "0005_diag_clientes_objetivo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791087471071,
+      "tag": "0006_diag_shared_access",
+      "breakpoints": true
     }
   ]
 }
