@@ -214,7 +214,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                   )
                 )}
                 {imgs.length > 0 && (
-                  <View style={{ marginTop: 12 }} wrap={alturaImgs(imgs) > 620}>
+                  <View style={{ marginTop: 12 }} wrap={alturaImgs(imgs) > 420}>
                     <Text style={s.blockLabel} minPresenceAhead={270}>Registros da análise</Text>
                     <Imagens imgs={imgs} s={s} />
                   </View>
