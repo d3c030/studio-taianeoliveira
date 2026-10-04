@@ -74,6 +74,7 @@ function SectionForm({ s, set }: { s: SiteSection; set: (d: Record<string, any>)
       {s.tipo === "depoimentos" && <ListEditor itens={d.itens ?? []} novo={{ nome: "", texto: "" }} onChange={(v) => up("itens", v)}
         campos={[{ k: "nome", label: "Nome" }, { k: "texto", label: "Depoimento", area: true }]} />}
       {s.tipo === "contato" && <>{txt("whatsapp", "WhatsApp (DDD + número)")}{txt("instagram", "Link do Instagram")}</>}
+      {s.tipo === "cupons" && <>{txt("link", "Link do Linktree")}{txt("link_texto", "Texto do botão (ex: Ver todos os cupons)")}</>}
       {s.tipo === "cupons" && <p className="text-xs text-muted-foreground">Os cupons ativos aparecem aqui automaticamente.</p>}
     </div>
   );
