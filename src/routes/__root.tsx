@@ -38,16 +38,27 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const msg = error instanceof Error ? error.message : String(error ?? "");
+  const isStale = /dynamically imported module|Importing a module script failed|Failed to fetch|Loading chunk|error loading dynamically/i.test(msg);
+  if (typeof window !== "undefined" && isStale) {
+    const key = "stale-reload-at";
+    const last = Number(sessionStorage.getItem(key) || 0);
+    if (Date.now() - last > 15000) {
+      sessionStorage.setItem(key, String(Date.now()));
+      window.location.reload();
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Esta página não carregou
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Toque em "Tentar de novo". Se continuar, recarregue a página.
         </p>
+        {msg && <p className="mt-2 break-words text-xs text-muted-foreground/70">{msg.slice(0, 200)}</p>}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
