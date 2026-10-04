@@ -13,6 +13,7 @@ export type PdfData = {
   itens: DiagItem[];
   imagens: PdfImagem[];
   plano: string;
+  convite?: boolean;
   financeiro: null | {
     itens: { descricao: string; valor: number; desconto: number }[];
     pagamentos: { data: string; forma: string; valor: number }[];
@@ -302,6 +303,14 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
               ))}
             </View>
           )}
+        </View>
+      )}
+      {d.convite && (
+        <View wrap={false} style={{ marginTop: 26, padding: 18, borderRadius: 10, borderWidth: 1, borderColor: d.cor, backgroundColor: "#FBF5F2" }}>
+          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 13, color: d.cor, marginBottom: 8 }}>Próximo passo</Text>
+          <Text style={{ fontSize: 10.5, lineHeight: 1.6, color: TEXTO }}>
+            Agora você já tem o mapa exato do que precisa ajustar na sua "vitrine". Se você quiser o meu acompanhamento de perto para colocar tudo isso em prática, montar um cronograma de postagens e aprender a abordar as marcas da forma certa, venha para a minha Consultoria 1:1 ou Mentoria para Parcerias.
+          </Text>
         </View>
       )}
       <Footer d={d} s={s} />
