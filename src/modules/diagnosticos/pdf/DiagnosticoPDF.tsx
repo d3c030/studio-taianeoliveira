@@ -182,7 +182,22 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
 
       <Page size="A4" style={s.page}>
         <Text style={s.h1}>Plano de Ação – Seus Próximos Passos</Text>
-        <Rich text={d.plano} s={s} />
+        {d.itens.map((it, i) => ({ it, n: i + 1 })).filter(({ it }) => it.status !== "ideal" && it.sua_tarefa.trim()).map(({ it, n }) => (
+          <View key={it.id} style={s.card} wrap={false}>
+            <Text style={[s.itemTitle, { marginBottom: 6, color: d.cor }]}>{n}. {it.titulo}</Text>
+            {!!it.o_que_eu_vi.trim() && (
+              <View style={s.block}>
+                <Text style={s.blockLabel}>Análise (Item {n})</Text>
+                <Rich text={it.o_que_eu_vi} s={s} />
+              </View>
+            )}
+            <View style={s.tarefa}>
+              <Text style={s.blockLabel}>Sua tarefa</Text>
+              <Rich text={it.sua_tarefa} s={s} />
+            </View>
+          </View>
+        ))}
+        {!!d.plano.trim() && <View style={{ marginTop: 6 }}><Rich text={d.plano} s={s} /></View>}
         <Footer d={d} s={s} />
       </Page>
     </Document>

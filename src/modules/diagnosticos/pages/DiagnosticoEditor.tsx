@@ -94,6 +94,19 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
     }
     setUploading(null);
   };
+  const [uploadingItem, setUploadingItem] = useState<string | null>(null);
+  const onUploadItem = async (item: DiagItem, files: File[]) => {
+    setUploadingItem(item.id);
+    const tipo: MidiaTipo = item.status === "ideal" ? "positivo" : "negativo";
+    let base = midias.filter((m) => m.tipo === tipo).length;
+    for (const f of files) {
+      try {
+        const m = await addMidia(diagnosticoId, tipo, f, base++, item.id);
+        setMidias((l) => [...l, m]);
+      } catch (e: any) { toast.error(`${f.name}: ${e.message ?? "erro no envio"}`); }
+    }
+    setUploadingItem(null);
+  };
   const onDeleteMidia = async (m: DiagMidia) => {
     try {
       await deleteMidia(m);
@@ -153,7 +166,8 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
           <TabsTrigger value="pdf">PDF</TabsTrigger>
         </TabsList>
         <TabsContent value="checklist" className="mt-4">
-          <ChecklistEditor itens={itens} onChange={patchItem} onAdd={onAddItem} onDelete={onDeleteItem} onReorder={reorderItens} />
+          <ChecklistEditor itens={itens} onChange={patchItem} onAdd={onAddItem} onDelete={onDeleteItem} onReorder={reorderItens}
+            midias={midias} uploadingItem={uploadingItem} onUploadFotos={onUploadItem} onDeleteMidia={onDeleteMidia} />
         </TabsContent>
         <TabsContent value="destaques" className="mt-4 space-y-8">
           {(["positivo", "negativo"] as MidiaTipo[]).map((t) => (
@@ -172,6 +186,8 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
         </TabsContent>
         <TabsContent value="plano" className="mt-4 space-y-2">
           <h3 className="font-semibold">Seus Próximos Passos</h3>
+          <TarefasDoChecklist itens={itens} />
+          <p className="pt-2 text-sm font-medium">Mensagem final / observações</p>
           <PlanoAcaoEditor value={diag.resumo_plano_acao} onChange={(v) => patchDiag({ resumo_plano_acao: v })} />
         </TabsContent>
         <TabsContent value="pdf" className="mt-4">
@@ -192,4 +208,25 @@ function SaveIndicator({ state }: { state: string }) {
   if (state === "saved") return <span className="flex items-center gap-1 text-xs text-muted-foreground"><Check className="h-3.5 w-3.5" /> Salvo</span>;
   if (state === "error") return <span className="flex items-center gap-1 text-xs text-destructive"><CloudOff className="h-3.5 w-3.5" /> Erro ao salvar</span>;
   return null;
+}
+
+function TarefasDoChecklist({ itens }: { itens: DiagItem[] }) {
+  const ordered = [...itens].sort((a, b) => a.ordem - b.ordem);
+  const tarefas = ordered
+    .map((it, i) => ({ it, n: i + 1 }))
+    .filter(({ it }) => it.status !== "ideal" && it.sua_tarefa.trim());
+  if (!tarefas.length)
+    return <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">As tarefas dos itens marcados como "Precisa de ajustes" aparecem aqui automaticamente.</p>;
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">Vindas do checklist automaticamente (edite lá).</p>
+      {tarefas.map(({ it, n }) => (
+        <div key={it.id} className="rounded-xl border border-border bg-card p-3">
+          <p className="text-sm font-semibold">{n}. {it.titulo}</p>
+          {!!it.o_que_eu_vi.trim() && <p className="mt-1 text-xs text-muted-foreground"><span className="font-medium">Análise:</span> {it.o_que_eu_vi}</p>}
+          <p className="mt-1 whitespace-pre-line text-sm"><span className="font-medium">Tarefa:</span> {it.sua_tarefa}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
