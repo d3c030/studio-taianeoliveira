@@ -4,6 +4,7 @@ import { Download, ExternalLink, Loader2, MessageCircle, RefreshCw } from "lucid
 import { Button } from "@/components/ui/button";
 import type { DiagCompleto, DiagItem, DiagMidia } from "../lib/editor-api";
 import { buildPdfBlob, pdfFileName } from "../pdf/generate";
+import { supabase } from "@/integrations/supabase/client";
 
 type Props = { diag: DiagCompleto; itens: DiagItem[]; midias: DiagMidia[]; beforeBuild: () => Promise<void> };
 
@@ -51,28 +52,35 @@ export function PdfPanel({ diag, itens, midias, beforeBuild }: Props) {
   };
 
   const compartilhar = async () => {
+    // Abre a janela já no clique (evita bloqueio de pop-up) e preenche depois
+    const win = window.open("about:blank", "_blank");
     const href = url ?? (await gerar());
-    if (!href) return;
-    const nome = diag.cliente.nome.split(" ")[0];
-    const msg = `Oi ${nome}! Seu diagnóstico de perfil ficou pronto 💖 Estou te enviando o PDF aqui. Qualquer dúvida, me chama!`;
-    // Tenta compartilhar o arquivo já anexado (celular/tablet e alguns navegadores)
+    if (!href) { win?.close(); return; }
     try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Sessão expirada");
       const blob = await (await fetch(href)).blob();
-      const file = new File([blob], pdfFileName(diag), { type: "application/pdf" });
-      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
-      if (nav.share && nav.canShare?.({ files: [file] })) {
-        await nav.share({ files: [file], text: msg, title: diag.titulo });
-        return;
-      }
+      const path = `${u.user.id}/pdfs/${diag.id}/${crypto.randomUUID()}.pdf`;
+      const up = await supabase.storage.from("diagnosticos").upload(path, blob, { contentType: "application/pdf" });
+      if (up.error) throw up.error;
+      const { data: share, error } = await supabase
+        .from("diag_compartilhamentos")
+        .insert({ diagnostico_id: diag.id, arquivo: path, nome_arquivo: pdfFileName(diag), cliente_nome: diag.cliente.nome })
+        .select("token")
+        .single();
+      if (error) throw error;
+      const link = `${window.location.origin}/pdf/${share.token}`;
+      const nome = diag.cliente.nome.split(" ")[0];
+      const msg = `Oi ${nome}! Seu diagnóstico de perfil ficou pronto 💖\n\nToque no link para baixar o seu PDF (disponível por 24h):\n${link}\n\nQualquer dúvida, me chama!`;
+      const num = (diag.cliente.whatsapp ?? "").replace(/\D/g, "");
+      const phone = num && num.length <= 11 ? `55${num}` : num;
+      const wa = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      if (win) win.location.href = wa; else window.location.href = wa;
     } catch (e: any) {
-      if (e?.name === "AbortError") return;
+      win?.close();
+      console.error(e);
+      toast.error(`Não foi possível criar o link: ${e?.message ?? "erro"}`);
     }
-    // Alternativa: baixa o PDF e abre o WhatsApp com a mensagem
-    baixar(href);
-    const num = (diag.cliente.whatsapp ?? "").replace(/\D/g, "");
-    const phone = num && num.length <= 11 ? `55${num}` : num;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
-    toast.info("Neste aparelho o WhatsApp não aceita anexo direto — o PDF foi baixado, anexe-o na conversa.");
   };
 
   return (
