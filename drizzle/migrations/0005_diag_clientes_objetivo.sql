@@ -1,0 +1,1 @@
+ALTER TABLE public.diag_clientes ADD COLUMN IF NOT EXISTS objetivo text;

@@ -102,6 +102,9 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
                 <Mail className="h-4 w-4" />{c.email}
               </a>
             )}
+            {(c as any).objetivo && (
+              <p className="mt-2 rounded-lg bg-secondary/60 p-2 text-sm"><span className="font-medium">Objetivo: </span>{(c as any).objetivo}</p>
+            )}
           </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => setEdit(true)}><Pencil className="h-4 w-4" /></Button>

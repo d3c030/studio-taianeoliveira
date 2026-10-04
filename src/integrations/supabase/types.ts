@@ -218,6 +218,7 @@ export type Database = {
           id: string
           instagram: string | null
           nome: string
+          objetivo: string | null
           user_id: string
           whatsapp: string | null
         }
@@ -228,6 +229,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           nome: string
+          objetivo?: string | null
           user_id?: string
           whatsapp?: string | null
         }
@@ -238,6 +240,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           nome?: string
+          objetivo?: string | null
           user_id?: string
           whatsapp?: string | null
         }
