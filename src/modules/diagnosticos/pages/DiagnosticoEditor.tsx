@@ -195,7 +195,7 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
           <PlanoAcaoEditor value={diag.resumo_plano_acao} onChange={(v) => patchDiag({ resumo_plano_acao: v })} />
         </TabsContent>
         <TabsContent value="valores" className="mt-4">
-          <FinanceiroEditor diagId={diag.id} />
+          <FinanceiroEditor diagId={diag.id} clienteId={diag.cliente_id} />
         </TabsContent>
         <TabsContent value="pdf" className="mt-4">
           <PdfPanel diag={diag} itens={itens} midias={midias} beforeBuild={flush} />

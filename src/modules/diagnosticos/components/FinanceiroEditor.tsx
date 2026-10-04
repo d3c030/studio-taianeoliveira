@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Trash2, Receipt, HandCoins } from "lucide-react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatBRL, formatDateBR, PAYMENT_METHODS } from "@/lib/format";
 import {
-  addCobranca, addPagamento, deleteCobranca, deletePagamento, loadFinanceiro, loadPlanos, resumo, updateCobranca,
+  addCobranca, addPagamento, deleteCobranca, deletePagamento, loadFinanceiro, loadPlanos, planosEscolhidos, resumo, updateCobranca,
   type Cobranca,
 } from "../lib/financeiro";
 
@@ -40,7 +41,7 @@ function Linha({ c, onSaved }: { c: Cobranca; onSaved: () => void }) {
   );
 }
 
-export function FinanceiroEditor({ diagId }: { diagId: string }) {
+export function FinanceiroEditor({ diagId, clienteId }: { diagId: string; clienteId: string }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["diag-fin", diagId], queryFn: () => loadFinanceiro(diagId) });
   const planos = useQuery({ queryKey: ["diag-planos"], queryFn: loadPlanos });
@@ -52,6 +53,27 @@ export function FinanceiroEditor({ diagId }: { diagId: string }) {
   const cob = q.data?.cobrancas ?? [];
   const pag = q.data?.pagamentos ?? [];
   const r = resumo(cob, pag);
+  const cli = useQuery({
+    queryKey: ["diag-cliente-objetivo", clienteId],
+    queryFn: async () => (await supabase.from("diag_clientes").select("objetivo").eq("id", clienteId).maybeSingle()).data?.objetivo ?? null,
+  });
+  const escolhidos = planosEscolhidos(planos.data ?? [], cli.data ?? null);
+  const nomesEscolhidos = new Set(escolhidos.map((p) => p.nome));
+
+  // Primeira abertura: lança automaticamente os planos marcados no cadastro do site
+  const auto = useRef(false);
+  useEffect(() => {
+    if (auto.current || !q.data || !planos.data || cli.isLoading) return;
+    auto.current = true;
+    const key = `diag-fin-auto-${diagId}`;
+    if (localStorage.getItem(key) || q.data.cobrancas.length || q.data.pagamentos.length || !escolhidos.length) return;
+    localStorage.setItem(key, "1");
+    (async () => {
+      for (const [i, p] of escolhidos.entries()) await addCobranca(diagId, p.nome, p.valor, i);
+      refresh();
+      toast.success("Planos escolhidos no cadastro foram lançados");
+    })().catch(() => toast.error("Não foi possível lançar os planos"));
+  }, [q.data, planos.data, cli.isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lancar = async (descricao: string, valor: number) => {
     try { await addCobranca(diagId, descricao, valor, cob.length); refresh(); } catch { toast.error("Erro ao lançar"); }
@@ -78,11 +100,15 @@ export function FinanceiroEditor({ diagId }: { diagId: string }) {
 
       <section className="space-y-3">
         <h3 className="flex items-center gap-2 font-semibold"><Receipt className="h-4 w-4 text-primary" /> Plano contratado e cobranças</h3>
+        <p className="text-sm text-muted-foreground">
+          {cli.data ? <>No cadastro do site, a cliente marcou: <strong className="text-foreground">{cli.data}</strong>.</> : "Esta cliente não marcou opções no cadastro do site."}
+          {escolhidos.length > 0 && " Os planos em destaque são os que ela escolheu."}
+        </p>
         {(planos.data ?? []).length > 0 && (
           <div className="flex flex-wrap gap-2">
             <span className="self-center text-xs text-muted-foreground">Lançar plano:</span>
             {planos.data!.map((p) => (
-              <Button key={p.nome} variant="outline" size="sm" onClick={() => lancar(p.nome, p.valor)}>
+              <Button key={p.nome} variant={nomesEscolhidos.has(p.nome) ? "default" : "outline"} size="sm" onClick={() => lancar(p.nome, p.valor)}>
                 <Plus className="h-3.5 w-3.5" /> {p.nome}{p.valor ? ` · ${formatBRL(p.valor)}` : ""}
               </Button>
             ))}
