@@ -29,7 +29,7 @@ export const Route = createFileRoute("/agendar")({
       {
         name: "description",
         content:
-          "Escolha o melhor dia e horário para o seu atendimento no Studio Taiane Oliveira.",
+          "Conheça o Studio Taiane Oliveira.",
       },
     ],
   }),
