@@ -106,7 +106,7 @@ export function SiteEditor() {
   useEffect(() => {
     if (!dirty || saving) return;
     const t = setTimeout(async () => {
-      try { await saveDraft({ sections }, seo, false); setDirty(false); qc.invalidateQueries({ queryKey: ["site-rascunho"] }); }
+      try { await saveDraft({ sections }, seo, false); setDirty(false); }
       catch (e: any) { toast.error(e.message ?? "Erro ao salvar rascunho"); }
     }, 1500);
     return () => clearTimeout(t);
@@ -207,7 +207,7 @@ export function SiteEditor() {
 
       <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background/95 p-3 backdrop-blur md:bottom-0 md:left-64">
         <div className="mx-auto flex max-w-5xl items-center justify-end gap-2">
-          {dirty && <span className="mr-auto text-xs text-muted-foreground">Alterações não salvas</span>}
+          <span className="mr-auto text-xs text-muted-foreground">{dirty ? "Salvando…" : "Rascunho salvo. Toque em Publicar para aparecer no site."}</span>
           <Button variant="outline" disabled={saving} onClick={() => salvar(false)}>Salvar rascunho</Button>
           <Button disabled={saving} onClick={() => salvar(true)}>Publicar</Button>
         </div>
