@@ -85,10 +85,24 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
   const imagens = (
     await Promise.all(
       ordered.map(async (m) => {
-        const src = await toDataUrl(await signedUrl(m.url_arquivo));
-        const im = src ? await loadImg(src) : null;
-        const ratio = im && im.naturalHeight ? im.naturalWidth / im.naturalHeight : 0.75;
-        return src ? { src, ratio, legenda: m.legenda, tipo: m.tipo, item_id: m.item_id } : null;
+        try {
+          const raw = await toDataUrl(await signedUrl(m.url_arquivo));
+          const im = raw ? await loadImg(raw) : null;
+          if (!im || !im.naturalWidth) return null;
+          // Converte para JPEG (o PDF não aceita WebP/HEIC e fotos enormes travam)
+          const scale = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight));
+          const c = document.createElement("canvas");
+          c.width = Math.round(im.naturalWidth * scale);
+          c.height = Math.round(im.naturalHeight * scale);
+          const ctx = c.getContext("2d")!;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(im, 0, 0, c.width, c.height);
+          const src = c.toDataURL("image/jpeg", 0.85);
+          return { src, ratio: im.naturalWidth / im.naturalHeight, legenda: m.legenda, tipo: m.tipo, item_id: m.item_id };
+        } catch {
+          return null;
+        }
       }),
     )
   ).filter(Boolean) as PdfData["imagens"];
