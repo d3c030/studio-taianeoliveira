@@ -14,6 +14,7 @@ import { useAutosave } from "../hooks/useAutosave";
 import { ChecklistEditor } from "../components/ChecklistEditor";
 import { GaleriaEditor } from "../components/GaleriaEditor";
 import { PlanoAcaoEditor } from "../components/PlanoAcaoEditor";
+import { PdfPanel } from "../components/PdfPanel";
 
 export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) {
   const qc = useQueryClient();
@@ -145,10 +146,11 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
       </div>
 
       <Tabs defaultValue="checklist">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
           <TabsTrigger value="destaques">Destaques</TabsTrigger>
           <TabsTrigger value="plano">Plano</TabsTrigger>
+          <TabsTrigger value="pdf">PDF</TabsTrigger>
         </TabsList>
         <TabsContent value="checklist" className="mt-4">
           <ChecklistEditor itens={itens} onChange={patchItem} onAdd={onAddItem} onDelete={onDeleteItem} onReorder={reorderItens} />
@@ -171,6 +173,9 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
         <TabsContent value="plano" className="mt-4 space-y-2">
           <h3 className="font-semibold">Seus Próximos Passos</h3>
           <PlanoAcaoEditor value={diag.resumo_plano_acao} onChange={(v) => patchDiag({ resumo_plano_acao: v })} />
+        </TabsContent>
+        <TabsContent value="pdf" className="mt-4">
+          <PdfPanel diag={diag} itens={itens} midias={midias} beforeBuild={flush} />
         </TabsContent>
       </Tabs>
 
