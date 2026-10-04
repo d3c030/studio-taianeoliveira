@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as SiteRouteImport } from './routes/site'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as LoginRouteImport } from './routes/login'
@@ -37,6 +38,11 @@ const UsuariosRoute = UsuariosRouteImport.update({
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
   path: '/site',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProcedimentosRoute = ProcedimentosRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
+  '/relatorios': typeof RelatoriosRoute
   '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
+  '/relatorios': typeof RelatoriosRoute
   '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
+  '/relatorios': typeof RelatoriosRoute
   '/site': typeof SiteRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacidade'
     | '/procedimentos'
+    | '/relatorios'
     | '/site'
     | '/usuarios'
     | '/agendar/$date'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacidade'
     | '/procedimentos'
+    | '/relatorios'
     | '/site'
     | '/usuarios'
     | '/agendar/$date'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacidade'
     | '/procedimentos'
+    | '/relatorios'
     | '/site'
     | '/usuarios'
     | '/agendar/$date'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ProcedimentosRoute: typeof ProcedimentosRoute
+  RelatoriosRoute: typeof RelatoriosRoute
   SiteRoute: typeof SiteRoute
   UsuariosRoute: typeof UsuariosRoute
   PdfTokenRoute: typeof PdfTokenRoute
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/site'
       fullPath: '/site'
       preLoaderRoute: typeof SiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/procedimentos': {
@@ -452,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ProcedimentosRoute: ProcedimentosRoute,
+  RelatoriosRoute: RelatoriosRoute,
   SiteRoute: SiteRoute,
   UsuariosRoute: UsuariosRoute,
   PdfTokenRoute: PdfTokenRoute,
