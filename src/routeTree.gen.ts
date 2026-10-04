@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
 import { Route as CustosRouteImport } from './routes/custos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
@@ -19,6 +20,7 @@ import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as AgendarRouteImport } from './routes/agendar'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 
 const UsuariosRoute = UsuariosRouteImport.update({
@@ -34,6 +36,11 @@ const ProcedimentosRoute = ProcedimentosRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticosRoute = DiagnosticosRouteImport.update({
+  id: '/diagnosticos',
+  path: '/diagnosticos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustosRoute = CustosRouteImport.update({
@@ -71,6 +78,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiagnosticosIndexRoute = DiagnosticosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DiagnosticosRoute,
+} as any)
 const AgendarDateRoute = AgendarDateRouteImport.update({
   id: '/$date',
   path: '/$date',
@@ -85,10 +97,12 @@ export interface FileRoutesByFullPath {
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
+  '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
+  '/diagnosticos/': typeof DiagnosticosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +116,7 @@ export interface FileRoutesByTo {
   '/procedimentos': typeof ProcedimentosRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
+  '/diagnosticos': typeof DiagnosticosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -112,10 +127,12 @@ export interface FileRoutesById {
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
+  '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
+  '/diagnosticos/': typeof DiagnosticosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,10 +144,12 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/configuracoes'
     | '/custos'
+    | '/diagnosticos'
     | '/login'
     | '/procedimentos'
     | '/usuarios'
     | '/agendar/$date'
+    | '/diagnosticos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +163,7 @@ export interface FileRouteTypes {
     | '/procedimentos'
     | '/usuarios'
     | '/agendar/$date'
+    | '/diagnosticos'
   id:
     | '__root__'
     | '/'
@@ -153,10 +173,12 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/configuracoes'
     | '/custos'
+    | '/diagnosticos'
     | '/login'
     | '/procedimentos'
     | '/usuarios'
     | '/agendar/$date'
+    | '/diagnosticos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -167,6 +189,7 @@ export interface RootRouteChildren {
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   CustosRoute: typeof CustosRoute
+  DiagnosticosRoute: typeof DiagnosticosRouteWithChildren
   LoginRoute: typeof LoginRoute
   ProcedimentosRoute: typeof ProcedimentosRoute
   UsuariosRoute: typeof UsuariosRoute
@@ -193,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnosticos': {
+      id: '/diagnosticos'
+      path: '/diagnosticos'
+      fullPath: '/diagnosticos'
+      preLoaderRoute: typeof DiagnosticosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/custos': {
@@ -244,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnosticos/': {
+      id: '/diagnosticos/'
+      path: '/'
+      fullPath: '/diagnosticos/'
+      preLoaderRoute: typeof DiagnosticosIndexRouteImport
+      parentRoute: typeof DiagnosticosRoute
+    }
     '/agendar/$date': {
       id: '/agendar/$date'
       path: '/$date'
@@ -265,6 +302,18 @@ const AgendarRouteChildren: AgendarRouteChildren = {
 const AgendarRouteWithChildren =
   AgendarRoute._addFileChildren(AgendarRouteChildren)
 
+interface DiagnosticosRouteChildren {
+  DiagnosticosIndexRoute: typeof DiagnosticosIndexRoute
+}
+
+const DiagnosticosRouteChildren: DiagnosticosRouteChildren = {
+  DiagnosticosIndexRoute: DiagnosticosIndexRoute,
+}
+
+const DiagnosticosRouteWithChildren = DiagnosticosRoute._addFileChildren(
+  DiagnosticosRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
@@ -273,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   CustosRoute: CustosRoute,
+  DiagnosticosRoute: DiagnosticosRouteWithChildren,
   LoginRoute: LoginRoute,
   ProcedimentosRoute: ProcedimentosRoute,
   UsuariosRoute: UsuariosRoute,
