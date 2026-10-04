@@ -29,6 +29,7 @@ import { ExpenseDialog } from "@/components/ExpenseDialog";
 import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ConsultoriasPainel } from "@/modules/diagnosticos/components/ConsultoriasPainel";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Painel — Studio Taiane Oliveira" }] }),
@@ -439,6 +440,9 @@ function Dashboard() {
           hint={`${receivablesQ.data?.length ?? 0} cliente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"} pendente${(receivablesQ.data?.length ?? 0) === 1 ? "" : "s"}`}
         />
       </div>
+
+      <ConsultoriasPainel />
+
 
 
 
