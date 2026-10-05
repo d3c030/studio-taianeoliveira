@@ -97,15 +97,20 @@ function Rich({ text, s }: { text: string; s: S }) {
 function Footer({ d, s }: { d: PdfData; s: S }) {
   return (
     <>
-    <View style={s.header} fixed>
-      {d.logo && <Image src={d.logo} style={s.headerLogo} />}
-      <Text style={{ flex: 1 }}>{d.titulo}</Text>
-      <Text>{d.paraInstagram}</Text>
-    </View>
-    <View style={s.footer} fixed>
-      <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape, `© ${new Date().getFullYear()} Todos os direitos reservados`].filter(Boolean).join(" · ")}</Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-    </View>
+    {/* render recria cabeçalho/rodapé a cada página (evita estilos acumulando em PDFs longos) */}
+    <View style={s.header} fixed render={() => (
+      <>
+        {d.logo && <Image src={d.logo} style={s.headerLogo} />}
+        <Text style={{ flex: 1 }}>{d.titulo}</Text>
+        <Text>{d.paraInstagram}</Text>
+      </>
+    )} />
+    <View style={s.footer} fixed render={({ pageNumber, totalPages }) => (
+      <>
+        <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape, `© ${new Date().getFullYear()} Todos os direitos reservados`].filter(Boolean).join(" · ")}</Text>
+        <Text>{`${pageNumber} / ${totalPages}`}</Text>
+      </>
+    )} />
     </>
   );
 }
