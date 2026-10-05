@@ -241,7 +241,6 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
               </View>
             );
           })}
-          </View>
         </View>
       ))}
 
