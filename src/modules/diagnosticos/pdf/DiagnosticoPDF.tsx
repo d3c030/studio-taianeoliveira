@@ -233,7 +233,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                     </View>
                   )
                 )}
-                {imgs.length > 0 && (
+                {false && imgs.length > 0 && (
                   <View style={{ marginTop: 12 }}>
                     <Imagens imgs={imgs} s={s} label="Registros da análise" />
                   </View>
