@@ -106,10 +106,12 @@ function Footer({ d, s }: { d: PdfData; s: S }) {
         <Text style={s.hfText}>{d.paraInstagram}</Text>
       </>
     )} />
-    <View style={s.footer} fixed>
+    <View style={s.footer} fixed render={({ pageNumber }) => (
+      <>
         <Text style={[s.hfText, { flex: 1 }]}>{[d.feitoPor, d.rodape, `© ${new Date().getFullYear()} Todos os direitos reservados`].filter(Boolean).join(" · ")}</Text>
-        <Text style={s.hfText} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-    </View>
+        <Text style={s.hfText}>{`Página ${pageNumber}`}</Text>
+      </>
+    )} />
     </>
   );
 }
