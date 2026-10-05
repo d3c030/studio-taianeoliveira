@@ -128,19 +128,36 @@ function alturaImgs(imgs: PdfImagem[]) {
 }
 
 function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
+  // Linhas independentes (sem flexWrap): grades longas com quebra de página travam o gerador
+  const linhas: PdfImagem[][] = [];
+  let par: PdfImagem[] = [];
+  for (const im of imgs) {
+    if (tamanho(im.ratio).largo) {
+      if (par.length) { linhas.push(par); par = []; }
+      linhas.push([im]);
+    } else {
+      par.push(im);
+      if (par.length === 2) { linhas.push(par); par = []; }
+    }
+  }
+  if (par.length) linhas.push(par);
   return (
-    <View style={s.grid}>
-      {imgs.map((im, i) => {
-        const t = tamanho(im.ratio);
-        return (
-        <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]} wrap={false}>
-          <View style={s.imgFrame}>
-            <Image src={im.src} style={{ width: t.w, height: t.h }} />
-          </View>
-          {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
+    <View>
+      {linhas.map((linha, li) => (
+        <View key={li} style={{ flexDirection: "row", justifyContent: "center" }} wrap={false}>
+          {linha.map((im, i) => {
+            const t = tamanho(im.ratio);
+            return (
+              <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]}>
+                <View style={s.imgFrame}>
+                  <Image src={im.src} style={{ width: t.w, height: t.h }} />
+                </View>
+                {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
+              </View>
+            );
+          })}
         </View>
-        );
-      })}
+      ))}
     </View>
   );
 }
