@@ -82,7 +82,7 @@ function Rich({ text, s }: { text: string; s: S }) {
         if (!line.trim()) return <Text key={i} style={{ fontSize: 4, lineHeight: 1 }}>{" "}</Text>;
         const m = line.match(/^\s*(?:[•\-*]|\d+[.)])\s+(.*)$/);
         return m ? (
-          <View key={i} style={s.li} wrap={false}>
+          <View key={i} style={s.li}>
             <Text style={s.bullet}>•</Text>
             <Text style={{ flex: 1 }}>{inline(m[1])}</Text>
           </View>
