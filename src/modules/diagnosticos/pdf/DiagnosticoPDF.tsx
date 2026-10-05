@@ -50,7 +50,7 @@ const mk = (cor: string) =>
     parabens: { backgroundColor: "#EAF3EE", borderRadius: 6, padding: 12, color: VERDE },
     grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
     imgBox: { paddingHorizontal: 6, paddingBottom: 14, alignItems: "center" },
-    imgFrame: { borderWidth: 1, borderColor: LINHA, borderRadius: 6, padding: 3, backgroundColor: "#FFFFFF" },
+    imgFrame: { padding: 3, backgroundColor: LINHA },
     caption: { fontSize: 8.5, color: "#5E534F", lineHeight: 1.4, marginTop: 4, textAlign: "center" },
     secHead: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1.2, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 6, marginBottom: 12, marginTop: 6 },
     footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8, fontSize: 8, lineHeight: 1.2, color: SUAVE },
@@ -112,7 +112,7 @@ function Footer({ d, s }: { d: PdfData; s: S }) {
 
 const AREA = 450;
 function tamanho(r: number) {
-  const ratio = r > 0 ? r : 0.75;
+  const ratio = Number.isFinite(r) && r > 0 ? Math.min(4, Math.max(0.25, r)) : 0.75;
   const largo = ratio >= 1.15;
   let w = largo ? AREA - 12 : (AREA - 24) / 2;
   let h = w / ratio;
@@ -135,7 +135,7 @@ function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
         return (
         <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]} wrap={false}>
           <View style={s.imgFrame}>
-            <Image src={im.src} style={{ width: t.w, height: t.h, borderRadius: 4 }} />
+            <Image src={im.src} style={{ width: t.w, height: t.h }} />
           </View>
           {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
         </View>
