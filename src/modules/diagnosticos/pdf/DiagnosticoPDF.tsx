@@ -40,7 +40,7 @@ const mk = (cor: string) =>
     coverBar: { width: 60, height: 3, backgroundColor: cor, marginVertical: 26 },
     h1: { fontSize: 18, fontFamily: "Helvetica-Bold", color: cor, lineHeight: 1.3, marginBottom: 6 },
     h1Bar: { width: 40, height: 2, backgroundColor: cor, marginBottom: 18 },
-    card: { backgroundColor: "#FBF8F6", borderRadius: 8, padding: 16, marginBottom: 16 },
+    card: { backgroundColor: "#FBF8F6", padding: 16, marginBottom: 16 },
     itemTitle: { fontSize: 13, fontFamily: "Helvetica-Bold", lineHeight: 1.35 },
     badgeRow: { flexDirection: "row", marginTop: 6, marginBottom: 12 },
     badge: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1, paddingTop: 4, paddingBottom: 3, paddingHorizontal: 8, borderRadius: 8, letterSpacing: 0.5 },
@@ -268,7 +268,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
       {d.financeiro && (
         <View>
           <Titulo t="Investimento da Consultoria" s={s} />
-          <View style={{ borderWidth: 1, borderColor: LINHA, borderRadius: 8 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: LINHA }}>
             <View style={[s.tRow, { backgroundColor: "#F8F1EE" }]}>
               <Text style={[s.tCell, { flex: 3, fontFamily: "Helvetica-Bold" }]}>Descrição</Text>
               <Text style={[s.tNum, { fontFamily: "Helvetica-Bold" }]}>Valor</Text>
