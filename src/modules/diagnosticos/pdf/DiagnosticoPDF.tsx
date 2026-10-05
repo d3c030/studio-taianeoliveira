@@ -33,14 +33,14 @@ const mk = (cor: string) =>
   StyleSheet.create({
     page: { paddingTop: 62, paddingBottom: 70, paddingHorizontal: 48, fontFamily: "Helvetica", fontSize: 10.5, lineHeight: 1.5, color: TEXTO },
     cover: { paddingHorizontal: 60, paddingVertical: 80, fontFamily: "Helvetica", color: TEXTO, justifyContent: "center", alignItems: "center", textAlign: "center" },
-    header: { position: "absolute", top: 18, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: LINHA, paddingBottom: 6, fontSize: 8, lineHeight: 1.2, color: SUAVE },
+    header: { position: "absolute", top: 18, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: LINHA, paddingBottom: 6 },
     headerLogo: { width: 22, height: 22, borderRadius: 11, marginRight: 8 },
     coverTitle: { fontSize: 24, fontFamily: "Helvetica-Bold", color: cor, lineHeight: 1.35, marginBottom: 8 },
     coverLine: { fontSize: 12, lineHeight: 1.6 },
     coverBar: { width: 60, height: 3, backgroundColor: cor, marginVertical: 26 },
     h1: { fontSize: 18, fontFamily: "Helvetica-Bold", color: cor, lineHeight: 1.3, marginBottom: 6 },
     h1Bar: { width: 40, height: 2, backgroundColor: cor, marginBottom: 18 },
-    card: { backgroundColor: "#FBF8F6", borderRadius: 8, padding: 16, marginBottom: 16 },
+    card: { backgroundColor: "#FBF8F6", padding: 16, marginBottom: 16 },
     itemTitle: { fontSize: 13, fontFamily: "Helvetica-Bold", lineHeight: 1.35 },
     badgeRow: { flexDirection: "row", marginTop: 6, marginBottom: 12 },
     badge: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1, paddingTop: 4, paddingBottom: 3, paddingHorizontal: 8, borderRadius: 8, letterSpacing: 0.5 },
@@ -50,10 +50,11 @@ const mk = (cor: string) =>
     parabens: { backgroundColor: "#EAF3EE", borderRadius: 6, padding: 12, color: VERDE },
     grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
     imgBox: { paddingHorizontal: 6, paddingBottom: 14, alignItems: "center" },
-    imgFrame: { borderWidth: 1, borderColor: LINHA, borderRadius: 6, padding: 3, backgroundColor: "#FFFFFF" },
+    imgFrame: { padding: 3, backgroundColor: LINHA },
     caption: { fontSize: 8.5, color: "#5E534F", lineHeight: 1.4, marginTop: 4, textAlign: "center" },
     secHead: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1.2, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 6, marginBottom: 12, marginTop: 6 },
-    footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8, fontSize: 8, lineHeight: 1.2, color: SUAVE },
+    hfText: { fontSize: 8, lineHeight: 1.2, color: SUAVE },
+    footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8 },
     footerLogo: { width: 30, height: 18, objectFit: "contain", marginRight: 8 },
     li: { flexDirection: "row", marginBottom: 3 },
     bullet: { width: 12, color: cor },
@@ -79,7 +80,7 @@ function Rich({ text, s }: { text: string; s: S }) {
     <View>
       {text.split("\n").map((raw, i) => {
         const line = raw.trimEnd();
-        if (!line.trim()) return <View key={i} style={{ height: 6 }} />;
+        if (!line.trim()) return <Text key={i} style={{ fontSize: 4, lineHeight: 1 }}>{" "}</Text>;
         const m = line.match(/^\s*(?:[•\-*]|\d+[.)])\s+(.*)$/);
         return m ? (
           <View key={i} style={s.li} wrap={false}>
@@ -97,22 +98,27 @@ function Rich({ text, s }: { text: string; s: S }) {
 function Footer({ d, s }: { d: PdfData; s: S }) {
   return (
     <>
-    <View style={s.header} fixed>
-      {d.logo && <Image src={d.logo} style={s.headerLogo} />}
-      <Text style={{ flex: 1 }}>{d.titulo}</Text>
-      <Text>{d.paraInstagram}</Text>
-    </View>
-    <View style={s.footer} fixed>
-      <Text style={{ flex: 1 }}>{[d.feitoPor, d.rodape, `© ${new Date().getFullYear()} Todos os direitos reservados`].filter(Boolean).join(" · ")}</Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-    </View>
+    {/* render recria cabeçalho/rodapé a cada página (evita estilos acumulando em PDFs longos) */}
+    <View style={s.header} fixed render={() => (
+      <>
+        {d.logo && <Image src={d.logo} style={s.headerLogo} />}
+        <Text style={[s.hfText, { flex: 1 }]}>{d.titulo}</Text>
+        <Text style={s.hfText}>{d.paraInstagram}</Text>
+      </>
+    )} />
+    <View style={s.footer} fixed render={({ pageNumber }) => (
+      <>
+        <Text style={[s.hfText, { flex: 1 }]}>{[d.feitoPor, d.rodape, `© ${new Date().getFullYear()} Todos os direitos reservados`].filter(Boolean).join(" · ")}</Text>
+        <Text style={s.hfText}>{`Página ${pageNumber}`}</Text>
+      </>
+    )} />
     </>
   );
 }
 
 const AREA = 450;
 function tamanho(r: number) {
-  const ratio = r > 0 ? r : 0.75;
+  const ratio = Number.isFinite(r) && r > 0 ? Math.min(4, Math.max(0.25, r)) : 0.75;
   const largo = ratio >= 1.15;
   let w = largo ? AREA - 12 : (AREA - 24) / 2;
   let h = w / ratio;
@@ -127,20 +133,40 @@ function alturaImgs(imgs: PdfImagem[]) {
   return h;
 }
 
-function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
+function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }) {
+  // Linhas independentes (sem flexWrap): grades longas com quebra de página travam o gerador
+  const linhas: PdfImagem[][] = [];
+  let par: PdfImagem[] = [];
+  for (const im of imgs) {
+    if (tamanho(im.ratio).largo) {
+      if (par.length) { linhas.push(par); par = []; }
+      linhas.push([im]);
+    } else {
+      par.push(im);
+      if (par.length === 2) { linhas.push(par); par = []; }
+    }
+  }
+  if (par.length) linhas.push(par);
   return (
-    <View style={s.grid}>
-      {imgs.map((im, i) => {
-        const t = tamanho(im.ratio);
-        return (
-        <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]} wrap={false}>
-          <View style={s.imgFrame}>
-            <Image src={im.src} style={{ width: t.w, height: t.h, borderRadius: 4 }} />
+    <View>
+      {linhas.map((linha, li) => (
+        <View key={li} wrap={false}>
+          {li === 0 && !!label && <Text style={s.blockLabel}>{label}</Text>}
+          <View style={{ flexDirection: "row", justifyContent: "center" }}>
+          {linha.map((im, i) => {
+            const t = tamanho(im.ratio);
+            return (
+              <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]}>
+                <View style={s.imgFrame}>
+                  <Image src={im.src} style={{ width: t.w, height: t.h }} />
+                </View>
+                {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
+              </View>
+            );
+          })}
           </View>
-          {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
         </View>
-        );
-      })}
+      ))}
     </View>
   );
 }
@@ -180,6 +206,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
       </Page>
 
       <Page size="A4" style={s.page}>
+      <Footer d={d} s={s} />
       {grupos.map((g, gi) => (
         <View key={gi} style={{ marginBottom: 10 }}>
           <Titulo t={g.secao || "Diagnóstico"} s={s} />
@@ -214,9 +241,8 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                   )
                 )}
                 {imgs.length > 0 && (
-                  <View style={{ marginTop: 12 }} wrap={alturaImgs(imgs) > 420}>
-                    <Text style={s.blockLabel} minPresenceAhead={270}>Registros da análise</Text>
-                    <Imagens imgs={imgs} s={s} />
+                  <View style={{ marginTop: 12 }}>
+                    <Imagens imgs={imgs} s={s} label="Registros da análise" />
                   </View>
                 )}
               </View>
@@ -268,7 +294,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
       {d.financeiro && (
         <View>
           <Titulo t="Investimento da Consultoria" s={s} />
-          <View style={{ borderWidth: 1, borderColor: LINHA, borderRadius: 8 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: LINHA }}>
             <View style={[s.tRow, { backgroundColor: "#F8F1EE" }]}>
               <Text style={[s.tCell, { flex: 3, fontFamily: "Helvetica-Bold" }]}>Descrição</Text>
               <Text style={[s.tNum, { fontFamily: "Helvetica-Bold" }]}>Valor</Text>
@@ -315,7 +341,6 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
           </Text>
         </View>
       )}
-      <Footer d={d} s={s} />
       </Page>
     </Document>
   );
