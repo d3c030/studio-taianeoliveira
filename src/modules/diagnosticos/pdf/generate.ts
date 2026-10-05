@@ -8,6 +8,16 @@ import { loadFinanceiro, resumo } from "../lib/financeiro";
 
 const COR_PADRAO = "#B06F68";
 
+// As fontes do PDF só têm letras latinas: emojis e símbolos especiais travam a geração.
+const WIN_ANSI = new Set("€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ");
+function limpa(t: string | null | undefined): string {
+  if (!t) return t ?? "";
+  return Array.from(t.normalize("NFC"))
+    .filter((c) => { const n = c.codePointAt(0)!; return n === 10 || n === 9 || (n >= 32 && n < 127) || (n >= 160 && n <= 255) || WIN_ANSI.has(c); })
+    .join("")
+    .replace(/[ \t]{2,}/g, " ");
+}
+
 async function toDataUrl(url: string): Promise<string | null> {
   try {
     const r = await fetch(url);
@@ -99,7 +109,7 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
           ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(im, 0, 0, c.width, c.height);
           const src = c.toDataURL("image/jpeg", 0.85);
-          return { src, ratio: im.naturalWidth / im.naturalHeight, legenda: m.legenda, tipo: m.tipo, item_id: m.item_id };
+          return { src, ratio: im.naturalWidth / im.naturalHeight, legenda: limpa(m.legenda), tipo: m.tipo, item_id: m.item_id };
         } catch {
           return null;
         }
@@ -109,16 +119,16 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
 
   const itemIds = new Set(itens.map((i) => i.id));
   const data: PdfData = {
-    titulo: diag.titulo,
-    feitoPor: cfg?.nome_exibicao?.trim() || "",
-    paraInstagram: diag.cliente.instagram ? `@${diag.cliente.instagram}` : diag.cliente.nome,
+    titulo: limpa(diag.titulo),
+    feitoPor: limpa(cfg?.nome_exibicao?.trim()),
+    paraInstagram: limpa(diag.cliente.instagram ? `@${diag.cliente.instagram}` : diag.cliente.nome),
     data: new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }),
     logo,
     cor: cfg?.cor_destaque?.trim() || COR_PADRAO,
-    rodape: cfg?.rodape?.trim() || "",
-    itens: [...itens].sort((a, b) => a.ordem - b.ordem),
+    rodape: limpa(cfg?.rodape?.trim()),
+    itens: [...itens].sort((a, b) => a.ordem - b.ordem).map((i) => ({ ...i, titulo: limpa(i.titulo), secao: limpa(i.secao), o_que_eu_vi: limpa(i.o_que_eu_vi), sua_tarefa: limpa(i.sua_tarefa) })),
     imagens: imagens.map((i) => (i.item_id && !itemIds.has(i.item_id) ? { ...i, item_id: null } : i)),
-    plano: diag.resumo_plano_acao,
+    plano: limpa(diag.resumo_plano_acao),
     convite: (() => {
       const ts = (fin?.cobrancas ?? []).map((c) => (c.descricao || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
       if (ts.some((t) => /mentoria/.test(t))) return null;
@@ -127,8 +137,8 @@ export async function buildPdfBlob(diag: DiagCompleto, itens: DiagItem[], midias
     })(),
     financeiro: fin && fin.cobrancas.length
       ? {
-          itens: fin.cobrancas.map((c) => ({ descricao: c.descricao, valor: Number(c.valor), desconto: Number(c.desconto) })),
-          pagamentos: fin.pagamentos.map((p) => ({ data: new Date(p.pago_em + "T12:00:00").toLocaleDateString("pt-BR"), forma: p.forma ?? "", valor: Number(p.valor) })),
+          itens: fin.cobrancas.map((c) => ({ descricao: limpa(c.descricao), valor: Number(c.valor), desconto: Number(c.desconto) })),
+          pagamentos: fin.pagamentos.map((p) => ({ data: new Date(p.pago_em + "T12:00:00").toLocaleDateString("pt-BR"), forma: limpa(p.forma), valor: Number(p.valor) })),
           ...resumo(fin.cobrancas, fin.pagamentos),
         }
       : null,
