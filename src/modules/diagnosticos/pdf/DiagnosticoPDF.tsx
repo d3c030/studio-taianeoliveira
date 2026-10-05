@@ -33,7 +33,7 @@ const mk = (cor: string) =>
   StyleSheet.create({
     page: { paddingTop: 62, paddingBottom: 70, paddingHorizontal: 48, fontFamily: "Helvetica", fontSize: 10.5, lineHeight: 1.5, color: TEXTO },
     cover: { paddingHorizontal: 60, paddingVertical: 80, fontFamily: "Helvetica", color: TEXTO, justifyContent: "center", alignItems: "center", textAlign: "center" },
-    header: { position: "absolute", top: 18, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: LINHA, paddingBottom: 6, fontSize: 8, lineHeight: 1.2, color: SUAVE },
+    header: { position: "absolute", top: 18, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: LINHA, paddingBottom: 6, fontSize: 8, lineHeight: "10pt", color: SUAVE },
     headerLogo: { width: 22, height: 22, borderRadius: 11, marginRight: 8 },
     coverTitle: { fontSize: 24, fontFamily: "Helvetica-Bold", color: cor, lineHeight: 1.35, marginBottom: 8 },
     coverLine: { fontSize: 12, lineHeight: 1.6 },
@@ -53,7 +53,7 @@ const mk = (cor: string) =>
     imgFrame: { padding: 3, backgroundColor: LINHA },
     caption: { fontSize: 8.5, color: "#5E534F", lineHeight: 1.4, marginTop: 4, textAlign: "center" },
     secHead: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1.2, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 6, marginBottom: 12, marginTop: 6 },
-    footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8, fontSize: 8, lineHeight: 1.2, color: SUAVE },
+    footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: LINHA, paddingTop: 8, fontSize: 8, lineHeight: "10pt", color: SUAVE },
     footerLogo: { width: 30, height: 18, objectFit: "contain", marginRight: 8 },
     li: { flexDirection: "row", marginBottom: 3 },
     bullet: { width: 12, color: cor },
@@ -82,7 +82,7 @@ function Rich({ text, s }: { text: string; s: S }) {
         if (!line.trim()) return <Text key={i} style={{ fontSize: 4, lineHeight: 1 }}>{" "}</Text>;
         const m = line.match(/^\s*(?:[•\-*]|\d+[.)])\s+(.*)$/);
         return m ? (
-          <View key={i} style={s.li}>
+          <View key={i} style={s.li} wrap={false}>
             <Text style={s.bullet}>•</Text>
             <Text style={{ flex: 1 }}>{inline(m[1])}</Text>
           </View>
@@ -325,7 +325,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
         </View>
       )}
       {d.convite && (
-        <View wrap={false} style={{ marginTop: 26, padding: 18, backgroundColor: "#FBF5F2" }}>
+        <View wrap={false} style={{ marginTop: 26, padding: 18, borderRadius: 10, borderWidth: 1, borderColor: d.cor, backgroundColor: "#FBF5F2" }}>
           <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 13, color: d.cor, marginBottom: 8 }}>Próximo passo</Text>
           <Text style={{ fontSize: 10.5, lineHeight: 1.6, color: TEXTO }}>
             {d.convite === "mentoria"
