@@ -127,7 +127,7 @@ function alturaImgs(imgs: PdfImagem[]) {
   return h;
 }
 
-function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
+function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }) {
   // Linhas independentes (sem flexWrap): grades longas com quebra de página travam o gerador
   const linhas: PdfImagem[][] = [];
   let par: PdfImagem[] = [];
@@ -144,7 +144,9 @@ function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
   return (
     <View>
       {linhas.map((linha, li) => (
-        <View key={li} style={{ flexDirection: "row", justifyContent: "center" }} wrap={false}>
+        <View key={li} wrap={false}>
+          {li === 0 && !!label && <Text style={s.blockLabel}>{label}</Text>}
+          <View style={{ flexDirection: "row", justifyContent: "center" }}>
           {linha.map((im, i) => {
             const t = tamanho(im.ratio);
             return (
@@ -156,6 +158,7 @@ function Imagens({ imgs, s }: { imgs: PdfImagem[]; s: S }) {
               </View>
             );
           })}
+          </View>
         </View>
       ))}
     </View>
@@ -231,14 +234,14 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                   )
                 )}
                 {imgs.length > 0 && (
-                  <View style={{ marginTop: 12 }} wrap={alturaImgs(imgs) > 420}>
-                    <Text style={s.blockLabel} minPresenceAhead={270}>Registros da análise</Text>
-                    <Imagens imgs={imgs} s={s} />
+                  <View style={{ marginTop: 12 }}>
+                    <Imagens imgs={imgs} s={s} label="Registros da análise" />
                   </View>
                 )}
               </View>
             );
           })}
+          </View>
         </View>
       ))}
 
