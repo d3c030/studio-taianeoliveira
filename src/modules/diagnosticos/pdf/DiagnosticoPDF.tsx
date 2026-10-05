@@ -325,7 +325,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
         </View>
       )}
       {d.convite && (
-        <View wrap={false} style={{ marginTop: 26, padding: 18, borderRadius: 10, borderWidth: 1, borderColor: d.cor, backgroundColor: "#FBF5F2" }}>
+        <View wrap={false} style={{ marginTop: 26, padding: 18, backgroundColor: "#FBF5F2" }}>
           <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 13, color: d.cor, marginBottom: 8 }}>Próximo passo</Text>
           <Text style={{ fontSize: 10.5, lineHeight: 1.6, color: TEXTO }}>
             {d.convite === "mentoria"
