@@ -167,7 +167,7 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
 
 function Titulo({ t, s }: { t: string; s: S }) {
   return (
-    <View wrap={false} minPresenceAhead={140} style={{ marginTop: 8 }}>
+    <View wrap={false} style={{ marginTop: 8 }}>
       <Text style={s.h1}>{t}</Text>
       <View style={s.h1Bar} />
     </View>
@@ -219,7 +219,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                 </View>
                 {!!it.o_que_eu_vi.trim() && (
                   <View style={s.block}>
-                    <Text style={s.blockLabel} minPresenceAhead={30}>O que eu vi</Text>
+                    <Text style={s.blockLabel}>O que eu vi</Text>
                     <Rich text={it.o_que_eu_vi} s={s} />
                   </View>
                 )}
@@ -228,7 +228,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                 ) : (
                   !!it.sua_tarefa.trim() && (
                     <View style={s.tarefa}>
-                      <Text style={s.blockLabel} minPresenceAhead={30}>Sua tarefa</Text>
+                      <Text style={s.blockLabel}>Sua tarefa</Text>
                       <Rich text={it.sua_tarefa} s={s} />
                     </View>
                   )
@@ -249,13 +249,13 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
           <Titulo t="Destaques visuais" s={s} />
           {pos.length > 0 && (
             <View>
-              <Text style={[s.secHead, { backgroundColor: VERDE }]} minPresenceAhead={120}>O que está funcionando</Text>
+              <Text style={[s.secHead, { backgroundColor: VERDE }]}>O que está funcionando</Text>
               <Imagens imgs={pos} s={s} />
             </View>
           )}
           {neg.length > 0 && (
             <View>
-              <Text style={[s.secHead, { backgroundColor: LARANJA }]} minPresenceAhead={120}>O que precisa mudar</Text>
+              <Text style={[s.secHead, { backgroundColor: LARANJA }]}>O que precisa mudar</Text>
               <Imagens imgs={neg} s={s} />
             </View>
           )}
@@ -268,15 +268,15 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
           const n = numero.get(it.id);
           return (
             <View key={it.id} style={s.card}>
-              <Text style={[s.itemTitle, { marginBottom: 8, color: d.cor }]} minPresenceAhead={40}>{n}. {it.titulo}</Text>
+              <Text style={[s.itemTitle, { marginBottom: 8, color: d.cor }]}>{n}. {it.titulo}</Text>
               {!!it.o_que_eu_vi.trim() && (
                 <View style={s.block}>
-                  <Text style={s.blockLabel} minPresenceAhead={30}>Análise (Item {n})</Text>
+                  <Text style={s.blockLabel}>Análise (Item {n})</Text>
                   <Rich text={it.o_que_eu_vi} s={s} />
                 </View>
               )}
               <View style={s.tarefa}>
-                <Text style={s.blockLabel} minPresenceAhead={30}>Sua tarefa</Text>
+                <Text style={s.blockLabel}>Sua tarefa</Text>
                 <Rich text={it.sua_tarefa} s={s} />
               </View>
             </View>
