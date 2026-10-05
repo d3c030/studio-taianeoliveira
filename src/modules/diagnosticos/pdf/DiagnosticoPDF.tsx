@@ -79,7 +79,7 @@ function Rich({ text, s }: { text: string; s: S }) {
     <View>
       {text.split("\n").map((raw, i) => {
         const line = raw.trimEnd();
-        if (!line.trim()) return <View key={i} style={{ height: 6 }} />;
+        if (!line.trim()) return <Text key={i} style={{ fontSize: 4, lineHeight: 1 }}>{" "}</Text>;
         const m = line.match(/^\s*(?:[•\-*]|\d+[.)])\s+(.*)$/);
         return m ? (
           <View key={i} style={s.li} wrap={false}>
