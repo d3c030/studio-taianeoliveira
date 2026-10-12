@@ -553,6 +553,42 @@ export type Database = {
         }
         Relationships: []
       }
+      mk_kits: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          dados: Json
+          fotos: Json
+          id: string
+          publico: boolean
+          textos: Json
+          token: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          dados?: Json
+          fotos?: Json
+          id?: string
+          publico?: boolean
+          textos?: Json
+          token?: string
+          user_id?: string
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          dados?: Json
+          fotos?: Json
+          id?: string
+          publico?: boolean
+          textos?: Json
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       procedures: {
         Row: {
           created_at: string
