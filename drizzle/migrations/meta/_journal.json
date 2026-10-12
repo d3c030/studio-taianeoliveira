@@ -71,6 +71,13 @@
       "when": 1791140460498,
       "tag": "0009_diag_cobrancas",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791848272188,
+      "tag": "0010_create_midia_kit",
+      "breakpoints": true
     }
   ]
 }

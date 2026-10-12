@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings, Sparkles, ClipboardCheck, Globe, BarChart3, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings, Sparkles, ClipboardCheck, Globe, BarChart3, Star, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const navItems = [
   { to: "/agenda", label: "Agenda e Clientes", icon: CalendarCheck },
   { to: "/custos", label: "Custos", icon: Receipt },
   { to: "/diagnosticos", label: "Diagnósticos", icon: ClipboardCheck },
+  { to: "/midiakit", label: "Mídia Kit", icon: Star },
   { to: "/site", label: "Site", icon: Globe },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
@@ -48,7 +49,7 @@ export function AppShell() {
   }, []);
 
   // Public pages render standalone (no admin shell, no auth required)
-  const isPublic = pathname === "/login" || pathname === "/agendar" || pathname.startsWith("/agendar/") || pathname.startsWith("/pdf/");
+  const isPublic = pathname === "/login" || pathname === "/agendar" || pathname.startsWith("/agendar/") || pathname.startsWith("/pdf/") || pathname.startsWith("/kit/");
   if (isPublic) return <Outlet />;
 
   if (authState === "loading") {
@@ -69,7 +70,7 @@ export function AppShell() {
 
 const GROUPS: { titulo: string; itens: readonly string[] }[] = [
   { titulo: "Studio", itens: ["/", "/agenda", "/custos"] },
-  { titulo: "Consultoria", itens: ["/diagnosticos", "/site", "/relatorios"] },
+  { titulo: "Consultoria", itens: ["/diagnosticos", "/midiakit", "/site", "/relatorios"] },
   { titulo: "Sistema", itens: ["/configuracoes"] },
 ];
 const BOTTOM = ["/", "/agenda", "/diagnosticos", "/site"] as const;
