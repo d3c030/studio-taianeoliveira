@@ -18,6 +18,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as CustosRouteImport } from './routes/custos'
 import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MidiakitRouteImport } from './routes/midiakit'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
@@ -26,6 +27,9 @@ import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
 import { Route as DiagnosticosConfiguracoesRouteImport } from './routes/diagnosticos.configuracoes'
+import { Route as KitTokenRouteImport } from './routes/kit.$token'
+import { Route as MidiakitIndexRouteImport } from './routes/midiakit.index'
+import { Route as MidiakitKitIdRouteImport } from './routes/midiakit.$kitId'
 import { Route as PdfTokenRouteImport } from './routes/pdf.$token'
 import { Route as DiagnosticosClientesClienteIdRouteImport } from './routes/diagnosticos.clientes.$clienteId'
 import { Route as DiagnosticosEditorDiagnosticoIdRouteImport } from './routes/diagnosticos.editor.$diagnosticoId'
@@ -75,6 +79,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MidiakitRoute = MidiakitRouteImport.update({
+  id: '/midiakit',
+  path: '/midiakit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
@@ -116,6 +125,21 @@ const DiagnosticosConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => DiagnosticosRoute,
   } as any)
+const KitTokenRoute = KitTokenRouteImport.update({
+  id: '/kit/$token',
+  path: '/kit/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MidiakitIndexRoute = MidiakitIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MidiakitRoute,
+} as any)
+const MidiakitKitIdRoute = MidiakitKitIdRouteImport.update({
+  id: '/$kitId',
+  path: '/$kitId',
+  getParentRoute: () => MidiakitRoute,
+} as any)
 const PdfTokenRoute = PdfTokenRouteImport.update({
   id: '/pdf/$token',
   path: '/pdf/$token',
@@ -144,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/custos': typeof CustosRoute
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
+  '/midiakit': typeof MidiakitRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/relatorios': typeof RelatoriosRoute
@@ -151,8 +176,11 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/kit/$token': typeof KitTokenRoute
+  '/midiakit/$kitId': typeof MidiakitKitIdRoute
   '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
+  '/midiakit/': typeof MidiakitIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
 }
@@ -172,8 +200,11 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/kit/$token': typeof KitTokenRoute
+  '/midiakit/$kitId': typeof MidiakitKitIdRoute
   '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos': typeof DiagnosticosIndexRoute
+  '/midiakit': typeof MidiakitIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
 }
@@ -188,6 +219,7 @@ export interface FileRoutesById {
   '/custos': typeof CustosRoute
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
   '/login': typeof LoginRoute
+  '/midiakit': typeof MidiakitRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/relatorios': typeof RelatoriosRoute
@@ -195,8 +227,11 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/kit/$token': typeof KitTokenRoute
+  '/midiakit/$kitId': typeof MidiakitKitIdRoute
   '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
+  '/midiakit/': typeof MidiakitIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
 }
@@ -212,6 +247,7 @@ export interface FileRouteTypes {
     | '/custos'
     | '/diagnosticos'
     | '/login'
+    | '/midiakit'
     | '/privacidade'
     | '/procedimentos'
     | '/relatorios'
@@ -219,8 +255,11 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/kit/$token'
+    | '/midiakit/$kitId'
     | '/pdf/$token'
     | '/diagnosticos/'
+    | '/midiakit/'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
   fileRoutesByTo: FileRoutesByTo
@@ -240,8 +279,11 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/kit/$token'
+    | '/midiakit/$kitId'
     | '/pdf/$token'
     | '/diagnosticos'
+    | '/midiakit'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
   id:
@@ -255,6 +297,7 @@ export interface FileRouteTypes {
     | '/custos'
     | '/diagnosticos'
     | '/login'
+    | '/midiakit'
     | '/privacidade'
     | '/procedimentos'
     | '/relatorios'
@@ -262,8 +305,11 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/kit/$token'
+    | '/midiakit/$kitId'
     | '/pdf/$token'
     | '/diagnosticos/'
+    | '/midiakit/'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
   fileRoutesById: FileRoutesById
@@ -278,11 +324,13 @@ export interface RootRouteChildren {
   CustosRoute: typeof CustosRoute
   DiagnosticosRoute: typeof DiagnosticosRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MidiakitRoute: typeof MidiakitRouteWithChildren
   PrivacidadeRoute: typeof PrivacidadeRoute
   ProcedimentosRoute: typeof ProcedimentosRoute
   RelatoriosRoute: typeof RelatoriosRoute
   SiteRoute: typeof SiteRoute
   UsuariosRoute: typeof UsuariosRoute
+  KitTokenRoute: typeof KitTokenRoute
   PdfTokenRoute: typeof PdfTokenRoute
 }
 
@@ -351,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/midiakit': {
+      id: '/midiakit'
+      path: '/midiakit'
+      fullPath: '/midiakit'
+      preLoaderRoute: typeof MidiakitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacidade': {
       id: '/privacidade'
       path: '/privacidade'
@@ -407,6 +462,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiagnosticosConfiguracoesRouteImport
       parentRoute: typeof DiagnosticosRoute
     }
+    '/kit/$token': {
+      id: '/kit/$token'
+      path: '/kit/$token'
+      fullPath: '/kit/$token'
+      preLoaderRoute: typeof KitTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/midiakit/': {
+      id: '/midiakit/'
+      path: '/'
+      fullPath: '/midiakit/'
+      preLoaderRoute: typeof MidiakitIndexRouteImport
+      parentRoute: typeof MidiakitRoute
+    }
+    '/midiakit/$kitId': {
+      id: '/midiakit/$kitId'
+      path: '/$kitId'
+      fullPath: '/midiakit/$kitId'
+      preLoaderRoute: typeof MidiakitKitIdRouteImport
+      parentRoute: typeof MidiakitRoute
+    }
     '/pdf/$token': {
       id: '/pdf/$token'
       path: '/pdf/$token'
@@ -460,6 +536,20 @@ const DiagnosticosRouteWithChildren = DiagnosticosRoute._addFileChildren(
   DiagnosticosRouteChildren,
 )
 
+interface MidiakitRouteChildren {
+  MidiakitKitIdRoute: typeof MidiakitKitIdRoute
+  MidiakitIndexRoute: typeof MidiakitIndexRoute
+}
+
+const MidiakitRouteChildren: MidiakitRouteChildren = {
+  MidiakitKitIdRoute: MidiakitKitIdRoute,
+  MidiakitIndexRoute: MidiakitIndexRoute,
+}
+
+const MidiakitRouteWithChildren = MidiakitRoute._addFileChildren(
+  MidiakitRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
@@ -470,11 +560,13 @@ const rootRouteChildren: RootRouteChildren = {
   CustosRoute: CustosRoute,
   DiagnosticosRoute: DiagnosticosRouteWithChildren,
   LoginRoute: LoginRoute,
+  MidiakitRoute: MidiakitRouteWithChildren,
   PrivacidadeRoute: PrivacidadeRoute,
   ProcedimentosRoute: ProcedimentosRoute,
   RelatoriosRoute: RelatoriosRoute,
   SiteRoute: SiteRoute,
   UsuariosRoute: UsuariosRoute,
+  KitTokenRoute: KitTokenRoute,
   PdfTokenRoute: PdfTokenRoute,
 }
 export const routeTree = rootRouteImport
