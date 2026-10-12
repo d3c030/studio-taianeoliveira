@@ -72,7 +72,7 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
   const [gerando, setGerando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [salvo, setSalvo] = useState(true);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     db.from("mk_kits").select("*").eq("id", kitId).single().then(({ data, error }: any) => {
