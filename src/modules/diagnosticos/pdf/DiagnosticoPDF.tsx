@@ -152,11 +152,11 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
       {linhas.map((linha, li) => (
         <View key={li} wrap={false} style={{ flexShrink: 0 }}>
           {li === 0 && !!label && <Text style={s.blockLabel}>{label}</Text>}
-          <View style={{ flexDirection: "row", justifyContent: "center", flexShrink: 0 }}>
+          <View style={{ flexDirection: "row", justifyContent: "center", flexShrink: 0, height: Math.max(...linha.map((im) => tamanho(im.ratio).h + 20 + (im.legenda ? 26 : 0))) }}>
           {linha.map((im, i) => {
             const t = tamanho(im.ratio);
             return (
-              <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%", flexShrink: 0, minHeight: t.h + 20 }]}>
+              <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%", flexShrink: 0 }]}>
                 <View style={[s.imgFrame, { width: t.w + 6, height: t.h + 6, flexShrink: 0 }]}>
                   <Image src={im.src} style={{ width: t.w, height: t.h, flexShrink: 0 }} />
                 </View>
