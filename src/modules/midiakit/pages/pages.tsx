@@ -127,7 +127,7 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
   };
 
   const num = (k: keyof MkDados, label: string, ph = "") => (
-    <div className="space-y-1"><Label>{label}</Label><Input type="number" inputMode="decimal" value={(d[k] as any) ?? ""} placeholder={ph} onChange={(e) => setD({ [k]: e.target.value === "" ? undefined : Number(e.target.value) } as any)} /></div>
+    <div className="space-y-1"><Label>{label}</Label><NumInput key={k} value={d[k] as number | undefined} placeholder={ph} decimal={k === "engajamento"} onChange={(v) => setD({ [k]: v } as any)} /></div>
   );
   const txt = (k: keyof MkDados, label: string, ph = "") => (
     <div className="space-y-1"><Label>{label}</Label><Input value={(d[k] as any) ?? ""} placeholder={ph} onChange={(e) => setD({ [k]: e.target.value } as any)} /></div>
