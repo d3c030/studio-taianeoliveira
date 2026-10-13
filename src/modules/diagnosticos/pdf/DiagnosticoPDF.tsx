@@ -124,6 +124,7 @@ function tamanho(r: number) {
   let h = w / ratio;
   const maxH = largo ? 380 : 340;
   if (h > maxH) { h = maxH; w = h * ratio; }
+  console.error("PDFIMG", r, w, h, largo);
   return { w, h, largo };
 }
 
