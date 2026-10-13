@@ -135,7 +135,7 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
 
   return (
     <div className="space-y-5">
-      <style>{`@media print{body *{visibility:hidden!important}#mk-print,#mk-print *{visibility:visible!important}#mk-print{position:absolute;left:0;top:0;width:100%}@page{margin:0}}`}</style>
+      <style>{`@media print{body *{visibility:hidden!important}#mk-print,#mk-print *{visibility:visible!important}#mk-print{position:absolute;left:0;top:0;width:100%}#mk-print *{-webkit-print-color-adjust:exact;print-color-adjust:exact}#mk-print article{max-width:none;box-shadow:none;border-radius:0}#mk-print .mk-fotos{display:block!important}#mk-print .mk-foto{display:inline-block!important;width:48.5%;margin:0 0 8px 0;vertical-align:top;break-inside:avoid;page-break-inside:avoid}#mk-print .mk-foto:nth-child(odd){margin-right:3%}#mk-print section,#mk-print .break-inside-avoid{page-break-inside:avoid}#mk-print section:has(.mk-fotos){page-break-inside:auto}@page{margin:10mm 0}}`}</style>
       <div className="flex items-center justify-between gap-2">
         <Link to="/midiakit" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Mídia Kits</Link>
         <span className="text-xs text-muted-foreground">{salvo ? "Salvo" : "Salvando…"}</span>
@@ -261,7 +261,7 @@ export function parseNumBR(raw: string, decimal = false): number | undefined {
 }
 
 function NumInput({ value, onChange, placeholder, decimal }: { value?: number; onChange: (v?: number) => void; placeholder?: string; decimal?: boolean }) {
-  const [txt, setTxt] = useState(value == null ? "" : String(value).replace(".", ","));
+  const [txt, setTxt] = useState(value == null ? "" : decimal ? String(value).replace(".", ",") : Math.round(value).toLocaleString("pt-BR"));
   return <Input inputMode="decimal" value={txt} placeholder={placeholder}
     onChange={(e) => { setTxt(e.target.value); onChange(parseNumBR(e.target.value, decimal)); }} />;
 }

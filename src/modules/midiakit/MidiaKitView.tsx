@@ -56,8 +56,9 @@ export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; t
         <Sec titulo="Audiência e alcance">
           {t.audiencia && <p className="mb-4 leading-relaxed">{t.audiencia}</p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {stats.map((s) => <div key={s.l} className="rounded-xl border border-border p-3 text-center"><p className="text-2xl font-bold text-primary">{s.v}</p><p className="text-xs text-muted-foreground">{s.l}</p></div>)}
+            {stats.map((s) => <div key={s.l} className="break-inside-avoid rounded-xl border border-border p-3 text-center"><p className="text-xl font-bold text-primary sm:text-2xl">{s.v}</p><p className="text-xs text-muted-foreground">{s.l}</p></div>)}
           </div>
+          {redes.length > 1 && <p className="mt-2 text-center text-xs text-muted-foreground">{redes.map((r) => `${r.n}: ${fmtNum(r.v)}`).join("  ·  ")}</p>}
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {!!genero.length && <Grafico titulo="Gênero">
               <PieChart><Pie data={genero} dataKey="v" nameKey="n" innerRadius={35} outerRadius={60} startAngle={90} endAngle={-270} stroke="none" isAnimationActive={false}>
@@ -86,9 +87,9 @@ export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; t
         )}
 
         {!!fotos.length && (
-          <Sec titulo="Portfólio">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {fotos.map((f, i) => <figure key={i} className="break-inside-avoid"><img src={f.url} alt={f.legenda ?? ""} className="aspect-[4/5] w-full rounded-lg object-cover" />{f.legenda && <figcaption className="mt-1 text-xs text-muted-foreground">{f.legenda}</figcaption>}</figure>)}
+          <Sec titulo="Portfólio" quebra>
+            <div className="mk-fotos grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {fotos.map((f, i) => <figure key={i} className="mk-foto break-inside-avoid"><img src={f.url} alt={f.legenda ?? ""} className="aspect-[4/5] w-full rounded-lg object-cover" />{f.legenda && <figcaption className="mt-1 text-xs text-muted-foreground">{f.legenda}</figcaption>}</figure>)}
             </div>
           </Sec>
         )}
@@ -120,8 +121,8 @@ export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; t
   );
 }
 
-function Sec({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return <section className="break-inside-avoid"><h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary">{titulo}</h2>{children}</section>;
+function Sec({ titulo, children, quebra }: { titulo: string; children: React.ReactNode; quebra?: boolean }) {
+  return <section className={quebra ? "" : "break-inside-avoid"}><h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary">{titulo}</h2>{children}</section>;
 }
 function Grafico({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   const [chart, ...rest] = Array.isArray(children) ? children : [children];

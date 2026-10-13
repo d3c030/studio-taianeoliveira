@@ -14,8 +14,7 @@ export type MkKit = { id: string; dados: MkDados; textos: MkTextos; fotos: MkFot
 
 export const fmtNum = (n?: number) => {
   const v = Number(n ?? 0);
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace(".", ",")}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1).replace(".", ",")}K`;
-  return String(v);
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace(".", ",").replace(",0", "")} mi`;
+  return Math.round(v).toLocaleString("pt-BR");
 };
 export const totalSeguidores = (d: MkDados) => Number(d.seguidores_ig ?? 0) + Number(d.seguidores_tt ?? 0) + Number(d.seguidores_yt ?? 0);
