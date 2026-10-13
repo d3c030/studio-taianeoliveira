@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Check, CloudOff, Loader2, Save, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   addItem, addMidia, deleteItem, deleteMidia, loadDiagnostico, updateDiag, updateItem, updateMidia,
@@ -190,7 +191,7 @@ export function DiagnosticoEditor({ diagnosticoId }: { diagnosticoId: string }) 
         </TabsContent>
         <TabsContent value="plano" className="mt-4 space-y-2">
           <h3 className="font-semibold">Seus Próximos Passos</h3>
-          <TarefasDoChecklist itens={itens} />
+          <TarefasDoChecklist itens={itens} onChange={patchItem} />
           <p className="pt-2 text-sm font-medium">Mensagem final / observações</p>
           <PlanoAcaoEditor value={diag.resumo_plano_acao} onChange={(v) => patchDiag({ resumo_plano_acao: v })} />
         </TabsContent>
@@ -217,21 +218,26 @@ function SaveIndicator({ state }: { state: string }) {
   return null;
 }
 
-function TarefasDoChecklist({ itens }: { itens: DiagItem[] }) {
+function TarefasDoChecklist({ itens, onChange }: { itens: DiagItem[]; onChange: (id: string, patch: Partial<DiagItem>) => void }) {
   const ordered = [...itens].sort((a, b) => a.ordem - b.ordem);
   const tarefas = ordered
     .map((it, i) => ({ it, n: i + 1 }))
-    .filter(({ it }) => it.status !== "ideal" && it.sua_tarefa.trim());
+    .filter(({ it }) => it.status !== "ideal");
   if (!tarefas.length)
-    return <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">As tarefas dos itens marcados como "Precisa de ajustes" aparecem aqui automaticamente.</p>;
+    return <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Os itens marcados como "Precisa de ajustes" no checklist aparecem aqui para você editar.</p>;
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">Vindas do checklist automaticamente (edite lá).</p>
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">Edite aqui a análise e a tarefa de cada item. As mudanças valem também no checklist e no PDF.</p>
       {tarefas.map(({ it, n }) => (
-        <div key={it.id} className="rounded-xl border border-border bg-card p-3">
-          <p className="text-sm font-semibold">{n}. {it.titulo}</p>
-          {!!it.o_que_eu_vi.trim() && <p className="mt-1 text-xs text-muted-foreground"><span className="font-medium">Análise:</span> {it.o_que_eu_vi}</p>}
-          <p className="mt-1 whitespace-pre-line text-sm"><span className="font-medium">Tarefa:</span> {it.sua_tarefa}</p>
+        <div key={it.id} className="space-y-2 rounded-xl border border-border bg-card p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold">{n}.</span>
+            <Input value={it.titulo} onChange={(e) => onChange(it.id, { titulo: e.target.value })} className="font-semibold" />
+          </div>
+          <label className="block text-xs font-medium text-muted-foreground">Análise</label>
+          <Textarea rows={3} value={it.o_que_eu_vi} onChange={(e) => onChange(it.id, { o_que_eu_vi: e.target.value })} />
+          <label className="block text-xs font-medium text-muted-foreground">Sua tarefa</label>
+          <Textarea rows={3} value={it.sua_tarefa} onChange={(e) => onChange(it.id, { sua_tarefa: e.target.value })} />
         </div>
       ))}
     </div>
