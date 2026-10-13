@@ -44,6 +44,18 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
     }
   };
 
+  const duplicar = async (id: string) => {
+    const t = toast.loading("Duplicando diagnóstico…");
+    try {
+      const nid = await duplicateDiagnostico(id);
+      toast.success("Cópia criada como rascunho", { id: t });
+      refresh();
+      navigate({ to: "/diagnosticos/editor/$diagnosticoId", params: { diagnosticoId: nid } });
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao duplicar", { id: t });
+    }
+  };
+
   const doDelete = async () => {
     if (!confirm) return;
     try {
@@ -149,6 +161,9 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
                   : "rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"}>
                   {d.status === "finalizado" ? "Finalizado" : "Rascunho"}
                 </span>
+                <Button variant="ghost" size="icon" aria-label="Duplicar diagnóstico" title="Duplicar" onClick={() => duplicar(d.id)}>
+                  <Copy className="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="icon" aria-label="Excluir diagnóstico" onClick={() => setConfirm({ type: "diag", id: d.id })}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
