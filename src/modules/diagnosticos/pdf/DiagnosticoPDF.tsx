@@ -116,13 +116,13 @@ function Footer({ d, s }: { d: PdfData; s: S }) {
   );
 }
 
-const AREA = 450;
+const AREA = 495;
 function tamanho(r: number) {
   const ratio = Number.isFinite(r) && r > 0 ? Math.min(4, Math.max(0.25, r)) : 0.75;
   const largo = ratio >= 1.15;
   let w = largo ? AREA - 12 : (AREA - 24) / 2;
   let h = w / ratio;
-  const maxH = largo ? 280 : 250;
+  const maxH = largo ? 380 : 340;
   if (h > maxH) { h = maxH; w = h * ratio; }
   return { w, h, largo };
 }
@@ -158,7 +158,7 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
             return (
               <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]}>
                 <View style={s.imgFrame}>
-                  <Image src={im.src} style={{ width: t.w, height: t.h }} />
+                  <Image src={im.src} style={{ width: t.w, height: t.h, objectFit: "contain" }} />
                 </View>
                 {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
               </View>
@@ -271,24 +271,19 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
 
       <View>
         <Titulo t="Plano de Ação – Seus Próximos Passos" s={s} />
-        {tarefas.map((it) => {
-          const n = numero.get(it.id);
-          return (
-            <View key={it.id} style={s.card}>
-              <Text style={[s.itemTitle, { marginBottom: 8, color: d.cor }]} minPresenceAhead={40}>{n}. {it.titulo}</Text>
-              {!!it.o_que_eu_vi.trim() && (
-                <View style={s.block}>
-                  <Text style={s.blockLabel} minPresenceAhead={30}>Análise (Item {n})</Text>
-                  <Rich text={it.o_que_eu_vi} s={s} />
-                </View>
-              )}
-              <View style={s.tarefa}>
-                <Text style={s.blockLabel} minPresenceAhead={30}>Sua tarefa</Text>
-                <Rich text={it.sua_tarefa} s={s} />
-              </View>
+        {tarefas.length > 0 && (
+          <Text style={{ marginBottom: 12, color: SUAVE }}>Siga os passos abaixo na ordem. Marque cada um quando concluir.</Text>
+        )}
+        {tarefas.map((it, idx) => (
+          <View key={it.id} style={{ flexDirection: "row", marginBottom: 12, backgroundColor: "#FBF8F6", padding: 12 }}>
+            <View style={{ width: 14, height: 14, borderWidth: 1.5, borderColor: d.cor, marginRight: 10, marginTop: 2 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 8, fontFamily: "Helvetica-Bold", color: d.cor, letterSpacing: 1, lineHeight: 1.2, marginBottom: 3 }}>{`PASSO ${idx + 1}`}</Text>
+              <Text style={{ fontSize: 12, fontFamily: "Helvetica-Bold", lineHeight: 1.35, marginBottom: 4 }}>{it.titulo}</Text>
+              <Rich text={it.sua_tarefa} s={s} />
             </View>
-          );
-        })}
+          </View>
+        ))}
         {!!d.plano.trim() && <View style={{ marginTop: 6 }}><Rich text={d.plano} s={s} /></View>}
       </View>
       {d.financeiro && (
