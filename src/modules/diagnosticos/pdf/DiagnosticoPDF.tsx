@@ -150,15 +150,15 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
   return (
     <View>
       {linhas.map((linha, li) => (
-        <View key={li} wrap={false}>
+        <View key={li} wrap={false} style={{ flexShrink: 0 }}>
           {li === 0 && !!label && <Text style={s.blockLabel}>{label}</Text>}
           <View style={{ flexDirection: "row", justifyContent: "center" }}>
           {linha.map((im, i) => {
             const t = tamanho(im.ratio);
             return (
               <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]}>
-                <View style={s.imgFrame}>
-                  <Image src={im.src} style={{ width: t.w, height: t.h }} />
+                <View style={[s.imgFrame, { width: t.w + 6, height: t.h + 6, flexShrink: 0 }]}>
+                  <Image src={im.src} style={{ width: t.w, height: t.h, flexShrink: 0 }} />
                 </View>
                 {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
               </View>
