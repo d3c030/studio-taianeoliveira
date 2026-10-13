@@ -7,8 +7,10 @@ const C2 = "var(--muted-foreground)";
 
 export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; textos: MkTextos; fotos: MkFoto[] }) {
   const arroba = (d.arroba ?? "").replace(/^@/, "");
-  const fem = Number(d.publico_feminino ?? 0);
-  const genero = fem ? [{ n: "Mulheres", v: fem }, { n: "Homens", v: Math.max(0, 100 - fem) }] : [];
+  const fem = Math.round(Math.min(100, Math.max(0, Number(d.publico_feminino ?? 0))) * 10) / 10;
+  const masc = Math.round((100 - fem) * 10) / 10;
+  const pct = (v: number) => `${String(v).replace(".", ",")}%`;
+  const genero = fem ? [{ n: "Mulheres", v: fem }, { n: "Homens", v: masc }] : [];
   const idades = [
     { n: "18-24", v: Number(d.faixa_18_24 ?? 0) }, { n: "25-34", v: Number(d.faixa_25_34 ?? 0) },
     { n: "35-44", v: Number(d.faixa_35_44 ?? 0) }, { n: "45+", v: Number(d.faixa_45 ?? 0) },
@@ -58,9 +60,12 @@ export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; t
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {!!genero.length && <Grafico titulo="Gênero">
-              <PieChart><Pie data={genero} dataKey="v" nameKey="n" innerRadius={35} outerRadius={60} isAnimationActive={false}>
-                {genero.map((_, i) => <Cell key={i} fill={i ? C2 : C1} />)}</Pie><Tooltip formatter={(v) => `${v}%`} /></PieChart>
-              <p className="text-center text-xs text-muted-foreground">{fem}% mulheres · {100 - fem}% homens</p>
+              <PieChart><Pie data={genero} dataKey="v" nameKey="n" innerRadius={35} outerRadius={60} startAngle={90} endAngle={-270} stroke="none" isAnimationActive={false}>
+                {genero.map((_, i) => <Cell key={i} fill={i ? C2 : C1} />)}</Pie><Tooltip formatter={(v) => pct(Number(v))} /></PieChart>
+              <div className="flex justify-center gap-3 text-xs">
+                <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-primary" />Mulheres {pct(fem)}</span>
+                <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-muted-foreground" />Homens {pct(masc)}</span>
+              </div>
             </Grafico>}
             {!!idades.length && <Grafico titulo="Faixa etária (%)">
               <BarChart data={idades}><XAxis dataKey="n" fontSize={11} /><YAxis hide /><Tooltip formatter={(v) => `${v}%`} /><Bar dataKey="v" fill={C1} radius={4} isAnimationActive={false} /></BarChart>
@@ -95,12 +100,19 @@ export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; t
           </Sec>
         )}
 
-        <section className="rounded-2xl bg-primary p-6 text-center text-primary-foreground break-inside-avoid">
-          <p className="text-xl font-semibold">{t.cta || "Vamos criar algo juntos?"}</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm">
-            {arroba && <a href={`https://instagram.com/${arroba}`} target="_blank" rel="noreferrer" className="flex items-center gap-1"><Instagram className="h-4 w-4" />@{arroba}</a>}
-            {d.email && <a href={`mailto:${d.email}`} className="flex items-center gap-1"><Mail className="h-4 w-4" />{d.email}</a>}
-            {wa && <a href={`https://wa.me/${wa.length <= 11 ? "55" + wa : wa}`} target="_blank" rel="noreferrer" className="flex items-center gap-1"><MessageCircle className="h-4 w-4" />{d.whatsapp}</a>}
+        <section className="relative overflow-hidden rounded-3xl bg-primary px-6 py-10 text-center text-primary-foreground break-inside-avoid sm:px-10">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary-foreground/10" />
+          <div className="pointer-events-none absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-primary-foreground/10" />
+          <div className="relative">
+            <p className="text-xs uppercase tracking-[0.3em] opacity-80">Vamos conversar</p>
+            <p className="mx-auto mt-3 max-w-xl text-2xl font-bold leading-snug sm:text-3xl">{t.cta || "Vamos criar algo juntos?"}</p>
+            <div className="mx-auto mt-4 h-px w-16 bg-primary-foreground/40" />
+            <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
+              {arroba && <Contato href={`https://instagram.com/${arroba}`} icon={<Instagram className="h-5 w-5" />} rotulo="Instagram" valor={`@${arroba}`} />}
+              {d.email && <Contato href={`mailto:${d.email}`} icon={<Mail className="h-5 w-5" />} rotulo="E-mail" valor={d.email} />}
+              {wa && <Contato href={`https://wa.me/${wa.length <= 11 ? "55" + wa : wa}`} icon={<MessageCircle className="h-5 w-5" />} rotulo="WhatsApp" valor={d.whatsapp!} />}
+            </div>
+            {d.cidade && <p className="mt-5 text-xs opacity-80">{d.cidade}</p>}
           </div>
         </section>
       </div>
