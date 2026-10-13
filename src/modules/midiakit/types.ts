@@ -4,6 +4,7 @@ export type MkDados = {
   engajamento?: number; alcance?: number; visualizacoes?: number;
   publico_feminino?: number; faixa_18_24?: number; faixa_25_34?: number; faixa_35_44?: number; faixa_45?: number;
   interesses?: string; cidade?: string; email?: string; whatsapp?: string; capa?: string;
+  cor_fundo?: string; cor_texto?: string; cor_destaque?: string; cor_texto_destaque?: string;
 };
 export type MkTextos = {
   titulo?: string; slogan?: string; bio?: string; nichos?: string[]; audiencia?: string;

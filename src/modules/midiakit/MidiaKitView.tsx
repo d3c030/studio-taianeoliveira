@@ -29,8 +29,21 @@ export function MidiaKitView({ dados, textos: t, fotos }: { dados: MkDados; text
   const marcas = (d.marcas ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   const wa = (d.whatsapp ?? "").replace(/\D/g, "");
 
+  const cores: Record<string, string> = {};
+  const fundo = d.cor_fundo, texto = d.cor_texto, dest = d.cor_destaque;
+  if (fundo) { cores["--card"] = fundo; }
+  if (texto) { cores["--card-foreground"] = texto; cores["--foreground"] = texto; }
+  if (dest) cores["--primary"] = dest;
+  if (d.cor_texto_destaque) cores["--primary-foreground"] = d.cor_texto_destaque;
+  if (fundo || texto || dest) {
+    const f = fundo ?? "var(--card)", tx = texto ?? "var(--card-foreground)", p = dest ?? "var(--primary)";
+    cores["--accent"] = `color-mix(in oklab, ${p} 14%, ${f})`;
+    cores["--border"] = `color-mix(in oklab, ${tx} 16%, ${f})`;
+    cores["--muted-foreground"] = `color-mix(in oklab, ${tx} 65%, ${f})`;
+  }
+
   return (
-    <article className="mx-auto max-w-3xl overflow-hidden rounded-2xl bg-card text-card-foreground shadow-sm print:shadow-none print:rounded-none">
+    <article style={cores as React.CSSProperties} className="mx-auto max-w-3xl overflow-hidden rounded-2xl bg-card text-card-foreground shadow-sm print:shadow-none print:rounded-none">
       {/* Capa */}
       <header className="relative">
         {d.capa ? <img src={d.capa} alt={d.nome ?? ""} className="h-80 w-full object-cover object-[50%_25%] sm:h-[28rem]" />
