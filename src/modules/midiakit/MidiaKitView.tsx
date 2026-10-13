@@ -1,6 +1,6 @@
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Instagram, Mail, MessageCircle, Sparkles } from "lucide-react";
-import { corrigeDados, fmtNum, totalSeguidores, type MkDados, type MkFoto, type MkTextos } from "./types";
+import { corrigeDados, fmtNum, type MkDados, type MkFoto, type MkTextos } from "./types";
 
 const C1 = "var(--primary)";
 const C2 = "var(--muted-foreground)";
@@ -21,7 +21,7 @@ export function MidiaKitView({ dados, textos: t, fotos }: { dados: MkDados; text
     { n: "YouTube", v: Number(d.seguidores_yt ?? 0) },
   ].filter((x) => x.v > 0);
   const stats = [
-    { l: "Seguidores", v: fmtNum(totalSeguidores(d)) },
+    { l: "Seguidores no Instagram", v: d.seguidores_ig ? fmtNum(d.seguidores_ig) : "—" },
     { l: "Engajamento", v: d.engajamento ? `${String(d.engajamento).replace(".", ",")}%` : "—" },
     { l: "Alcance mensal", v: d.alcance ? fmtNum(d.alcance) : "—" },
     { l: "Visualizações", v: d.visualizacoes ? fmtNum(d.visualizacoes) : "—" },
@@ -59,7 +59,6 @@ export function MidiaKitView({ dados, textos: t, fotos }: { dados: MkDados; text
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {stats.map((s) => <div key={s.l} className="break-inside-avoid rounded-xl border border-border p-3 text-center"><p className="text-xl font-bold text-primary sm:text-2xl">{s.v}</p><p className="text-xs text-muted-foreground">{s.l}</p></div>)}
           </div>
-          {redes.length > 1 && <p className="mt-2 text-center text-xs text-muted-foreground">{redes.map((r) => `${r.n}: ${fmtNum(r.v)}`).join("  ·  ")}</p>}
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {!!genero.length && <Grafico titulo="Gênero">
               <PieChart><Pie data={genero} dataKey="v" nameKey="n" innerRadius={35} outerRadius={60} startAngle={90} endAngle={-270} stroke="none" isAnimationActive={false}>
