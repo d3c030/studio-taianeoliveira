@@ -116,9 +116,9 @@ function Footer({ d, s }: { d: PdfData; s: S }) {
   );
 }
 
-const AREA = 495;
+const AREA = 450;
 function tamanho(r: number) {
-  const ratio = Number.isFinite(r) && r > 0 ? Math.min(4, Math.max(0.25, r)) : 0.75;
+  const ratio = Number.isFinite(r) && r > 0 ? Math.min(6, Math.max(0.1, r)) : 0.75;
   const largo = ratio >= 1.15;
   let w = largo ? AREA - 12 : (AREA - 24) / 2;
   let h = w / ratio;
@@ -158,7 +158,7 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
             return (
               <View key={i} style={[s.imgBox, { width: t.largo ? "100%" : "50%" }]}>
                 <View style={s.imgFrame}>
-                  <Image src={im.src} style={{ width: t.w, height: t.h, objectFit: "contain" }} />
+                  <Image src={im.src} style={{ width: t.w, height: t.h }} />
                 </View>
                 {!!im.legenda && <Text style={[s.caption, { width: t.w }]}>{im.legenda}</Text>}
               </View>
