@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Instagram, Mail, MessageCircle, Pencil, Plus, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Instagram, Mail, MessageCircle, Pencil, Plus, Trash2, FileText, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { createDiagnostico, deleteCliente, deleteDiagnostico, getCliente, listDiagnosticos } from "../lib/api";
+import { createDiagnostico, deleteCliente, deleteDiagnostico, duplicateDiagnostico, getCliente, listDiagnosticos } from "../lib/api";
 import { ClienteAvatar } from "../components/ClienteAvatar";
 import { ClienteDialog } from "../components/ClienteDialog";
 
