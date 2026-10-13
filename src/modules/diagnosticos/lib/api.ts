@@ -143,3 +143,40 @@ export async function signedUrl(path: string) {
   if (error) throw error;
   return data.signedUrl;
 }
+
+/** Duplica um diagnóstico (checklist, plano, fotos) como novo rascunho da mesma cliente. */
+export async function duplicateDiagnostico(id: string): Promise<string> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) throw new Error("Sessão expirada");
+  const [d, i, m] = await Promise.all([
+    supabase.from("diag_diagnosticos").select("*").eq("id", id).single(),
+    supabase.from("diag_itens").select("*").eq("diagnostico_id", id).order("ordem"),
+    supabase.from("diag_midias").select("*").eq("diagnostico_id", id).order("ordem"),
+  ]);
+  if (d.error) throw d.error;
+  const src: any = d.data;
+  const { data: novo, error } = await supabase
+    .from("diag_diagnosticos")
+    .insert({ cliente_id: src.cliente_id, titulo: `${src.titulo} (cópia)`, resumo_plano_acao: src.resumo_plano_acao ?? "" } as never)
+    .select("id")
+    .single();
+  if (error) throw error;
+  const newId = (novo as any).id as string;
+  const idMap = new Map<string, string>();
+  for (const it of (i.data ?? []) as any[]) {
+    const { id: oldId, diagnostico_id: _d, criado_em: _c, atualizado_em: _a, ...rest } = it;
+    const { data: ni, error: e } = await supabase.from("diag_itens").insert({ ...rest, diagnostico_id: newId } as never).select("id").single();
+    if (e) throw e;
+    idMap.set(oldId, (ni as any).id);
+  }
+  for (const mi of (m.data ?? []) as any[]) {
+    const { id: _id, diagnostico_id: _d, criado_em: _c, atualizado_em: _a, url_arquivo, item_id, ...rest } = mi;
+    const path = `${u.user.id}/${newId}/${crypto.randomUUID()}.jpg`;
+    const { error: ce } = await supabase.storage.from(BUCKET).copy(url_arquivo, path);
+    if (ce) continue;
+    await supabase.from("diag_midias").insert({
+      ...rest, diagnostico_id: newId, url_arquivo: path, item_id: item_id ? idMap.get(item_id) ?? null : null,
+    } as never);
+  }
+  return newId;
+}

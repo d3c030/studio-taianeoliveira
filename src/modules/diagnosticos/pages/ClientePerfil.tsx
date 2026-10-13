@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Instagram, Mail, MessageCircle, Pencil, Plus, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Instagram, Mail, MessageCircle, Pencil, Plus, Trash2, FileText, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { createDiagnostico, deleteCliente, deleteDiagnostico, getCliente, listDiagnosticos } from "../lib/api";
+import { createDiagnostico, deleteCliente, deleteDiagnostico, duplicateDiagnostico, getCliente, listDiagnosticos } from "../lib/api";
 import { ClienteAvatar } from "../components/ClienteAvatar";
 import { ClienteDialog } from "../components/ClienteDialog";
 
@@ -41,6 +41,18 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
       toast.error(e.message ?? "Erro ao criar diagnóstico");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const duplicar = async (id: string) => {
+    const t = toast.loading("Duplicando diagnóstico…");
+    try {
+      const nid = await duplicateDiagnostico(id);
+      toast.success("Cópia criada como rascunho", { id: t });
+      refresh();
+      navigate({ to: "/diagnosticos/editor/$diagnosticoId", params: { diagnosticoId: nid } });
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao duplicar", { id: t });
     }
   };
 
@@ -149,6 +161,9 @@ export function ClientePerfil({ clienteId }: { clienteId: string }) {
                   : "rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"}>
                   {d.status === "finalizado" ? "Finalizado" : "Rascunho"}
                 </span>
+                <Button variant="ghost" size="icon" aria-label="Duplicar diagnóstico" title="Duplicar" onClick={() => duplicar(d.id)}>
+                  <Copy className="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="icon" aria-label="Excluir diagnóstico" onClick={() => setConfirm({ type: "diag", id: d.id })}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
