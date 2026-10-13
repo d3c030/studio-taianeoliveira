@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { gerarTextosMidiaKit } from "@/lib/midiakit.functions";
 import { MidiaKitView } from "../MidiaKitView";
 import { corrigeDados, fmtNum, totalSeguidores, type MkDados, type MkFoto, type MkKit, type MkTextos } from "../types";
+import { baixarPdfKit } from "../baixarPdf";
 
 const db = supabase as any;
 const SITE = "https://studio-taianeoliveira.lovable.app";
@@ -79,6 +80,7 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
   const [gerando, setGerando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [salvo, setSalvo] = useState(true);
+  const [baixando, setBaixando] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -231,8 +233,15 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
               <Switch checked={kit.publico} onCheckedChange={(v) => save({ ...kit, publico: v })} />
             </div>
             {kit.publico && <div className="flex gap-2"><Input readOnly value={link} /><Button variant="outline" size="icon" aria-label="Copiar link" onClick={() => { navigator.clipboard.writeText(link); toast.success("Link copiado"); }}><Copy className="h-4 w-4" /></Button></div>}
-            <Button className="w-full" onClick={() => window.print()}><Download className="h-4 w-4" /> Baixar PDF</Button>
-            <p className="text-xs text-muted-foreground">Na janela que abrir, escolha “Salvar como PDF”.</p>
+            <Button className="w-full" disabled={baixando} onClick={async () => {
+              const el = document.querySelector("#mk-print article") as HTMLElement | null;
+              if (!el) return;
+              setBaixando(true);
+              try { await baixarPdfKit(el, d.nome ?? ""); toast.success("PDF baixado"); }
+              catch (e: any) { toast.error("Não foi possível gerar o PDF: " + (e?.message ?? "")); }
+              setBaixando(false);
+            }}>{baixando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {baixando ? "Gerando PDF…" : "Baixar PDF"}</Button>
+            <p className="text-xs text-muted-foreground">O arquivo vai para os Downloads do aparelho.</p>
           </div>
           <div className="space-y-3 rounded-xl border border-border bg-card p-4">
             <p className="font-medium">Cores do kit</p>
