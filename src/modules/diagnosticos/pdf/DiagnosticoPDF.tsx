@@ -275,7 +275,7 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
           <Text style={{ marginBottom: 12, color: SUAVE }}>Siga os passos abaixo na ordem. Marque cada um quando concluir.</Text>
         )}
         {tarefas.map((it, idx) => (
-          <View key={it.id} wrap={false} style={{ flexDirection: "row", marginBottom: 12, backgroundColor: "#FBF8F6", padding: 12 }}>
+          <View key={it.id} style={{ flexDirection: "row", marginBottom: 12, backgroundColor: "#FBF8F6", padding: 12 }}>
             <View style={{ width: 14, height: 14, borderWidth: 1.5, borderColor: d.cor, marginRight: 10, marginTop: 2 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 8, fontFamily: "Helvetica-Bold", color: d.cor, letterSpacing: 1, lineHeight: 1.2, marginBottom: 3 }}>{`PASSO ${idx + 1}`}</Text>
