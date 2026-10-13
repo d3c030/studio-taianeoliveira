@@ -18,3 +18,13 @@ export const fmtNum = (n?: number) => {
   return Math.round(v).toLocaleString("pt-BR");
 };
 export const totalSeguidores = (d: MkDados) => Number(d.seguidores_ig ?? 0) + Number(d.seguidores_tt ?? 0) + Number(d.seguidores_yt ?? 0);
+
+/** Conserta números inteiros lidos errado por versões antigas ("144.245" virava 144,245). */
+export const corrigeDados = (d: MkDados): MkDados => {
+  const out = { ...d };
+  for (const k of ["seguidores_ig", "seguidores_tt", "seguidores_yt", "alcance", "visualizacoes"] as const) {
+    const v = Number(out[k]);
+    if (Number.isFinite(v) && v > 0 && v < 1000 && !Number.isInteger(v)) out[k] = Math.round(v * 1000);
+  }
+  return out;
+};

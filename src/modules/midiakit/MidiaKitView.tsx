@@ -1,11 +1,12 @@
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Instagram, Mail, MessageCircle, Sparkles } from "lucide-react";
-import { fmtNum, totalSeguidores, type MkDados, type MkFoto, type MkTextos } from "./types";
+import { corrigeDados, fmtNum, totalSeguidores, type MkDados, type MkFoto, type MkTextos } from "./types";
 
 const C1 = "var(--primary)";
 const C2 = "var(--muted-foreground)";
 
-export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; textos: MkTextos; fotos: MkFoto[] }) {
+export function MidiaKitView({ dados, textos: t, fotos }: { dados: MkDados; textos: MkTextos; fotos: MkFoto[] }) {
+  const d = corrigeDados(dados);
   const arroba = (d.arroba ?? "").replace(/^@/, "");
   const fem = Math.round(Math.min(100, Math.max(0, Number(d.publico_feminino ?? 0))) * 10) / 10;
   const masc = Math.round((100 - fem) * 10) / 10;
@@ -122,7 +123,7 @@ export function MidiaKitView({ dados: d, textos: t, fotos }: { dados: MkDados; t
 }
 
 function Sec({ titulo, children, quebra }: { titulo: string; children: React.ReactNode; quebra?: boolean }) {
-  return <section className={quebra ? "" : "break-inside-avoid"}><h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary">{titulo}</h2>{children}</section>;
+  return <section className={quebra ? "mk-portfolio" : "break-inside-avoid"}><h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary">{titulo}</h2>{children}</section>;
 }
 function Grafico({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   const [chart, ...rest] = Array.isArray(children) ? children : [children];
