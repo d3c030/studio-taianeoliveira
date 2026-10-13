@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { DiagItem } from "../lib/editor-api";
 
@@ -148,7 +149,7 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
   }
   if (par.length) linhas.push(par);
   return (
-    <View>
+    <>
       {linhas.map((linha, li) => (
         <View key={li} wrap={false} style={{ flexShrink: 0 }}>
           {li === 0 && !!label && <Text style={s.blockLabel}>{label}</Text>}
@@ -167,7 +168,7 @@ function Imagens({ imgs, s, label }: { imgs: PdfImagem[]; s: S; label?: string }
           </View>
         </View>
       ))}
-    </View>
+    </>
   );
 }
 
@@ -208,14 +209,15 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
       <Page size="A4" style={s.page}>
       <Footer d={d} s={s} />
       {grupos.map((g, gi) => (
-        <View key={gi} style={{ marginBottom: 10 }}>
+        <Fragment key={gi}>
           <Titulo t={g.secao || "Diagnóstico"} s={s} />
           {g.itens.map((it) => {
             const n = numero.get(it.id);
             const ideal = it.status === "ideal";
             const imgs = d.imagens.filter((im) => im.item_id === it.id);
             return (
-              <View key={it.id} style={s.card}>
+              <Fragment key={it.id}>
+              <View style={[s.card, imgs.length ? { marginBottom: 0 } : {}]}>
                 <View wrap={false}>
                   <Text style={s.itemTitle}>Item {n} – {it.titulo}</Text>
                   <View style={s.badgeRow}>
@@ -240,15 +242,13 @@ export function DiagnosticoPDF({ d }: { d: PdfData }) {
                     </View>
                   )
                 )}
-                {imgs.length > 0 && (
-                  <View style={{ marginTop: 12 }}>
-                    <Imagens imgs={imgs} s={s} label="Registros da análise" />
-                  </View>
-                )}
               </View>
+              {imgs.length > 0 && <Imagens imgs={imgs} s={s} label="Registros da análise" />}
+              {imgs.length > 0 && <View style={{ height: 16 }} />}
+              </Fragment>
             );
           })}
-        </View>
+        </Fragment>
       ))}
 
       {(pos.length > 0 || neg.length > 0) && (
