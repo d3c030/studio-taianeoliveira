@@ -16,6 +16,13 @@ import { corrigeDados, fmtNum, totalSeguidores, type MkDados, type MkFoto, type 
 
 const db = supabase as any;
 const SITE = "https://studio-taianeoliveira.lovable.app";
+const PALETAS: { n: string; c: Partial<MkDados> }[] = [
+  { n: "Rosa", c: { cor_fundo: "#fff7fa", cor_texto: "#2b1a22", cor_destaque: "#d9468f", cor_texto_destaque: "#ffffff" } },
+  { n: "Noite", c: { cor_fundo: "#141414", cor_texto: "#f2f2f2", cor_destaque: "#e8c27a", cor_texto_destaque: "#141414" } },
+  { n: "Verde", c: { cor_fundo: "#f4f7f2", cor_texto: "#1f2a1f", cor_destaque: "#4f7a4a", cor_texto_destaque: "#ffffff" } },
+  { n: "Areia", c: { cor_fundo: "#faf5ee", cor_texto: "#3a2e24", cor_destaque: "#b5774a", cor_texto_destaque: "#ffffff" } },
+  { n: "Azul", c: { cor_fundo: "#f3f6fb", cor_texto: "#16233a", cor_destaque: "#2f5fb3", cor_texto_destaque: "#ffffff" } },
+];
 
 export function MidiaKitLista() {
   const nav = useNavigate();
@@ -226,6 +233,25 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
             {kit.publico && <div className="flex gap-2"><Input readOnly value={link} /><Button variant="outline" size="icon" aria-label="Copiar link" onClick={() => { navigator.clipboard.writeText(link); toast.success("Link copiado"); }}><Copy className="h-4 w-4" /></Button></div>}
             <Button className="w-full" onClick={() => window.print()}><Download className="h-4 w-4" /> Baixar PDF</Button>
             <p className="text-xs text-muted-foreground">Na janela que abrir, escolha “Salvar como PDF”.</p>
+          </div>
+          <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+            <p className="font-medium">Cores do kit</p>
+            <div className="flex flex-wrap gap-2">
+              {PALETAS.map((p) => (
+                <button key={p.n} type="button" onClick={() => setD(p.c)} className="flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs">
+                  <span className="h-4 w-4 rounded-full border border-border" style={{ background: p.c.cor_fundo }} />
+                  <span className="h-4 w-4 rounded-full" style={{ background: p.c.cor_destaque }} />{p.n}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {([["cor_fundo", "Fundo", "#ffffff"], ["cor_texto", "Texto", "#222222"], ["cor_destaque", "Destaque", "#d9468f"], ["cor_texto_destaque", "Texto no destaque", "#ffffff"]] as const).map(([k, l, def]) => (
+                <label key={k} className="flex items-center gap-2 text-sm">
+                  <input type="color" value={d[k] ?? def} onChange={(e) => setD({ [k]: e.target.value })} className="h-9 w-12 cursor-pointer rounded border border-border bg-transparent" />{l}
+                </label>
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setD({ cor_fundo: undefined, cor_texto: undefined, cor_destaque: undefined, cor_texto_destaque: undefined })}>Voltar às cores padrão</Button>
           </div>
           <div id="mk-print"><MidiaKitView dados={d} textos={t} fotos={kit.fotos} /></div>
           <Button variant="ghost" className="w-full text-destructive" onClick={excluir}><Trash2 className="h-4 w-4" /> Excluir kit</Button>
