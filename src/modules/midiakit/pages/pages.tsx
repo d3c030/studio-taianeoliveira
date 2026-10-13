@@ -246,3 +246,22 @@ function Escolher({ texto, multiple, onFiles }: { texto: string; multiple?: bool
     </label>
   );
 }
+
+/** Lê números no formato brasileiro: "12.500", "12,5 mil", "12,5k", "1,2M". */
+export function parseNumBR(raw: string, decimal = false): number | undefined {
+  let s = raw.trim().toLowerCase().replace(/\s|%/g, "");
+  if (!s) return undefined;
+  let mult = 1;
+  if (/(mi|m)$/.test(s) && !/mil$/.test(s)) { mult = 1_000_000; s = s.replace(/(mi|m)$/, ""); }
+  else if (/(mil|k)$/.test(s)) { mult = 1_000; s = s.replace(/(mil|k)$/, ""); }
+  if (mult > 1 || decimal) { if (s.includes(",")) s = s.replace(/\./g, ""); s = s.replace(",", "."); }
+  else s = s.replace(/[.,](?=\d{3}(\D|$))/g, "").replace(",", ".");
+  const n = Number(s);
+  return Number.isFinite(n) ? Math.round(n * mult * 100) / 100 : undefined;
+}
+
+function NumInput({ value, onChange, placeholder, decimal }: { value?: number; onChange: (v?: number) => void; placeholder?: string; decimal?: boolean }) {
+  const [txt, setTxt] = useState(value == null ? "" : String(value).replace(".", ","));
+  return <Input inputMode="decimal" value={txt} placeholder={placeholder}
+    onChange={(e) => { setTxt(e.target.value); onChange(parseNumBR(e.target.value, decimal)); }} />;
+}
