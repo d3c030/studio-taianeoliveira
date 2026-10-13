@@ -133,3 +133,12 @@ function Grafico({ titulo, children }: { titulo: string; children: React.ReactNo
     </div>
   );
 }
+function Contato({ href, icon, rotulo, valor }: { href: string; icon: React.ReactNode; rotulo: string; valor: string }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 rounded-2xl bg-primary-foreground/15 px-3 py-4 transition hover:bg-primary-foreground/25">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground text-primary">{icon}</span>
+      <span className="mt-1 text-[10px] uppercase tracking-widest opacity-80">{rotulo}</span>
+      <span className="max-w-full break-all text-sm font-semibold">{valor}</span>
+    </a>
+  );
+}
