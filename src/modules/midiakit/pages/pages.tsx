@@ -127,7 +127,7 @@ export function MidiaKitEditor({ kitId }: { kitId: string }) {
   };
 
   const num = (k: keyof MkDados, label: string, ph = "") => (
-    <div className="space-y-1"><Label>{label}</Label><Input type="number" inputMode="decimal" value={(d[k] as any) ?? ""} placeholder={ph} onChange={(e) => setD({ [k]: e.target.value === "" ? undefined : Number(e.target.value) } as any)} /></div>
+    <div className="space-y-1"><Label>{label}</Label><NumInput key={k} value={d[k] as number | undefined} placeholder={ph} decimal={k === "engajamento"} onChange={(v) => setD({ [k]: v } as any)} /></div>
   );
   const txt = (k: keyof MkDados, label: string, ph = "") => (
     <div className="space-y-1"><Label>{label}</Label><Input value={(d[k] as any) ?? ""} placeholder={ph} onChange={(e) => setD({ [k]: e.target.value } as any)} /></div>
@@ -245,4 +245,23 @@ function Escolher({ texto, multiple, onFiles }: { texto: string; multiple?: bool
       <input type="file" accept="image/*" multiple={multiple} className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
     </label>
   );
+}
+
+/** Lê números no formato brasileiro: "12.500", "12,5 mil", "12,5k", "1,2M". */
+export function parseNumBR(raw: string, decimal = false): number | undefined {
+  let s = raw.trim().toLowerCase().replace(/\s|%/g, "");
+  if (!s) return undefined;
+  let mult = 1;
+  if (/(mi|m)$/.test(s) && !/mil$/.test(s)) { mult = 1_000_000; s = s.replace(/(mi|m)$/, ""); }
+  else if (/(mil|k)$/.test(s)) { mult = 1_000; s = s.replace(/(mil|k)$/, ""); }
+  if (mult > 1 || decimal) { if (s.includes(",")) s = s.replace(/\./g, ""); s = s.replace(",", "."); }
+  else s = s.replace(/[.,](?=\d{3}(\D|$))/g, "").replace(",", ".");
+  const n = Number(s);
+  return Number.isFinite(n) ? Math.round(n * mult * 100) / 100 : undefined;
+}
+
+function NumInput({ value, onChange, placeholder, decimal }: { value?: number; onChange: (v?: number) => void; placeholder?: string; decimal?: boolean }) {
+  const [txt, setTxt] = useState(value == null ? "" : String(value).replace(".", ","));
+  return <Input inputMode="decimal" value={txt} placeholder={placeholder}
+    onChange={(e) => { setTxt(e.target.value); onChange(parseNumBR(e.target.value, decimal)); }} />;
 }
