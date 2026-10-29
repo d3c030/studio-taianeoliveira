@@ -37,17 +37,27 @@ export async function baixarPdfKit(el: HTMLElement, nome: string) {
     const pxPorPagina = Math.floor((canvas.width * ph) / pw);
     const margem = 12 * escala; // respiro no topo das páginas seguintes
 
+    // Ignora a sobra em branco no final (evita uma última página vazia).
+    const cctx = canvas.getContext("2d")!;
+    let fimConteudo = canvas.height;
+    for (let t = canvas.height - 1; t > 0; t -= 4) {
+      const d = cctx.getImageData(0, t, canvas.width, 1).data;
+      let vazio = true;
+      for (let i = 0; i < d.length; i += 32) if (d[i + 3] > 10 && (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245)) { vazio = false; break; }
+      if (!vazio) { fimConteudo = Math.min(canvas.height, t + 8 * escala); break; }
+    }
+
     let y = 0, pagina = 0;
-    while (canvas.height - y > 30 * escala) {
-      let fim = Math.min(y + pxPorPagina - (pagina ? margem : 0), canvas.height);
-      if (fim < canvas.height) {
+    while (fimConteudo - y > 4 * escala) {
+      let fim = Math.min(y + pxPorPagina - (pagina ? margem : 0), fimConteudo);
+      if (fim < fimConteudo) {
         // Recua o corte para antes de qualquer bloco que ficaria partido (só se o bloco couber numa página).
         for (let guard = 0; guard < 50; guard++) {
           const corta = blocos.filter((b) => b.top < fim - 1 && b.bottom > fim + 1 && b.top > y + 4 && b.bottom - b.top < pxPorPagina - margem);
           if (!corta.length) break;
           fim = Math.min(...corta.map((b) => b.top)) - 4;
         }
-        if (fim <= y + pxPorPagina * 0.25) fim = Math.min(y + pxPorPagina - (pagina ? margem : 0), canvas.height);
+        if (fim <= y + pxPorPagina * 0.25) fim = Math.min(y + pxPorPagina - (pagina ? margem : 0), fimConteudo);
       }
       const h = Math.ceil(fim - y);
       const parte = document.createElement("canvas");
