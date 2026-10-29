@@ -41,7 +41,11 @@ export async function baixarPdfKit(el: HTMLElement, nome: string) {
       parte.width = canvas.width; parte.height = h;
       const pctx = parte.getContext("2d")!;
       pctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
-      if (pagina) pdf.addPage();
+      if (pagina) {
+        pdf.addPage();
+        const px = canvas.getContext("2d")!.getImageData(8, Math.min(Math.round(y) + 1, canvas.height - 1), 1, 1).data;
+        if (px[3] > 0) { pdf.setFillColor(px[0], px[1], px[2]); pdf.rect(0, 0, pw, ph, "F"); }
+      }
       const topo = pagina ? (margem * pw) / canvas.width : 0;
       pdf.addImage(parte.toDataURL("image/jpeg", 0.92), "JPEG", 0, topo, pw, (h * pw) / canvas.width);
       pagina++;

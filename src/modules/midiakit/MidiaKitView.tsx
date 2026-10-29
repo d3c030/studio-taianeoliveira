@@ -101,8 +101,8 @@ export function MidiaKitView({ dados, textos: t, fotos }: { dados: MkDados; text
 
         {!!fotos.length && (
           <Sec titulo="Portfólio" quebra>
-            <div className="mk-fotos grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {fotos.map((f, i) => <figure key={i} className="mk-foto break-inside-avoid"><img src={f.url} alt={f.legenda ?? ""} className="aspect-[4/5] w-full rounded-lg object-cover" />{f.legenda && <figcaption className="mt-1 text-xs text-muted-foreground">{f.legenda}</figcaption>}</figure>)}
+            <div className="mk-fotos grid grid-cols-2 items-start gap-3">
+              {fotos.map((f, i) => <figure key={i} className="mk-foto break-inside-avoid"><img src={f.url} alt={f.legenda ?? ""} className="block h-auto w-full rounded-lg" />{f.legenda && <figcaption className="mt-1 text-xs text-muted-foreground">{f.legenda}</figcaption>}</figure>)}
             </div>
           </Sec>
         )}
@@ -121,7 +121,7 @@ export function MidiaKitView({ dados, textos: t, fotos }: { dados: MkDados; text
             <p className="text-xs uppercase tracking-[0.3em] opacity-80">Vamos conversar</p>
             <p className="mx-auto mt-3 max-w-xl text-2xl font-bold leading-snug sm:text-3xl">{t.cta || "Vamos criar algo juntos?"}</p>
             <div className="mx-auto mt-4 h-px w-16 bg-primary-foreground/40" />
-            <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
+            <div className="mx-auto mt-6 grid max-w-xl gap-3">
               {arroba && <Contato href={`https://instagram.com/${arroba}`} icon={<Instagram className="h-5 w-5" />} rotulo="Instagram" valor={`@${arroba}`} />}
               {d.email && <Contato href={`mailto:${d.email}`} icon={<Mail className="h-5 w-5" />} rotulo="E-mail" valor={d.email} />}
               {wa && <Contato href={`https://wa.me/${wa.length <= 11 ? "55" + wa : wa}`} icon={<MessageCircle className="h-5 w-5" />} rotulo="WhatsApp" valor={d.whatsapp!} />}
@@ -152,7 +152,7 @@ function Contato({ href, icon, rotulo, valor }: { href: string; icon: React.Reac
     <a href={href} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 rounded-2xl bg-primary-foreground/15 px-3 py-4 transition hover:bg-primary-foreground/25">
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground text-primary">{icon}</span>
       <span className="mt-1 text-[10px] uppercase tracking-widest opacity-80">{rotulo}</span>
-      <span className="max-w-full break-all text-sm font-semibold">{valor}</span>
+      <span className="max-w-full text-sm [overflow-wrap:anywhere] font-semibold">{valor}</span>
     </a>
   );
 }
