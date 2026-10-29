@@ -22,16 +22,23 @@ export async function baixarPdfKit(el: HTMLElement, nome: string) {
         blocos = [...alvo.querySelectorAll<HTMLElement>("figure, img, .break-inside-avoid, section, h2, p, li, a")]
           .map((b) => { const r = b.getBoundingClientRect(); return { top: (r.top - base) * escala, bottom: (r.bottom - base) * escala }; })
           .filter((b) => b.bottom - b.top > 0);
+        // Título de seção nunca fica sozinho no fim da página: vai junto do começo do conteúdo.
+        alvo.querySelectorAll<HTMLElement>("h2").forEach((h) => {
+          const r = h.getBoundingClientRect();
+          const prox = h.nextElementSibling?.querySelector("figure, img, div, p") ?? h.nextElementSibling;
+          const pr = prox?.getBoundingClientRect();
+          const fimBloco = pr ? Math.min(pr.bottom, r.bottom + 420) : r.bottom + 120;
+          blocos.push({ top: (r.top - base) * escala, bottom: (fimBloco - base) * escala });
+        });
       },
     });
-    console.log("MKDBG", blocos.length, canvas.width, canvas.height, altura);
     const pdf = new jsPDF({ unit: "mm", format: "a4" });
     const pw = 210, ph = 297;
     const pxPorPagina = Math.floor((canvas.width * ph) / pw);
     const margem = 12 * escala; // respiro no topo das páginas seguintes
 
     let y = 0, pagina = 0;
-    while (y < canvas.height - 2) {
+    while (canvas.height - y > 30 * escala) {
       let fim = Math.min(y + pxPorPagina - (pagina ? margem : 0), canvas.height);
       if (fim < canvas.height) {
         // Recua o corte para antes de qualquer bloco que ficaria partido (só se o bloco couber numa página).
