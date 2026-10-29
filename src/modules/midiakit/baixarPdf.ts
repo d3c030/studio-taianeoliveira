@@ -13,12 +13,17 @@ export async function baixarPdfKit(el: HTMLElement, nome: string) {
     const altura = Math.ceil(clone.scrollHeight);
 
     // Blocos que não podem ser partidos entre páginas (fotos, cards, gráficos, contato...).
-    const base = clone.getBoundingClientRect().top;
-    const blocos = [...clone.querySelectorAll<HTMLElement>("figure, img, .break-inside-avoid, section, h2, p, li, a")]
-      .map((b) => { const r = b.getBoundingClientRect(); return { top: (r.top - base) * escala, bottom: (r.bottom - base) * escala }; })
-      .filter((b) => b.bottom - b.top > 0);
-
-    const canvas = await html2canvas(clone, { scale: escala, useCORS: true, backgroundColor: null, width: largura, height: altura, windowWidth: largura, windowHeight: altura });
+    // Medidos dentro da cópia que o html2canvas desenha (mesma largura e mesmo layout do PDF).
+    let blocos: { top: number; bottom: number }[] = [];
+    const canvas = await html2canvas(clone, {
+      scale: escala, useCORS: true, backgroundColor: null, width: largura, height: altura, windowWidth: largura, windowHeight: altura,
+      onclone: (_doc, alvo) => {
+        const base = alvo.getBoundingClientRect().top;
+        blocos = [...alvo.querySelectorAll<HTMLElement>("figure, img, .break-inside-avoid, section, h2, p, li, a")]
+          .map((b) => { const r = b.getBoundingClientRect(); return { top: (r.top - base) * escala, bottom: (r.bottom - base) * escala }; })
+          .filter((b) => b.bottom - b.top > 0);
+      },
+    });
     const pdf = new jsPDF({ unit: "mm", format: "a4" });
     const pw = 210, ph = 297;
     const pxPorPagina = Math.floor((canvas.width * ph) / pw);
@@ -40,6 +45,7 @@ export async function baixarPdfKit(el: HTMLElement, nome: string) {
       const parte = document.createElement("canvas");
       parte.width = canvas.width; parte.height = h;
       const pctx = parte.getContext("2d")!;
+      pctx.fillStyle = "#ffffff"; pctx.fillRect(0, 0, canvas.width, h);
       pctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
       if (pagina) {
         pdf.addPage();
