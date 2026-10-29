@@ -24,6 +24,7 @@ export async function baixarPdfKit(el: HTMLElement, nome: string) {
           .filter((b) => b.bottom - b.top > 0);
       },
     });
+    console.log("MKDBG", blocos.length, canvas.width, canvas.height, altura);
     const pdf = new jsPDF({ unit: "mm", format: "a4" });
     const pw = 210, ph = 297;
     const pxPorPagina = Math.floor((canvas.width * ph) / pw);
