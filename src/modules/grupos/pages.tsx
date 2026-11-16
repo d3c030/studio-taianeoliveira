@@ -28,6 +28,7 @@ const fmtData = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString(
 export function GruposLista() {
   const nav = useNavigate();
   const [nome, setNome] = useState("");
+  const [criando, setCriando] = useState(false);
   const q = useQuery({
     queryKey: ["grupos"],
     queryFn: async () => {
@@ -37,17 +38,27 @@ export function GruposLista() {
     },
   });
   const criar = async () => {
-    if (!nome.trim()) return;
-    const { data, error } = await db.from("grupo_engaj").insert({ nome: nome.trim() }).select("id").single();
-    if (error) return toast.error(error.message);
-    nav({ to: "/grupos/$grupoId", params: { grupoId: data.id } });
+    if (!nome.trim()) return toast.error("Digite o nome do grupo.");
+    if (criando) return;
+    setCriando(true);
+    try {
+      const { data, error } = await db.from("grupo_engaj").insert({ nome: nome.trim() }).select("id").single();
+      if (error) throw error;
+      q.refetch();
+      toast.success("Grupo criado!");
+      nav({ to: "/grupos/$grupoId", params: { grupoId: data.id } });
+    } catch (e) {
+      toast.error("Não foi possível criar o grupo: " + ((e as Error)?.message ?? "tente de novo"));
+    } finally {
+      setCriando(false);
+    }
   };
   return (
     <div className="space-y-4">
       <div><h1 className="text-2xl font-bold">Check de Grupos</h1><p className="text-sm text-muted-foreground">Confira quem cumpriu a missão nos grupos de engajamento.</p></div>
       <div className="flex gap-2">
         <Input className="h-12" placeholder="Nome do novo grupo" value={nome} onChange={(e) => setNome(e.target.value)} onKeyDown={(e) => e.key === "Enter" && criar()} />
-        <Button className="h-12" onClick={criar}><Plus className="h-4 w-4" /> Criar</Button>
+        <Button type="button" className="h-12 shrink-0" onClick={criar} disabled={criando || !nome.trim()}><Plus className="h-4 w-4" /> {criando ? "Criando…" : "Criar"}</Button>
       </div>
       {q.isLoading ? <p className="text-sm text-muted-foreground">Carregando…</p> : !q.data?.length ? (
         <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Nenhum grupo ainda.</p>
