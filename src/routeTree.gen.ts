@@ -17,6 +17,7 @@ import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as CustosRouteImport } from './routes/custos'
 import { Route as DiagnosticosRouteImport } from './routes/diagnosticos'
+import { Route as GruposRouteImport } from './routes/grupos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MidiakitRouteImport } from './routes/midiakit'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
@@ -27,6 +28,8 @@ import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as AgendarDateRouteImport } from './routes/agendar.$date'
 import { Route as DiagnosticosIndexRouteImport } from './routes/diagnosticos.index'
 import { Route as DiagnosticosConfiguracoesRouteImport } from './routes/diagnosticos.configuracoes'
+import { Route as GruposIndexRouteImport } from './routes/grupos.index'
+import { Route as GruposGrupoIdRouteImport } from './routes/grupos.$grupoId'
 import { Route as KitTokenRouteImport } from './routes/kit.$token'
 import { Route as MidiakitIndexRouteImport } from './routes/midiakit.index'
 import { Route as MidiakitKitIdRouteImport } from './routes/midiakit.$kitId'
@@ -72,6 +75,11 @@ const CustosRoute = CustosRouteImport.update({
 const DiagnosticosRoute = DiagnosticosRouteImport.update({
   id: '/diagnosticos',
   path: '/diagnosticos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GruposRoute = GruposRouteImport.update({
+  id: '/grupos',
+  path: '/grupos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -125,6 +133,16 @@ const DiagnosticosConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => DiagnosticosRoute,
   } as any)
+const GruposIndexRoute = GruposIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GruposRoute,
+} as any)
+const GruposGrupoIdRoute = GruposGrupoIdRouteImport.update({
+  id: '/$grupoId',
+  path: '/$grupoId',
+  getParentRoute: () => GruposRoute,
+} as any)
 const KitTokenRoute = KitTokenRouteImport.update({
   id: '/kit/$token',
   path: '/kit/$token',
@@ -167,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
+  '/grupos': typeof GruposRouteWithChildren
   '/login': typeof LoginRoute
   '/midiakit': typeof MidiakitRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
@@ -176,10 +195,12 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/grupos/$grupoId': typeof GruposGrupoIdRoute
   '/kit/$token': typeof KitTokenRoute
   '/midiakit/$kitId': typeof MidiakitKitIdRoute
   '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
+  '/grupos/': typeof GruposIndexRoute
   '/midiakit/': typeof MidiakitIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
@@ -200,10 +221,12 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/grupos/$grupoId': typeof GruposGrupoIdRoute
   '/kit/$token': typeof KitTokenRoute
   '/midiakit/$kitId': typeof MidiakitKitIdRoute
   '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos': typeof DiagnosticosIndexRoute
+  '/grupos': typeof GruposIndexRoute
   '/midiakit': typeof MidiakitIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
@@ -218,6 +241,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/custos': typeof CustosRoute
   '/diagnosticos': typeof DiagnosticosRouteWithChildren
+  '/grupos': typeof GruposRouteWithChildren
   '/login': typeof LoginRoute
   '/midiakit': typeof MidiakitRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
@@ -227,10 +251,12 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/agendar/$date': typeof AgendarDateRoute
   '/diagnosticos/configuracoes': typeof DiagnosticosConfiguracoesRoute
+  '/grupos/$grupoId': typeof GruposGrupoIdRoute
   '/kit/$token': typeof KitTokenRoute
   '/midiakit/$kitId': typeof MidiakitKitIdRoute
   '/pdf/$token': typeof PdfTokenRoute
   '/diagnosticos/': typeof DiagnosticosIndexRoute
+  '/grupos/': typeof GruposIndexRoute
   '/midiakit/': typeof MidiakitIndexRoute
   '/diagnosticos/clientes/$clienteId': typeof DiagnosticosClientesClienteIdRoute
   '/diagnosticos/editor/$diagnosticoId': typeof DiagnosticosEditorDiagnosticoIdRoute
@@ -246,6 +272,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/custos'
     | '/diagnosticos'
+    | '/grupos'
     | '/login'
     | '/midiakit'
     | '/privacidade'
@@ -255,10 +282,12 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/grupos/$grupoId'
     | '/kit/$token'
     | '/midiakit/$kitId'
     | '/pdf/$token'
     | '/diagnosticos/'
+    | '/grupos/'
     | '/midiakit/'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
@@ -279,10 +308,12 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/grupos/$grupoId'
     | '/kit/$token'
     | '/midiakit/$kitId'
     | '/pdf/$token'
     | '/diagnosticos'
+    | '/grupos'
     | '/midiakit'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
@@ -296,6 +327,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/custos'
     | '/diagnosticos'
+    | '/grupos'
     | '/login'
     | '/midiakit'
     | '/privacidade'
@@ -305,10 +337,12 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/agendar/$date'
     | '/diagnosticos/configuracoes'
+    | '/grupos/$grupoId'
     | '/kit/$token'
     | '/midiakit/$kitId'
     | '/pdf/$token'
     | '/diagnosticos/'
+    | '/grupos/'
     | '/midiakit/'
     | '/diagnosticos/clientes/$clienteId'
     | '/diagnosticos/editor/$diagnosticoId'
@@ -323,6 +357,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   CustosRoute: typeof CustosRoute
   DiagnosticosRoute: typeof DiagnosticosRouteWithChildren
+  GruposRoute: typeof GruposRouteWithChildren
   LoginRoute: typeof LoginRoute
   MidiakitRoute: typeof MidiakitRouteWithChildren
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -390,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/diagnosticos'
       fullPath: '/diagnosticos'
       preLoaderRoute: typeof DiagnosticosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grupos': {
+      id: '/grupos'
+      path: '/grupos'
+      fullPath: '/grupos'
+      preLoaderRoute: typeof GruposRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -461,6 +503,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/diagnosticos/configuracoes'
       preLoaderRoute: typeof DiagnosticosConfiguracoesRouteImport
       parentRoute: typeof DiagnosticosRoute
+    }
+    '/grupos/': {
+      id: '/grupos/'
+      path: '/'
+      fullPath: '/grupos/'
+      preLoaderRoute: typeof GruposIndexRouteImport
+      parentRoute: typeof GruposRoute
+    }
+    '/grupos/$grupoId': {
+      id: '/grupos/$grupoId'
+      path: '/$grupoId'
+      fullPath: '/grupos/$grupoId'
+      preLoaderRoute: typeof GruposGrupoIdRouteImport
+      parentRoute: typeof GruposRoute
     }
     '/kit/$token': {
       id: '/kit/$token'
@@ -536,6 +592,19 @@ const DiagnosticosRouteWithChildren = DiagnosticosRoute._addFileChildren(
   DiagnosticosRouteChildren,
 )
 
+interface GruposRouteChildren {
+  GruposGrupoIdRoute: typeof GruposGrupoIdRoute
+  GruposIndexRoute: typeof GruposIndexRoute
+}
+
+const GruposRouteChildren: GruposRouteChildren = {
+  GruposGrupoIdRoute: GruposGrupoIdRoute,
+  GruposIndexRoute: GruposIndexRoute,
+}
+
+const GruposRouteWithChildren =
+  GruposRoute._addFileChildren(GruposRouteChildren)
+
 interface MidiakitRouteChildren {
   MidiakitKitIdRoute: typeof MidiakitKitIdRoute
   MidiakitIndexRoute: typeof MidiakitIndexRoute
@@ -559,6 +628,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   CustosRoute: CustosRoute,
   DiagnosticosRoute: DiagnosticosRouteWithChildren,
+  GruposRoute: GruposRouteWithChildren,
   LoginRoute: LoginRoute,
   MidiakitRoute: MidiakitRouteWithChildren,
   PrivacidadeRoute: PrivacidadeRoute,

@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings, Sparkles, ClipboardCheck, Globe, BarChart3, Star, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, CalendarDays, Receipt, LogOut, Users, Shield, CalendarCheck, Settings, Sparkles, ClipboardCheck, Globe, BarChart3, Star, UsersRound, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ const navItems = [
   { to: "/custos", label: "Custos", icon: Receipt },
   { to: "/diagnosticos", label: "Diagnósticos", icon: ClipboardCheck },
   { to: "/midiakit", label: "Mídia Kit", icon: Star },
+  { to: "/grupos", label: "Check de Grupos", icon: UsersRound },
   { to: "/site", label: "Site", icon: Globe },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
@@ -70,7 +71,7 @@ export function AppShell() {
 
 const GROUPS: { titulo: string; itens: readonly string[] }[] = [
   { titulo: "Studio", itens: ["/", "/agenda", "/custos"] },
-  { titulo: "Consultoria", itens: ["/diagnosticos", "/midiakit", "/site", "/relatorios"] },
+  { titulo: "Consultoria", itens: ["/diagnosticos", "/midiakit", "/grupos", "/site", "/relatorios"] },
   { titulo: "Sistema", itens: ["/configuracoes"] },
 ];
 const BOTTOM = ["/", "/agenda", "/diagnosticos", "/site"] as const;

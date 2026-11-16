@@ -553,6 +553,186 @@ export type Database = {
         }
         Relationships: []
       }
+      grupo_check: {
+        Row: {
+          confianca: number | null
+          emoji_lido: string | null
+          id: string
+          nome_lido: string | null
+          origem: string
+          participante_id: string
+          rodada_id: string
+          status: string
+        }
+        Insert: {
+          confianca?: number | null
+          emoji_lido?: string | null
+          id?: string
+          nome_lido?: string | null
+          origem?: string
+          participante_id: string
+          rodada_id: string
+          status: string
+        }
+        Update: {
+          confianca?: number | null
+          emoji_lido?: string | null
+          id?: string
+          nome_lido?: string | null
+          origem?: string
+          participante_id?: string
+          rodada_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grupo_check_participante_id_fkey"
+            columns: ["participante_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_participante"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grupo_check_rodada_id_fkey"
+            columns: ["rodada_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_rodada"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grupo_engaj: {
+        Row: {
+          criado_em: string
+          dias_missao: string[]
+          id: string
+          nome: string
+        }
+        Insert: {
+          criado_em?: string
+          dias_missao?: string[]
+          id?: string
+          nome: string
+        }
+        Update: {
+          criado_em?: string
+          dias_missao?: string[]
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      grupo_leitura_nao_vinculada: {
+        Row: {
+          emoji_lido: string | null
+          id: string
+          nome_lido: string
+          resolvido: boolean
+          rodada_id: string
+        }
+        Insert: {
+          emoji_lido?: string | null
+          id?: string
+          nome_lido: string
+          resolvido?: boolean
+          rodada_id: string
+        }
+        Update: {
+          emoji_lido?: string | null
+          id?: string
+          nome_lido?: string
+          resolvido?: boolean
+          rodada_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grupo_leitura_nao_vinculada_rodada_id_fkey"
+            columns: ["rodada_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_rodada"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grupo_participante: {
+        Row: {
+          apelidos: string[]
+          ativo: boolean
+          emoji_habitual: string | null
+          entrou_em: string
+          grupo_id: string
+          id: string
+          nome_exibicao: string | null
+          novata: boolean
+          username: string
+        }
+        Insert: {
+          apelidos?: string[]
+          ativo?: boolean
+          emoji_habitual?: string | null
+          entrou_em?: string
+          grupo_id: string
+          id?: string
+          nome_exibicao?: string | null
+          novata?: boolean
+          username: string
+        }
+        Update: {
+          apelidos?: string[]
+          ativo?: boolean
+          emoji_habitual?: string | null
+          entrou_em?: string
+          grupo_id?: string
+          id?: string
+          nome_exibicao?: string | null
+          novata?: boolean
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grupo_participante_grupo_id_fkey"
+            columns: ["grupo_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_engaj"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grupo_rodada: {
+        Row: {
+          criado_em: string
+          data: string
+          dia_semana: string
+          grupo_id: string
+          id: string
+          status: string
+        }
+        Insert: {
+          criado_em?: string
+          data: string
+          dia_semana: string
+          grupo_id: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          data?: string
+          dia_semana?: string
+          grupo_id?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grupo_rodada_grupo_id_fkey"
+            columns: ["grupo_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_engaj"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk_kits: {
         Row: {
           atualizado_em: string
