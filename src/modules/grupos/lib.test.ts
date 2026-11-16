@@ -21,6 +21,13 @@ describe("check de grupos", () => {
       { username: "fenix", emoji: "🐦‍🔥", lista: 2 },
     ]);
   });
+  test("✅ escolhido como emoji é mantido fora do formato numerado", () => {
+    expect(parseLista("@gaabydelenaa25 ✅\n@professora_kammylla ✅")).toEqual([
+      { username: "gaabydelenaa25", emoji: "✅", lista: null }, { username: "professora_kammylla", emoji: "✅", lista: null }]);
+  });
+  test("formato antigo numerado: ✅ é status, emoji vazio", () => {
+    expect(parseLista("1. @fulana ✅")).toEqual([{ username: "fulana", emoji: "", lista: null }]);
+  });
   test("sugestão por emoji único = 0.75", () => {
     const m = cruzar([{ nome: "Fulana Qualquer", emoji: "🍓", cortado: false }], [P({ username: "kamylli", emoji_habitual: "🍓" }), P({ username: "outra", emoji_habitual: "💕" })]);
     expect(m[0].participante?.username).toBe("kamylli"); expect(m[0].confianca).toBe(0.75); expect(m[0].porEmoji).toBe(true);

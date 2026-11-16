@@ -26,10 +26,12 @@ export function parseLista(texto: string): ItemLista[] {
   for (const linha of texto.split(/\r?\n/)) {
     const h = linha.match(/^\s*LISTA\s*(\d+)/i);
     if (h) { lista = Number(h[1]); continue; }
+    const antigo = /^\s*\d+\.\s*@/.test(linha); // formato numerado do Notas: ✅❌🆕 são status
     for (const m of linha.matchAll(/@([A-Za-z0-9._]+)([^@]*)/g)) {
       const username = m[1].replace(/\.+$/, "").toLowerCase();
       if (!username || out.some((x) => x.username === username)) continue;
-      const emoji = m[2].replace(/\s+/g, "").replace(/[✅❌✔✖]|🆕/gu, "");
+      let emoji = m[2].replace(/\s+/g, "");
+      if (antigo) emoji = emoji.replace(/[✅❌✔✖]|🆕/gu, "");
       out.push({ username, emoji, lista });
     }
   }
