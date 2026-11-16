@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
-  addDias, cruzar, dedupe, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
+  addDias, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
   type Leitura, type Participante,
 } from "./lib";
 
@@ -115,23 +115,44 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
   const [texto, setTexto] = useState("");
   const [busca, setBusca] = useState("");
   const [mostrarInativas, setMostrarInativas] = useState(false);
-  const existentes = new Set((q.data ?? []).map((p) => p.username));
-  const lidos = parseLista(texto);
-  const novos = lidos.filter((u) => !existentes.has(u));
+  const [filtroLista, setFiltroLista] = useState<string>("");
+  const porUser = new Map((q.data ?? []).map((p) => [p.username, p]));
+  const lidos = parseLista(texto).map((it) => {
+    const ex = porUser.get(it.username);
+    const acao = !ex ? "novo" : it.emoji && normEmoji(it.emoji) !== normEmoji(ex.emoji_habitual) ? "atualizar emoji" : "sem mudança";
+    return { ...it, ex, acao } as const;
+  });
+  const novos = lidos.filter((l) => l.acao === "novo");
+  const atualizar = lidos.filter((l) => l.acao === "atualizar emoji");
+  // participantes como ficariam após a importação, para avisar emojis repetidos
+  const simulado: Participante[] = [
+    ...(q.data ?? []).map((p) => { const l = lidos.find((x) => x.username === p.username); return l?.acao === "atualizar emoji" ? { ...p, emoji_habitual: l.emoji } : p; }),
+    ...novos.map((l) => ({ id: "novo:" + l.username, grupo_id: grupo.id, username: l.username, nome_exibicao: null, emoji_habitual: l.emoji || null, apelidos: [], ativo: true, novata: false, entrou_em: "", lista: l.lista })),
+  ];
+  const dupSim = new Set([...emojisDuplicados(simulado).values()].flat());
+  const dupAtual = new Set([...emojisDuplicados(q.data ?? []).values()].flat());
   const refresh = () => qc.invalidateQueries({ queryKey: ["grupo-part", grupo.id] });
 
   const salvarImport = async () => {
-    if (!novos.length) return setImp(false);
-    const { error } = await db.from("grupo_participante").insert(novos.map((username) => ({ grupo_id: grupo.id, username })));
-    if (error) return toast.error(error.message);
-    toast.success(`${novos.length} participantes cadastradas`);
+    if (novos.length) {
+      const { error } = await db.from("grupo_participante").insert(novos.map((l) => ({ grupo_id: grupo.id, username: l.username, emoji_habitual: l.emoji || null, lista: l.lista })));
+      if (error) return toast.error(error.message);
+    }
+    for (const l of atualizar) {
+      const v: Record<string, unknown> = { emoji_habitual: l.emoji };
+      if (l.lista != null) v.lista = l.lista;
+      const { error } = await db.from("grupo_participante").update(v).eq("id", l.ex!.id);
+      if (error) return toast.error(error.message);
+    }
+    toast.success(`${novos.length} novas · ${atualizar.length} emojis atualizados`);
     setTexto(""); setImp(false); refresh();
   };
   const patch = async (id: string, v: Partial<Participante>) => {
     const { error } = await db.from("grupo_participante").update(v).eq("id", id);
     if (error) toast.error(error.message); else refresh();
   };
-  const lista = (q.data ?? []).filter((p) => (mostrarInativas || p.ativo) && (!busca || norm(p.username + (p.nome_exibicao ?? "") + p.apelidos.join("")).includes(norm(busca))));
+  const listasExist = [...new Set((q.data ?? []).map((p) => p.lista).filter((x): x is number => x != null))].sort((a, b) => a - b);
+  const lista = (q.data ?? []).filter((p) => (mostrarInativas || p.ativo) && (!filtroLista || String(p.lista ?? "") === filtroLista) && (!busca || norm(p.username + (p.nome_exibicao ?? "") + p.apelidos.join("")).includes(norm(busca))));
 
   return (
     <div className="space-y-3 pt-3">
@@ -143,10 +164,17 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
         <Input className="h-11" placeholder="Buscar" value={busca} onChange={(e) => setBusca(e.target.value)} />
         <label className="flex shrink-0 items-center gap-2 text-xs"><Switch checked={mostrarInativas} onCheckedChange={setMostrarInativas} /> Inativas</label>
       </div>
-      <p className="text-xs text-muted-foreground">{(q.data ?? []).filter((p) => p.ativo).length} ativas</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{(q.data ?? []).filter((p) => p.ativo).length} ativas{dupAtual.size ? ` · ${dupAtual.size} com emoji repetido` : ""}</p>
+        <select className="h-10 rounded-md border border-input bg-background px-2 text-sm" value={filtroLista} onChange={(e) => setFiltroLista(e.target.value)}>
+          <option value="">Todas as listas</option>
+          {listasExist.map((n) => <option key={n} value={String(n)}>Lista {n}</option>)}
+        </select>
+      </div>
       <div className="space-y-2">
         {lista.map((p) => (
-          <div key={p.id} className={cn("rounded-xl border border-border bg-card p-3", !p.ativo && "opacity-60")}>
+          <div key={p.id} className={cn("rounded-xl border border-border bg-card p-3", !p.ativo && "opacity-60", dupAtual.has(p.id) && "border-destructive")}>
+            {dupAtual.has(p.id) && <p className="mb-1 text-xs font-medium text-destructive">⚠️ Emoji igual ao de outra participante ativa</p>}
             <div className="flex items-center justify-between gap-2">
               <p className="font-semibold">@{p.username} {p.novata && "🆕"}</p>
               <div className="flex items-center gap-3 text-xs">
@@ -154,9 +182,10 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
                 <label className="flex items-center gap-1">Ativa <Switch checked={p.ativo} onCheckedChange={(v) => patch(p.id, { ativo: v })} /></label>
               </div>
             </div>
-            <div className="mt-2 grid grid-cols-[1fr_4.5rem] gap-2">
+            <div className="mt-2 grid grid-cols-[1fr_4.5rem_4.5rem] gap-2">
               <Input defaultValue={p.nome_exibicao ?? ""} placeholder="Nome de exibição" onBlur={(e) => e.target.value !== (p.nome_exibicao ?? "") && patch(p.id, { nome_exibicao: e.target.value || null })} />
               <Input defaultValue={p.emoji_habitual ?? ""} placeholder="Emoji" className="text-center" onBlur={(e) => e.target.value !== (p.emoji_habitual ?? "") && patch(p.id, { emoji_habitual: e.target.value || null })} />
+              <Input type="number" inputMode="numeric" defaultValue={p.lista ?? ""} placeholder="Lista" className="text-center" onBlur={(e) => { const v = e.target.value ? Number(e.target.value) : null; if (v !== (p.lista ?? null)) patch(p.id, { lista: v }); }} />
             </div>
             {p.apelidos.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
@@ -177,13 +206,21 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
           <Textarea rows={8} placeholder="Cole aqui a lista (1. @fulana ❌ …)" value={texto} onChange={(e) => setTexto(e.target.value)} />
           {lidos.length > 0 && (
             <div className="space-y-1 text-sm">
-              <p>{lidos.length} @ encontrados · <b>{novos.length} novos</b> · {lidos.length - novos.length} já cadastrados</p>
-              <div className="max-h-48 overflow-y-auto rounded-lg border border-border p-2 text-xs">
-                {lidos.map((u) => <div key={u} className={existentes.has(u) ? "text-muted-foreground" : "font-medium"}>@{u}{existentes.has(u) ? " (já existe)" : ""}</div>)}
+              <p>{lidos.length} @ · <b>{novos.length} novos</b> · <b>{atualizar.length} atualizar emoji</b> · {lidos.length - novos.length - atualizar.length} sem mudança</p>
+              <div className="max-h-64 overflow-y-auto rounded-lg border border-border text-xs">
+                {lidos.map((l) => {
+                  const dup = dupSim.has(l.ex?.id ?? "novo:" + l.username);
+                  return (
+                    <div key={l.username} className={cn("flex items-center justify-between gap-2 border-b border-border px-2 py-1 last:border-0", l.acao === "sem mudança" && "text-muted-foreground", dup && "bg-destructive/10")}>
+                      <span className="truncate">@{l.username} <span className="text-base">{l.emoji}</span>{l.lista != null && <span className="text-muted-foreground"> · L{l.lista}</span>}{dup && <span className="text-destructive"> · emoji repetido</span>}</span>
+                      <span className="shrink-0 font-medium">{l.acao}{l.acao === "atualizar emoji" && l.ex?.emoji_habitual ? ` (${l.ex.emoji_habitual}→)` : ""}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
-          <Button className="h-12" disabled={!novos.length} onClick={salvarImport}>Salvar {novos.length} novas</Button>
+          <Button className="h-12" disabled={!novos.length && !atualizar.length} onClick={salvarImport}>Salvar {novos.length} novas e {atualizar.length} atualizações</Button>
         </DialogContent>
       </Dialog>
     </div>
@@ -403,7 +440,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
             <Bloco titulo={`⚠️ Conferir (${conferir.length})`}>
               {conferir.map((i) => { const m = matches[i]; return (
                 <div key={i} className="space-y-2 border-b border-border py-2 last:border-0">
-                  <p className="text-sm">Lido: <b>{m.leitura.nome}</b> {m.leitura.emoji} → sugestão <b>@{m.participante!.username}</b> <span className="text-xs text-muted-foreground">({Math.round(m.confianca * 100)}%)</span></p>
+                  <p className="text-sm">Lido: <b>{m.leitura.nome}</b> {m.leitura.emoji} → sugestão <b>@{m.participante!.username}</b>{m.porEmoji && <span className="text-xs"> pelo emoji {m.participante!.emoji_habitual}</span>} <span className="text-xs text-muted-foreground">({Math.round(m.confianca * 100)}%)</span></p>
                   <div className="flex gap-2">
                     <Button className="h-11 shrink-0" onClick={() => vincular(i, m.participante!.id)}><Check className="h-4 w-4" /> Confirmar</Button>
                     <SelectPart onChange={(v) => vincular(i, v)} />
@@ -461,7 +498,10 @@ const Linha = ({ esq, dir }: { esq: React.ReactNode; dir: React.ReactNode }) => 
 /* ---------------- Semana / Exportar ---------------- */
 function SemanaTab({ grupo }: { grupo: Grupo }) {
   const [data, setData] = useState(hoje());
-  const parts = useParticipantes(grupo.id);
+  const [lst, setLst] = useState("");
+  const partsQ = useParticipantes(grupo.id);
+  const listasExist = [...new Set((partsQ.data ?? []).map((p) => p.lista).filter((x): x is number => x != null))].sort((a, b) => a - b);
+  const parts = { data: (partsQ.data ?? []).filter((p) => !lst || String(p.lista ?? "") === lst) };
   const ini = inicioSemana(data), fim = addDias(ini, 6);
   const q = useQuery({
     queryKey: ["grupo-semana", grupo.id, ini],
@@ -486,6 +526,10 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
   return (
     <div className="space-y-3 pt-3">
       <div><label className="text-xs text-muted-foreground">Rodada (escolha o dia)</label><Input type="date" className="h-12" value={data} onChange={(e) => e.target.value && setData(e.target.value)} /></div>
+      <select className="h-12 w-full rounded-md border border-input bg-background px-2 text-sm" value={lst} onChange={(e) => setLst(e.target.value)}>
+        <option value="">Exportar a lista inteira</option>
+        {listasExist.map((n) => <option key={n} value={String(n)}>Só a Lista {n}</option>)}
+      </select>
       <p className="text-xs text-muted-foreground">Semana de {fmtData(ini)} a {fmtData(fim)} · status da rodada de {rodSel ? `${DIA_LABEL[rodSel.dia_semana]} ${fmtData(rodSel.data)}` : "—"}</p>
       <Textarea readOnly rows={12} value={texto} className="font-mono text-xs" />
       <Button className="h-12 w-full" onClick={() => navigator.clipboard.writeText(texto).then(() => toast.success("Lista copiada"), () => toast.error("Não foi possível copiar"))}><Copy className="h-4 w-4" /> Copiar lista</Button>

@@ -1,0 +1,1 @@
+ALTER TABLE public.grupo_participante ADD COLUMN lista integer;

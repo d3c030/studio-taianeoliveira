@@ -662,6 +662,7 @@ export type Database = {
           entrou_em: string
           grupo_id: string
           id: string
+          lista: number | null
           nome_exibicao: string | null
           novata: boolean
           username: string
@@ -673,6 +674,7 @@ export type Database = {
           entrou_em?: string
           grupo_id: string
           id?: string
+          lista?: number | null
           nome_exibicao?: string | null
           novata?: boolean
           username: string
@@ -684,6 +686,7 @@ export type Database = {
           entrou_em?: string
           grupo_id?: string
           id?: string
+          lista?: number | null
           nome_exibicao?: string | null
           novata?: boolean
           username?: string

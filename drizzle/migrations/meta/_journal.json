@@ -92,6 +92,13 @@
       "when": 1794844032101,
       "tag": "0012_create_check_grupos",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794844539912,
+      "tag": "0013_grupo_participante_lista",
+      "breakpoints": true
     }
   ]
 }

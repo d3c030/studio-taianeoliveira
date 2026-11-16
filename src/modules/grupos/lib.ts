@@ -2,9 +2,11 @@
 export type Participante = {
   id: string; grupo_id: string; username: string; nome_exibicao: string | null;
   emoji_habitual: string | null; apelidos: string[]; ativo: boolean; novata: boolean; entrou_em: string;
+  lista?: number | null;
 };
 export type Leitura = { nome: string; emoji: string; cortado: boolean };
-export type Match = { leitura: Leitura; participante: Participante | null; confianca: number };
+export type Match = { leitura: Leitura; participante: Participante | null; confianca: number; porEmoji?: boolean };
+export type ItemLista = { username: string; emoji: string; lista: number | null };
 
 export const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"] as const;
 export const DIA_LABEL: Record<string, string> = { dom: "Dom", seg: "Seg", ter: "Ter", qua: "Qua", qui: "Qui", sex: "Sex", sab: "Sáb" };
@@ -14,16 +16,35 @@ export const norm = (s: string) =>
   (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/(\.\.\.|…)\s*$/, "").replace(/[^a-z0-9]/g, "");
 export const normUser = (s: string) => s.trim().replace(/^@/, "").toLowerCase();
-const normEmoji = (e?: string | null) => (e || "").replace(/[\uFE0E\uFE0F\u200D]/g, "").replace(/\p{Emoji_Modifier}/gu, "").trim();
+/** Normaliza emoji: tira variation selectors e tom de pele, mantém o ZWJ (❤️‍🩹 ≠ ❤️). */
+export const normEmoji = (e?: string | null) => (e || "").replace(/[\uFE0E\uFE0F]/g, "").replace(/\p{Emoji_Modifier}/gu, "").replace(/\s+/g, "");
 
-/** Extrai os @usernames do texto colado do Notas (ignora numeração, emojis e cabeçalho). */
-export function parseLista(texto: string): string[] {
-  const out: string[] = [];
-  for (const m of texto.matchAll(/@([A-Za-z0-9._]+)/g)) {
-    const u = m[1].replace(/\.+$/, "").toLowerCase();
-    if (u && !out.includes(u)) out.push(u);
+/** Extrai {username, emoji, lista} do texto colado (lista de emojis ou formato antigo do Notas). */
+export function parseLista(texto: string): ItemLista[] {
+  const out: ItemLista[] = [];
+  let lista: number | null = null;
+  for (const linha of texto.split(/\r?\n/)) {
+    const h = linha.match(/^\s*LISTA\s*(\d+)/i);
+    if (h) { lista = Number(h[1]); continue; }
+    for (const m of linha.matchAll(/@([A-Za-z0-9._]+)([^@]*)/g)) {
+      const username = m[1].replace(/\.+$/, "").toLowerCase();
+      if (!username || out.some((x) => x.username === username)) continue;
+      const emoji = m[2].replace(/\s+/g, "").replace(/[✅❌✔✖]|🆕/gu, "");
+      out.push({ username, emoji, lista });
+    }
   }
   return out;
+}
+
+/** Ids das participantes ativas que compartilham o mesmo emoji (normalizado). */
+export function emojisDuplicados(parts: Participante[]): Map<string, string[]> {
+  const g = new Map<string, string[]>();
+  for (const p of parts) {
+    if (!p.ativo) continue;
+    const e = normEmoji(p.emoji_habitual); if (!e) continue;
+    g.set(e, [...(g.get(e) ?? []), p.id]);
+  }
+  return new Map([...g].filter(([, ids]) => ids.length > 1));
 }
 
 export function similaridade(a: string, b: string) {
@@ -75,6 +96,15 @@ export function cruzar(leituras: Leitura[], parts: Participante[]): Match[] {
     usadoL.add(x.li); usadoP.add(x.p.id);
     res[x.li] = { leitura: leituras[x.li], participante: x.p, confianca: x.s };
   }
+  // Sem casamento por nome: sugere pelo emoji só se ele for de UMA participante ativa
+  res.forEach((r, i) => {
+    if (r.participante) return;
+    const e = normEmoji(r.leitura.emoji); if (!e) return;
+    const donas = parts.filter((p) => p.ativo && normEmoji(p.emoji_habitual) === e);
+    if (donas.length !== 1 || usadoP.has(donas[0].id)) return;
+    usadoP.add(donas[0].id);
+    res[i] = { leitura: r.leitura, participante: donas[0], confianca: 0.75, porEmoji: true };
+  });
   return res;
 }
 
