@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Public read agenda_days" ON public.agenda_days;

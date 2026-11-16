@@ -99,6 +99,13 @@
       "when": 1794844539912,
       "tag": "0013_grupo_participante_lista",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794859244598,
+      "tag": "0014_drop_public_read_agenda_days",
+      "breakpoints": true
     }
   ]
 }
