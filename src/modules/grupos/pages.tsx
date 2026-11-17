@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
-  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseCadastroManual, ordenarUsernames, listasEmojis, textoEmojis, textoSemana,
+  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseCadastroManual, ordenarUsernames, listasEmojis, textoEmojis, textoSemana, naoFizeram, textoNaoFizeram, type RodadaSemana,
   type Leitura, type Participante, type CheckSemana,
 } from "./lib";
 import { ImportarLista } from "./ImportarLista";
@@ -112,12 +112,14 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
       <Tabs value={aba} onValueChange={setAba}>
         <TabsList className="flex h-auto w-full justify-start overflow-x-auto">
           <TabsTrigger value="rodada" className="py-2">Rodada</TabsTrigger>
+          <TabsTrigger value="nao" className="py-2">Não fizeram</TabsTrigger>
           <TabsTrigger value="part" className="py-2">Participantes</TabsTrigger>
           <TabsTrigger value="emojis" className="py-2">Emojis</TabsTrigger>
           <TabsTrigger value="semana" className="py-2">Semana</TabsTrigger>
           <TabsTrigger value="hist" className="py-2">Histórico</TabsTrigger>
         </TabsList>
         <TabsContent value="rodada"><RodadaDia grupo={g.data} onAjustar={(semana) => { setSemanaAjuste(semana); setAba("semana"); }} /></TabsContent>
+        <TabsContent value="nao"><NaoFizeramTab grupo={g.data} onIrRodada={() => setAba("rodada")} /></TabsContent>
         <TabsContent value="part"><ParticipantesTab grupo={g.data} /></TabsContent>
         <TabsContent value="emojis"><EmojisTab grupo={g.data} /></TabsContent>
         <TabsContent value="semana"><SemanaTab grupo={g.data} semanaInicial={semanaAjuste} /></TabsContent>
@@ -708,6 +710,110 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
         ))}
         {!stats.length && <p className="py-3 text-sm text-muted-foreground">Nenhuma rodada fechada no período.</p>}
       </Bloco>
+    </div>
+  );
+}
+
+/* ---------------- Não fizeram ---------------- */
+function NaoFizeramTab({ grupo, onIrRodada }: { grupo: Grupo; onIrRodada: () => void }) {
+  const qc = useQueryClient();
+  const [ini, setIni] = useState(inicioSemana(hoje()));
+  const [sel, setSel] = useState<string | null>(null); // data ou "semana"
+  const [lst, setLst] = useState("");
+  const [escolha, setEscolha] = useState<{ p: Participante; faltas: RodadaSemana[] } | null>(null);
+  const [salvando, setSalvando] = useState<string | null>(null);
+  const partsQ = useParticipantes(grupo.id);
+  const q = useRodadasSemana(grupo.id, ini);
+  const rodadas = q.data?.rodadas ?? [];
+  const datas = diasConferencia(ini, grupo.dias_missao);
+  const ultimaFechada = datas.filter((d) => rodadas.some((r) => r.data === d && r.status === "fechada")).at(-1) ?? null;
+  const atual = sel ?? ultimaFechada ?? "semana";
+  const listasExist = [...new Set((partsQ.data ?? []).map((p) => p.lista).filter((x): x is number => x != null))].sort((a, b) => a - b);
+  const lista = lst ? Number(lst) : null;
+  const rodDia = atual !== "semana" ? rodadas.find((r) => r.data === atual) : undefined;
+  const ativas = (partsQ.data ?? []).filter((p) => p.ativo && (lista == null || p.lista === lista));
+  const totalBase = atual === "semana" ? ativas.length : ativas.filter((p) => p.entrou_em <= atual).length;
+  const itens = useMemo(() => {
+    const rs = atual === "semana" ? rodadas : rodDia?.status === "fechada" ? [rodDia] : [];
+    return naoFizeram({ participantes: partsQ.data ?? [], rodadas: rs, checks: q.data?.checks ?? [], lista });
+  }, [atual, rodadas, rodDia, partsQ.data, q.data, lista]);
+  const texto = atual === "semana" ? textoNaoFizeram(itens, { semana: ini }) : rodDia ? textoNaoFizeram(itens, { dia: rodDia }) : "";
+  const refresh = () => Promise.all([
+    qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] }),
+    qc.invalidateQueries({ queryKey: ["grupo-rodada", grupo.id] }),
+    qc.invalidateQueries({ queryKey: ["grupo-hist", grupo.id] }),
+  ]);
+  const ajustar = async (p: Participante, rs: RodadaSemana[]) => {
+    if (salvando) return;
+    setSalvando(p.id);
+    try {
+      for (const r of rs) {
+        const { error } = await supabase.rpc("grupo_ajustar_check", { p_rodada: r.id, p_participante: p.id, p_status: "ok", p_obs: "Atualizou depois" });
+        if (error) throw error;
+      }
+      await refresh(); setEscolha(null); toast.success(`@${p.username} marcada como feita`);
+    } catch (e) { toast.error((e as Error).message || "Não foi possível ajustar"); }
+    finally { setSalvando(null); }
+  };
+  if (partsQ.isLoading || q.isLoading) return <p role="status" className="py-4 text-sm text-muted-foreground">Carregando…</p>;
+  if (partsQ.error || q.error) return <div role="alert" className="space-y-3 pt-3"><p className="text-sm text-destructive">Não foi possível carregar.</p><Button variant="outline" onClick={() => { partsQ.refetch(); q.refetch(); }}><RefreshCw className="h-4 w-4" /> Tentar novamente</Button></div>;
+  const naoFechada = atual !== "semana" && rodDia?.status !== "fechada";
+  return (
+    <div className="space-y-3 pt-3">
+      <SeletorSemana semana={ini} onChange={(v) => { setIni(v); setSel(null); }} />
+      <div className="flex flex-wrap gap-2">
+        {datas.map((d) => {
+          const r = rodadas.find((x) => x.data === d);
+          return <Button key={d} variant={atual === d ? "default" : "outline"} className="h-12 min-w-20" onClick={() => setSel(d)}>
+            {DIA_LABEL[diaSemana(d)]} {fmtData(d)} {r?.status === "fechada" ? "🔒" : r ? "⏳" : ""}
+          </Button>;
+        })}
+        <Button variant={atual === "semana" ? "default" : "outline"} className="h-12" onClick={() => setSel("semana")}>Semana inteira</Button>
+      </div>
+      <select aria-label="Filtrar por lista" className="h-12 w-full rounded-md border border-input bg-background px-2 text-sm" value={lst} onChange={(e) => setLst(e.target.value)}>
+        <option value="">Todas</option>
+        {listasExist.map((n) => <option key={n} value={String(n)}>Lista {n}</option>)}
+      </select>
+      {naoFechada ? (
+        <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm">
+          <p className="font-semibold">Rodada ainda não fechada</p>
+          <Button variant="link" className="h-11 px-0" onClick={onIrRodada}>Ir para a aba Rodada</Button>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm font-semibold">{itens.length} não fizeram de {totalBase}</p>
+          {itens.length === 0 ? <p className="rounded-xl border border-border bg-card p-6 text-center text-lg">Todas fizeram 🎉</p> : (
+            <>
+              <Button className="h-12 w-full" onClick={() => navigator.clipboard.writeText(texto).then(() => toast.success("Lista copiada"), () => toast.error("Não foi possível copiar"))}><Copy className="h-4 w-4" /> Copiar lista</Button>
+              <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+                {itens.map((x, i) => (
+                  <li key={x.participante.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 text-sm">
+                    <span className="w-6 text-muted-foreground">{i + 1}.</span>
+                    <PerfilLink username={x.participante.username} />
+                    <span className="text-lg">{x.participante.emoji_habitual ?? ""}</span>
+                    {x.participante.lista != null && <span className="rounded bg-muted px-1.5 text-xs">L{x.participante.lista}</span>}
+                    {atual === "semana" && <span className="w-full pl-9 text-xs text-muted-foreground sm:w-auto sm:pl-0">{x.dias.filter((d) => d.fez !== null).map((d) => `${DIA_LABEL[d.rodada.dia_semana]} ${d.fez ? "✅" : "❌"}`).join(" · ")}</span>}
+                    <Button variant="outline" size="sm" className="ml-auto h-11" disabled={!!salvando}
+                      onClick={() => atual === "semana" && x.faltas.length > 1 ? setEscolha({ p: x.participante, faltas: x.faltas }) : ajustar(x.participante, x.faltas)}>
+                      {salvando === x.participante.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "✅"} Fez depois
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      )}
+      <Dialog open={!!escolha} onOpenChange={(v) => { if (!v && !salvando) setEscolha(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="break-words">Fez depois · {escolha && <PerfilLink username={escolha.p.username} />}</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Qual dia ela atualizou?</p>
+          <div className="grid gap-2">
+            {escolha?.faltas.map((r) => <Button key={r.id} variant="outline" className="h-12" disabled={!!salvando} onClick={() => ajustar(escolha.p, [r])}>✅ {DIA_LABEL[r.dia_semana]} {fmtData(r.data)}</Button>)}
+            <Button className="h-12" disabled={!!salvando} onClick={() => escolha && ajustar(escolha.p, escolha.faltas)}><ListChecks className="h-4 w-4" /> Regularizar semana</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

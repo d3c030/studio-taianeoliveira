@@ -213,3 +213,29 @@ export function textoSemana(opts: {
     });
   return ["Lista de atualização da semana", `(${cab})`, "✅=Atualizou os pedidos do dia", "❌=Não atualizou os pedidos do dia", "🆕=Novatas(não estava no grupo)", "", ...lista].join("\n");
 }
+
+/** Faltas por participante em rodadas FECHADAS. Sem check = ❌; status ajustado vale. Inativas e não elegíveis ficam fora. */
+export type FaltaDia = { rodada: RodadaSemana; fez: boolean | null };
+export type NaoFez = { participante: Participante; dias: FaltaDia[]; faltas: RodadaSemana[] };
+export function naoFizeram(opts: { participantes: Participante[]; rodadas: RodadaSemana[]; checks: CheckSemana[]; lista?: number | null }): NaoFez[] {
+  const fechadas = opts.rodadas.filter((r) => r.status === "fechada").sort((a, b) => a.data.localeCompare(b.data));
+  const st = new Map(opts.checks.map((c) => [`${c.rodada_id}|${c.participante_id}`, c.status]));
+  return opts.participantes
+    .filter((p) => p.ativo && (opts.lista == null || p.lista === opts.lista))
+    .map((p) => {
+      const dias = fechadas.map((r) => ({ rodada: r, fez: p.entrou_em > r.data ? null : st.get(`${r.id}|${p.id}`) === "ok" }));
+      return { participante: p, dias, faltas: dias.filter((d) => d.fez === false).map((d) => d.rodada) };
+    })
+    .filter((x) => x.faltas.length > 0)
+    .sort((a, b) => b.faltas.length - a.faltas.length || ordenarUsernames(a.participante.username, b.participante.username));
+}
+const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+export function textoNaoFizeram(itens: NaoFez[], modo: { dia: RodadaSemana } | { semana: string }) {
+  const ord = [...itens].sort((a, b) => ordenarUsernames(a.participante.username, b.participante.username));
+  if ("dia" in modo) {
+    return [`Não atualizaram – ${DIA_LABEL[modo.dia.dia_semana] ?? modo.dia.dia_semana} ${ddmm(modo.dia.data)}`, ...ord.map((x, i) => `${i + 1}. @${normUser(x.participante.username)}`)].join("\n");
+  }
+  const ini = inicioSemana(modo.semana);
+  return [`Não atualizaram – semana de ${ddmm(ini)} a ${ddmm(addDias(ini, 6))}`,
+    ...ord.map((x, i) => `${i + 1}. @${normUser(x.participante.username)} (${x.faltas.map((r) => DIA_LABEL[r.dia_semana] ?? r.dia_semana).join(", ")})`)].join("\n");
+}

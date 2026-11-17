@@ -156,3 +156,40 @@ describe("check de grupos", () => {
     expect(t).toContain("1. @ana 🆕\n2. @bia ✅");
   });
 });
+
+import { naoFizeram, textoNaoFizeram } from "./lib";
+describe("não fizeram", () => {
+  const seg = { id: "rs", data: "2026-11-16", dia_semana: "seg", status: "fechada" as const };
+  const qua = { id: "rq", data: "2026-11-18", dia_semana: "qua", status: "fechada" as const };
+  const sex = { id: "rx", data: "2026-11-20", dia_semana: "sex", status: "aberta" as const };
+  const parts = [P({ username: "bia" }), P({ username: "ana" }), P({ username: "caca" }), P({ username: "inativa", ativo: false }), P({ username: "nova", entrou_em: "2026-11-19" })];
+  const checks = [
+    { rodada_id: "rq", participante_id: "bia", status: "nao" as const },
+    { rodada_id: "rq", participante_id: "ana", status: "ok" as const, ajustado_em: "2026-11-19T10:00:00Z", status_original: "nao" as const },
+    { rodada_id: "rq", participante_id: "caca", status: "nao" as const },
+    { rodada_id: "rs", participante_id: "bia", status: "ok" as const },
+    { rodada_id: "rs", participante_id: "ana", status: "ok" as const },
+  ];
+  test("modo dia lista só ❌ da rodada, alfabético no texto", () => {
+    const r = naoFizeram({ participantes: parts, rodadas: [qua], checks });
+    expect(r.map((x) => x.participante.username).sort()).toEqual(["bia", "caca"]);
+    expect(textoNaoFizeram(r, { dia: qua })).toBe("Não atualizaram – Qua 18/11\n1. @bia\n2. @caca");
+  });
+  test("status ajustado conta como ✅", () => {
+    expect(naoFizeram({ participantes: parts, rodadas: [qua], checks }).some((x) => x.participante.username === "ana")).toBe(false);
+  });
+  test("inativas e não elegíveis ficam fora", () => {
+    const nomes = naoFizeram({ participantes: parts, rodadas: [seg, qua], checks }).map((x) => x.participante.username);
+    expect(nomes).not.toContain("inativa");
+    expect(nomes).not.toContain("nova");
+  });
+  test("modo semana ordena por faltas, ignora rodada aberta e mostra os dias", () => {
+    const r = naoFizeram({ participantes: parts, rodadas: [seg, qua, sex], checks });
+    expect(r.map((x) => [x.participante.username, x.faltas.length])).toEqual([["caca", 2], ["bia", 1]]);
+    expect(textoNaoFizeram(r, { semana: "2026-11-18" })).toBe("Não atualizaram – semana de 16/11 a 22/11\n1. @bia (Qua)\n2. @caca (Seg, Qua)");
+  });
+  test("filtro por lista", () => {
+    const ps = [P({ username: "l1", lista: 1 }), P({ username: "l2", lista: 2 })];
+    expect(naoFizeram({ participantes: ps, rodadas: [qua], checks: [], lista: 2 }).map((x) => x.participante.username)).toEqual(["l2"]);
+  });
+});
