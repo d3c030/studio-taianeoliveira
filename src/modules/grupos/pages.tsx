@@ -81,6 +81,7 @@ export function GruposLista() {
 function useParticipantes(grupoId: string) {
   return useQuery({
     queryKey: ["grupo-part", grupoId],
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data, error } = await db.from("grupo_participante").select("*").eq("grupo_id", grupoId).order("username");
       if (error) throw error;
@@ -125,6 +126,7 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
 function useRodadasSemana(grupoId: string, semana: string) {
   return useQuery({
     queryKey: ["grupo-semana", grupoId, semana],
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data: rs, error } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupoId).gte("data", semana).lte("data", addDias(semana, 6));
       if (error) throw error;
@@ -430,6 +432,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
     setManual({}); setLeituras([]); setConfirmadas({}); setPrints([]);
     qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] });
     qc.invalidateQueries({ queryKey: ["grupo-rodada", grupo.id, data] });
+    qc.invalidateQueries({ queryKey: ["grupo-hist", grupo.id] });
   };
 
   const SelectPart = ({ value, onChange }: { value?: string; onChange: (v: string) => void }) => (
@@ -562,9 +565,15 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
     const c = q.data?.checks.find((x) => x.rodada_id === r.id && x.participante_id === pid);
     return c ? (c.status === "ok" ? "✅" : "❌") : "–";
   };
+  const carregando = partsQ.isLoading || q.isLoading;
+  const erro = partsQ.error || q.error;
+  const atualizar = () => { partsQ.refetch(); q.refetch(); };
+  if (carregando) return <p role="status" className="py-4 text-sm text-muted-foreground">Carregando a semana…</p>;
+  if (erro) return <div role="alert" className="space-y-3 pt-3"><p className="text-sm text-destructive">Não foi possível carregar a semana. Os checks salvos não foram alterados.</p><Button variant="outline" onClick={atualizar}><RefreshCw className="h-4 w-4" /> Tentar novamente</Button></div>;
   return (
     <div className="space-y-3 pt-3">
       <SeletorSemana semana={ini} onChange={setIni} />
+      <Button variant="outline" disabled={q.isFetching || partsQ.isFetching} onClick={atualizar}><RefreshCw className={cn("h-4 w-4", q.isFetching && "animate-spin")} /> Atualizar informações</Button>
       <select className="h-12 w-full rounded-md border border-input bg-background px-2 text-sm" value={lst} onChange={(e) => setLst(e.target.value)}>
         <option value="">Exportar a lista inteira</option>
         {listasExist.map((n) => <option key={n} value={String(n)}>Só a Lista {n}</option>)}
@@ -598,10 +607,13 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
   const parts = useParticipantes(grupo.id);
   const q = useQuery({
     queryKey: ["grupo-hist", grupo.id, de, ate],
+    refetchOnMount: "always",
     queryFn: async () => {
-      const { data: rs } = await db.from("grupo_rodada").select("id").eq("grupo_id", grupo.id).eq("status", "fechada").gte("data", de).lte("data", ate);
+      const { data: rs, error } = await db.from("grupo_rodada").select("id").eq("grupo_id", grupo.id).eq("status", "fechada").gte("data", de).lte("data", ate);
+      if (error) throw error;
       const ids = (rs ?? []).map((r: { id: string }) => r.id);
-      const { data: cs } = ids.length ? await db.from("grupo_check").select("participante_id,status").in("rodada_id", ids) : { data: [] };
+      const { data: cs, error: checksError } = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status").in("rodada_id", ids) : { data: [], error: null };
+      if (checksError) throw checksError;
       return { n: ids.length, checks: (cs ?? []) as CheckRow[] };
     },
   });
@@ -609,10 +621,14 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
     const cs = (q.data?.checks ?? []).filter((c) => c.participante_id === p.id);
     const ok = cs.filter((c) => c.status === "ok").length;
     return { p, ok, faltas: cs.length - ok, total: cs.length, taxa: cs.length ? ok / cs.length : 0 };
-  }).filter((s) => s.total > 0).sort((a, b) => b.faltas - a.faltas || a.taxa - b.taxa);
+  }).filter((s) => s.total > 0).sort((a, b) => b.faltas - a.faltas || a.taxa - b.taxa || ordenarUsernames(a.p.username, b.p.username));
   const media = stats.length ? stats.reduce((s, x) => s + x.taxa, 0) / stats.length : 0;
+  const atualizar = () => { parts.refetch(); q.refetch(); };
+  if (parts.isLoading || q.isLoading) return <p role="status" className="py-4 text-sm text-muted-foreground">Carregando o histórico…</p>;
+  if (parts.error || q.error) return <div role="alert" className="space-y-3 pt-3"><p className="text-sm text-destructive">Não foi possível carregar o histórico. Os checks salvos não foram alterados.</p><Button variant="outline" onClick={atualizar}><RefreshCw className="h-4 w-4" /> Tentar novamente</Button></div>;
   return (
     <div className="space-y-3 pt-3">
+      <Button variant="outline" disabled={q.isFetching || parts.isFetching} onClick={atualizar}><RefreshCw className={cn("h-4 w-4", q.isFetching && "animate-spin")} /> Atualizar informações</Button>
       <div className="grid grid-cols-2 gap-2">
         <div><label className="text-xs text-muted-foreground">De</label><Input type="date" className="h-12" value={de} onChange={(e) => setDe(e.target.value)} /></div>
         <div><label className="text-xs text-muted-foreground">Até</label><Input type="date" className="h-12" value={ate} onChange={(e) => setAte(e.target.value)} /></div>

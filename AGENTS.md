@@ -3,3 +3,4 @@
 - Keep group participant entry defaults and São Paulo day conversion in that same module so every registration path shares the tested policy.
 - Close group rounds through a transactional database function and protect closed rounds with database triggers so partial saves and concurrent edits cannot overwrite finalized checks.
 - Reuse the group list importer in the Participants dialog and Emojis tab so parsing, preview warnings and saving follow the same rules.
+- Group reports refresh saved queries on tab mount and invalidate history on reopening rounds so closed-round statistics cannot remain cached after corrections.
