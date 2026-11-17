@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from "bun:test";
-import { cadastroEntrada, hojeSaoPaulo, cruzar, emojisDuplicados, parseLista, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
+import { cadastroEntrada, hojeSaoPaulo, cruzar, emojisDuplicados, parseLista, parseCadastroManual, ordenarUsernames, textoEmojis, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
 
 const P = (o: Partial<Participante>): Participante => ({ id: o.username ?? "x", grupo_id: "g", nome_exibicao: null, emoji_habitual: null, apelidos: [], ativo: true, novata: false, entrou_em: "2026-01-01", username: "x", ...o });
 
@@ -88,7 +88,35 @@ describe("check de grupos", () => {
       { username: "gaabydelenaa25", emoji: "✅", lista: null }, { username: "professora_kammylla", emoji: "✅", lista: null }]);
   });
   test("formato antigo numerado: ✅ é status, emoji vazio", () => {
-    expect(parseLista("1. @fulana ✅")).toEqual([{ username: "fulana", emoji: "", lista: null }]);
+    expect(parseLista("Lista de atualização da semana\n1. @fulana ✅")).toEqual([{ username: "fulana", emoji: "", lista: null }]);
+  });
+  test("numeração sem cabeçalho de atualização preserva ✅❌🆕", () => {
+    expect(parseLista("1. @fulana ✅\n2. @sicrana ❌\n3. @novata 🆕").map((p) => p.emoji)).toEqual(["✅", "❌", "🆕"]);
+  });
+  test("ordena usernames ignorando pontos e sublinhados iniciais com números naturais", () => {
+    expect(["_ericarodrigss", "adri.anacostaalves", "thaynara2_8", "thaynara10", "Zeca", "_mavii.estelar"].sort(ordenarUsernames)).toEqual(["adri.anacostaalves", "_ericarodrigss", "_mavii.estelar", "thaynara2_8", "thaynara10", "Zeca"]);
+    expect([".._erica", "adri"].sort(ordenarUsernames)).toEqual(["adri", ".._erica"]);
+  });
+  test("exportar emojis e ler novamente mantém username, emoji e lista inclusive ✅", () => {
+    const parts = [P({ username: "sicrana", emoji_habitual: "👄", lista: 1 }), P({ username: "fulana", emoji_habitual: "💅🏽", lista: 1 }), P({ username: "gaabydelenaa25", emoji_habitual: "✅", lista: 2 }), P({ username: "professora_kammylla", emoji_habitual: "✅", lista: 3 }), P({ username: "sem_lista", emoji_habitual: "🙆🏻‍♀️", lista: null }), P({ username: "inativa", ativo: false, lista: 1 })];
+    expect(parseLista(textoEmojis(parts))).toEqual([
+      { username: "fulana", emoji: "💅🏽", lista: 1 }, { username: "sicrana", emoji: "👄", lista: 1 },
+      { username: "gaabydelenaa25", emoji: "✅", lista: 2 }, { username: "professora_kammylla", emoji: "✅", lista: 3 },
+      { username: "sem_lista", emoji: "🙆🏻‍♀️", lista: null },
+    ]);
+  });
+  test("exportações numeram sem pular e usam a mesma ordem", () => {
+    const parts = [P({ username: "thaynara10", lista: 1 }), P({ username: "_ericarodrigss", lista: 1 }), P({ username: "adri.anacostaalves", lista: 1 }), P({ username: "inativa", ativo: false, lista: 1 })];
+    const esperado = ["1. @adri.anacostaalves", "2. @_ericarodrigss", "3. @thaynara10"];
+    expect(textoEmojis(parts).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado);
+    expect(textoSemana({ dias: ["seg"], fechados: new Set(), participantes: parts, status: new Map() }).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado.map((l) => `${l} ❌`));
+  });
+  test("cadastro manual separa username e emoji composto", () => {
+    expect(parseCadastroManual("@mariicelia_santos 🙆🏻‍♀️")).toEqual({ username: "mariicelia_santos", emoji: "🙆🏻‍♀️", lista: null });
+    expect(parseCadastroManual("  Mari.Celia_2 ✅ ")).toEqual({ username: "mari.celia_2", emoji: "✅", lista: null });
+  });
+  test("cadastro manual rejeita caracteres fora de a-z0-9._ e várias participantes", () => {
+    for (const texto of ["@maria-silva", "@mária", "@maria/", "@maria @outra", "", "@maria🙆🏻‍♀️"]) expect(parseCadastroManual(texto)).toBeNull();
   });
   test("sugestão por emoji único = 0.75", () => {
     const m = cruzar([{ nome: "Fulana Qualquer", emoji: "🍓", cortado: false }], [P({ username: "kamylli", emoji_habitual: "🍓" }), P({ username: "outra", emoji_habitual: "💕" })]);

@@ -13,9 +13,10 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
-  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
+  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseCadastroManual, ordenarUsernames, listasEmojis, textoEmojis, textoSemana,
   type Leitura, type Participante,
 } from "./lib";
+import { ImportarLista } from "./ImportarLista";
 
 const db = supabase as any;
 type Grupo = { id: string; nome: string; dias_missao: string[]; criado_em: string };
@@ -104,14 +105,16 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
       <h1 className="text-2xl font-bold">{g.data.nome}</h1>
       <Pendencias grupo={g.data} />
       <Tabs defaultValue="rodada">
-        <TabsList className="grid h-auto w-full grid-cols-4">
+        <TabsList className="flex h-auto w-full justify-start overflow-x-auto">
           <TabsTrigger value="rodada" className="py-2">Rodada</TabsTrigger>
           <TabsTrigger value="part" className="py-2">Participantes</TabsTrigger>
+          <TabsTrigger value="emojis" className="py-2">Emojis</TabsTrigger>
           <TabsTrigger value="semana" className="py-2">Semana</TabsTrigger>
           <TabsTrigger value="hist" className="py-2">Histórico</TabsTrigger>
         </TabsList>
         <TabsContent value="rodada"><RodadaDia grupo={g.data} /></TabsContent>
         <TabsContent value="part"><ParticipantesTab grupo={g.data} /></TabsContent>
+        <TabsContent value="emojis"><EmojisTab grupo={g.data} /></TabsContent>
         <TabsContent value="semana"><SemanaTab grupo={g.data} /></TabsContent>
         <TabsContent value="hist"><HistoricoTab grupo={g.data} /></TabsContent>
       </Tabs>
@@ -153,43 +156,12 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
   const qc = useQueryClient();
   const q = useParticipantes(grupo.id);
   const [imp, setImp] = useState(false);
-  const [texto, setTexto] = useState("");
-  const [importarNovatas, setImportarNovatas] = useState(false);
   const [busca, setBusca] = useState("");
   const [mostrarInativas, setMostrarInativas] = useState(false);
   const [filtroLista, setFiltroLista] = useState<string>("");
-  const porUser = new Map((q.data ?? []).map((p) => [p.username, p]));
-  const lidos = parseLista(texto).map((it) => {
-    const ex = porUser.get(it.username);
-    const acao = !ex ? "novo" : it.emoji && normEmoji(it.emoji) !== normEmoji(ex.emoji_habitual) ? "atualizar emoji" : "sem mudança";
-    return { ...it, ex, acao } as const;
-  });
-  const novos = lidos.filter((l) => l.acao === "novo");
-  const atualizar = lidos.filter((l) => l.acao === "atualizar emoji");
-  // participantes como ficariam após a importação, para avisar emojis repetidos
-  const simulado: Participante[] = [
-    ...(q.data ?? []).map((p) => { const l = lidos.find((x) => x.username === p.username); return l?.acao === "atualizar emoji" ? { ...p, emoji_habitual: l.emoji } : p; }),
-    ...novos.map((l) => ({ id: "novo:" + l.username, grupo_id: grupo.id, username: l.username, nome_exibicao: null, emoji_habitual: l.emoji || null, apelidos: [], ativo: true, novata: false, entrou_em: "", lista: l.lista })),
-  ];
-  const dupSim = new Set([...emojisDuplicados(simulado).values()].flat());
   const dupAtual = new Set([...emojisDuplicados(q.data ?? []).values()].flat());
   const refresh = () => qc.invalidateQueries({ queryKey: ["grupo-part", grupo.id] });
 
-  const salvarImport = async () => {
-    if (novos.length) {
-      const { error } = await db.from("grupo_participante").insert(novos.map((l) => ({ grupo_id: grupo.id, username: l.username, emoji_habitual: l.emoji || null, lista: l.lista, ...cadastroEntrada(importarNovatas) })));
-      if (error) return toast.error(error.message);
-    }
-    for (const l of atualizar) {
-      if (!l.ex) continue;
-      const v: Record<string, unknown> = { emoji_habitual: l.emoji };
-      if (l.lista != null) v.lista = l.lista;
-      const { error } = await db.from("grupo_participante").update(v).eq("id", l.ex.id);
-      if (error) return toast.error(error.message);
-    }
-    toast.success(`${novos.length} novas · ${atualizar.length} emojis atualizados`);
-    setTexto(""); setImportarNovatas(false); setImp(false); refresh();
-  };
   const patch = async (id: string, v: Partial<Participante>) => {
     const { error } = await db.from("grupo_participante").update(v).eq("id", id);
     if (error) toast.error(error.message); else refresh();
@@ -249,44 +221,56 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
       <Dialog open={imp} onOpenChange={setImp}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Importar lista do Notas</DialogTitle></DialogHeader>
-          <label className="flex items-center gap-2 text-sm"><Switch checked={importarNovatas} onCheckedChange={setImportarNovatas} /> Importar como novatas</label>
-          <Textarea rows={8} placeholder="Cole aqui a lista (1. @fulana ❌ …)" value={texto} onChange={(e) => setTexto(e.target.value)} />
-          {lidos.length > 0 && (
-            <div className="space-y-1 text-sm">
-              <p>{lidos.length} @ · <b>{novos.length} novos</b> · <b>{atualizar.length} atualizar emoji</b> · {lidos.length - novos.length - atualizar.length} sem mudança</p>
-              <div className="max-h-64 overflow-y-auto rounded-lg border border-border text-xs">
-                {lidos.map((l) => {
-                  const dup = dupSim.has(l.ex?.id ?? "novo:" + l.username);
-                  return (
-                    <div key={l.username} className={cn("flex items-center justify-between gap-2 border-b border-border px-2 py-1 last:border-0", l.acao === "sem mudança" && "text-muted-foreground", dup && "bg-destructive/10")}>
-                      <span className="truncate">@{l.username} <span className="text-base">{l.emoji}</span>{l.lista != null && <span className="text-muted-foreground"> · L{l.lista}</span>}{dup && <span className="text-destructive"> · emoji repetido</span>}</span>
-                      <span className="shrink-0 font-medium">{l.acao}{l.acao === "atualizar emoji" && l.ex?.emoji_habitual ? ` (${l.ex.emoji_habitual}→)` : ""}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          <Button className="h-12" disabled={!novos.length && !atualizar.length} onClick={salvarImport}>Salvar {novos.length} novas e {atualizar.length} atualizações</Button>
+          <ImportarLista grupoId={grupo.id} participantes={q.data ?? []} onDone={() => { refresh(); setImp(false); }} />
         </DialogContent>
       </Dialog>
     </div>
   );
 }
 
+function EmojisTab({ grupo }: { grupo: Grupo }) {
+  const qc = useQueryClient();
+  const q = useParticipantes(grupo.id);
+  const refresh = () => qc.invalidateQueries({ queryKey: ["grupo-part", grupo.id] });
+  const duplicados = new Set([...emojisDuplicados(q.data ?? []).values()].flat());
+  const patch = async (id: string, valores: Partial<Participante>) => {
+    const { error } = await db.from("grupo_participante").update(valores).eq("id", id);
+    if (error) toast.error(error.message); else refresh();
+  };
+  return <div className="space-y-5 pt-3">
+    <ImportarLista grupoId={grupo.id} participantes={q.data ?? []} onDone={refresh} />
+    <Button variant="outline" className="min-h-12 w-full whitespace-normal" disabled={q.isLoading || !q.data?.some((p) => p.ativo)} onClick={() => navigator.clipboard.writeText(textoEmojis(q.data ?? [])).then(() => toast.success("Lista de emojis copiada"), () => toast.error("Não foi possível copiar"))}><Copy className="h-4 w-4 shrink-0" /> Copiar lista de emojis</Button>
+    {listasEmojis(q.data ?? []).map(({ lista, participantes }) => <section key={lista ?? "sem-lista"} className="space-y-2">
+      <h2 className="text-lg font-semibold">{lista == null ? "Sem lista" : `Lista ${lista}`} <span className="text-sm text-muted-foreground">({participantes.length})</span></h2>
+      <ol className="divide-y divide-border">
+        {participantes.map((p, i) => <li key={p.id} className={cn("py-3", duplicados.has(p.id) && "text-destructive")}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="min-w-0 break-all text-sm font-medium">{i + 1}. @{p.username} {p.emoji_habitual}</span>
+            <div className="flex shrink-0 gap-2">
+              <Input key={`emoji-${p.id}-${p.emoji_habitual}`} aria-label={`Emoji de @${p.username}`} defaultValue={p.emoji_habitual ?? ""} placeholder="Emoji" className="h-11 w-20 text-center text-base" onBlur={(e) => { if (e.target.value !== (p.emoji_habitual ?? "")) patch(p.id, { emoji_habitual: e.target.value || null }); }} />
+              <Input key={`lista-${p.id}-${p.lista}`} aria-label={`Lista de @${p.username}`} type="number" inputMode="numeric" defaultValue={p.lista ?? ""} placeholder="Lista" className="h-11 w-20 text-center" onBlur={(e) => { const v = e.target.value ? Number(e.target.value) : null; if (v !== (p.lista ?? null)) patch(p.id, { lista: v }); }} />
+            </div>
+          </div>
+          {duplicados.has(p.id) && <p className="mt-1 text-xs">⚠️ Emoji repetido entre participantes ativas</p>}
+        </li>)}
+      </ol>
+    </section>)}
+  </div>;
+}
+
 function NovaParticipante({ grupoId, onDone }: { grupoId: string; onDone: () => void }) {
   const [u, setU] = useState("");
   const add = async () => {
-    const username = normUser(u);
-    if (!username) return;
-    const { error } = await db.from("grupo_participante").insert({ grupo_id: grupoId, username, ...cadastroEntrada() });
+    const item = parseCadastroManual(u);
+    if (!item) return toast.error("Digite uma @ válida, usando apenas letras, números, ponto e sublinhado, seguida do emoji se desejar.");
+    const { error } = await db.from("grupo_participante").insert({ grupo_id: grupoId, username: item.username, emoji_habitual: item.emoji || null, ...cadastroEntrada() });
     if (error) return toast.error(error.code === "23505" ? "Essa @ já está no grupo" : error.message);
     setU(""); onDone();
   };
   return (
     <div className="flex flex-1 gap-2">
       <Input className="h-11" placeholder="@nova" value={u} onChange={(e) => setU(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
-      <Button variant="outline" className="h-11" onClick={add}><Plus className="h-4 w-4" /></Button>
+      <Button variant="outline" aria-label="Adicionar participante" className="h-11" onClick={add}><Plus className="h-4 w-4" /></Button>
     </div>
   );
 }
@@ -567,7 +551,7 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
   const [lst, setLst] = useState("");
   const partsQ = useParticipantes(grupo.id);
   const listasExist = [...new Set((partsQ.data ?? []).map((p) => p.lista).filter((x): x is number => x != null))].sort((a, b) => a - b);
-  const parts = { data: (partsQ.data ?? []).filter((p) => !lst || String(p.lista ?? "") === lst) };
+  const parts = { data: (partsQ.data ?? []).filter((p) => !lst || String(p.lista ?? "") === lst).sort((a, b) => ordenarUsernames(a.username, b.username)) };
   const q = useRodadasSemana(grupo.id, ini);
   const rodadas = q.data?.rodadas ?? [];
   const porDia = new Map(rodadas.filter((r) => r.status === "fechada").map((r) => [r.dia_semana, r]));
@@ -592,8 +576,8 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
         <table className="w-full text-sm">
           <thead><tr className="border-b border-border"><th className="p-2 text-left">Participante</th>{grupo.dias_missao.map((d) => <th key={d} className="p-2">{DIA_LABEL[d]}</th>)}</tr></thead>
           <tbody>
-            {(parts.data ?? []).filter((p) => p.ativo).map((p) => (
-              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">@{p.username}</td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p.id, d)}</td>)}</tr>
+            {(parts.data ?? []).filter((p) => p.ativo).map((p, i) => (
+              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. @{p.username}</td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p.id, d)}</td>)}</tr>
             ))}
           </tbody>
           <tfoot><tr className="border-t border-border font-semibold"><td className="p-2">Total ✅</td>{grupo.dias_missao.map((d) => {

@@ -30,11 +30,13 @@ export const normEmoji = (e?: string | null) => (e || "").replace(/[\uFE0E\uFE0F
 /** Extrai {username, emoji, lista} do texto colado (lista de emojis ou formato antigo do Notas). */
 export function parseLista(texto: string): ItemLista[] {
   const out: ItemLista[] = [];
+  const atualizacao = /Lista de atualização da semana/i.test(texto);
   let lista: number | null = null;
   for (const linha of texto.split(/\r?\n/)) {
+    if (/^\s*SEM LISTA\s*$/i.test(linha)) { lista = null; continue; }
     const h = linha.match(/^\s*LISTA\s*(\d+)/i);
     if (h) { lista = Number(h[1]); continue; }
-    const antigo = /^\s*\d+\.\s*@/.test(linha); // formato numerado do Notas: ✅❌🆕 são status
+    const antigo = atualizacao && /^\s*\d+\.\s*@/.test(linha);
     for (const m of linha.matchAll(/@([A-Za-z0-9._]+)([^@]*)/g)) {
       const username = m[1].replace(/\.+$/, "").toLowerCase();
       if (!username || out.some((x) => x.username === username)) continue;
@@ -44,6 +46,31 @@ export function parseLista(texto: string): ItemLista[] {
     }
   }
   return out;
+}
+
+/** Uma única ordem para tabelas e textos: ignora pontuação inicial e compara números. */
+export const ordenarUsernames = (a: string, b: string) =>
+  a.replace(/^[_.]+/, "").localeCompare(b.replace(/^[_.]+/, ""), "pt-BR", { sensitivity: "base", numeric: true });
+
+export function listasEmojis(parts: Participante[]) {
+  const ativas = parts.filter((p) => p.ativo);
+  const numeros = [...new Set(ativas.flatMap((p) => p.lista == null ? [] : [p.lista]))].sort((a, b) => a - b);
+  const listas: (number | null)[] = [...numeros, ...(ativas.some((p) => p.lista == null) ? [null] : [])];
+  return listas.map((lista) => ({ lista, participantes: ativas.filter((p) => (p.lista ?? null) === lista).sort((a, b) => ordenarUsernames(a.username, b.username)) }));
+}
+
+export function textoEmojis(parts: Participante[]) {
+  return listasEmojis(parts).map(({ lista, participantes }) => [
+    lista == null ? "SEM LISTA" : `LISTA ${lista} - de emojis escolhidos para fixar nos pedidos.`,
+    "", ...participantes.map((p, i) => `${i + 1}. @${p.username}${p.emoji_habitual ? ` ${p.emoji_habitual}` : ""}`),
+  ].join("\n")).join("\n\n");
+}
+
+export function parseCadastroManual(texto: string): ItemLista | null {
+  const token = texto.trim().split(/\s+/)[0]?.replace(/^@/, "").toLowerCase();
+  if (!token || !/^[a-z0-9._]+$/.test(token)) return null;
+  const itens = parseLista(texto.trim().startsWith("@") ? texto : `@${texto.trim()}`);
+  return itens.length === 1 ? itens[0] : null;
 }
 
 /** Ids das participantes ativas que compartilham o mesmo emoji (normalizado). */
@@ -172,7 +199,7 @@ export function textoSemana(opts: {
   status: Map<string, "ok" | "nao">;
 }) {
   const cab = opts.dias.map((d) => `${DIA_LABEL[d] ?? d}${opts.fechados.has(d) ? "✅" : "❌"}`).join("|");
-  const lista = opts.participantes.filter((p) => p.ativo).sort((a, b) => a.username.localeCompare(b.username))
+  const lista = opts.participantes.filter((p) => p.ativo).sort((a, b) => ordenarUsernames(a.username, b.username))
     .map((p, i) => {
       const st = opts.status.get(p.id);
       const e = st === "ok" ? "✅" : st === "nao" ? "❌" : p.novata ? "🆕" : "❌";

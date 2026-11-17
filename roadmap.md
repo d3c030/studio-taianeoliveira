@@ -6,3 +6,7 @@
 - [x] Corrigir hoje para São Paulo e cadastro de veteranas/novatas.
 - [x] Ajustar data padrão e corrigir 121 veteranas existentes.
 - [x] Testar regras e cadastro pela tela.
+- [x] Adicionar aba Emojis e importação compartilhada com edição e cópia.
+- [x] Unificar ordenação e preservar emojis no texto exportado.
+- [x] Corrigir cadastro manual com emoji e validar usernames.
+- [x] Rodar 34 testes e conferir cópia, prévia e salvamento autenticado no celular/computador.
