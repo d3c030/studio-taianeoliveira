@@ -132,6 +132,32 @@ export function addDias(iso: string, n: number) {
   const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10);
 }
 
+export type RodadaSemana = { id: string; data: string; dia_semana: string; status: "aberta" | "fechada" };
+export type CheckSemana = { rodada_id: string; participante_id: string; status: "ok" | "nao" };
+export const diasConferencia = (semana: string, dias: string[]) =>
+  Array.from({ length: 7 }, (_, i) => addDias(inicioSemana(semana), i)).filter((d) => dias.includes(diaSemana(d)));
+/** Sem dia passado nesta semana, não seleciona/cria uma rodada futura. */
+export function diaPadrao(semana: string, dias: string[], hoje: string): string | null {
+  return diasConferencia(semana, dias).filter((d) => d <= hoje).at(-1) ?? null;
+}
+export const podeCriarRodada = (data: string, dias: string[], hoje: string) => data <= hoje && dias.includes(diaSemana(data));
+export const participantesDaRodada = (parts: Participante[], data: string) => parts.filter((p) => p.ativo && p.entrou_em <= data);
+export function resumoSemana(semana: string, dias: string[], rodadas: RodadaSemana[], checks: CheckSemana[]) {
+  const datas = new Set(diasConferencia(semana, dias));
+  const fechadas = rodadas.filter((r) => datas.has(r.data) && r.status === "fechada").sort((a, b) => a.data.localeCompare(b.data));
+  const ultima = fechadas.at(-1) ?? null;
+  return {
+    ultima,
+    fechados: new Set(fechadas.map((r) => r.dia_semana)),
+    status: new Map(checks.filter((c) => c.rodada_id === ultima?.id).map((c) => [c.participante_id, c.status])),
+  };
+}
+export function conferenciasPendentes(hoje: string, dias: string[], rodadas: RodadaSemana[], criadoEm: string) {
+  const semana = inicioSemana(hoje);
+  return [...diasConferencia(addDias(semana, -7), dias), ...diasConferencia(semana, dias)]
+    .filter((d) => d < hoje && d >= criadoEm.slice(0, 10) && !rodadas.some((r) => r.data === d && r.status === "fechada"));
+}
+
 /** Gera o texto no mesmo formato da lista do Notas. */
 export function textoSemana(opts: {
   dias: string[]; fechados: Set<string>; participantes: Participante[];

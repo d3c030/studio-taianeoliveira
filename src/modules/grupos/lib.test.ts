@@ -1,10 +1,58 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from "bun:test";
-import { cruzar, emojisDuplicados, parseLista, pontuar, textoSemana, type Participante } from "./lib";
+import { cruzar, emojisDuplicados, parseLista, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
 
-const P = (o: Partial<Participante>): Participante => ({ id: o.username!, grupo_id: "g", nome_exibicao: null, emoji_habitual: null, apelidos: [], ativo: true, novata: false, entrou_em: "2026-01-01", username: "x", ...o });
+const P = (o: Partial<Participante>): Participante => ({ id: o.username ?? "x", grupo_id: "g", nome_exibicao: null, emoji_habitual: null, apelidos: [], ativo: true, novata: false, entrou_em: "2026-01-01", username: "x", ...o });
 
 describe("check de grupos", () => {
+  const dias = ["seg", "qua", "sex"];
+  test("dia padrão quando hoje é dia de missão", () => {
+    expect(diaPadrao("2026-11-16", dias, "2026-11-18")).toBe("2026-11-18");
+  });
+  test("dia padrão quando hoje não é dia de missão", () => {
+    expect(diaPadrao("2026-11-16", dias, "2026-11-17")).toBe("2026-11-16");
+  });
+  test("semana sem conferência passada não seleciona o futuro", () => {
+    expect(diaPadrao("2026-11-23", dias, "2026-11-17")).toBeNull();
+    expect(diaPadrao("2026-11-16", ["qua", "sex"], "2026-11-16")).toBeNull();
+  });
+  test("não permite criar rodada fora da missão", () => {
+    expect(podeCriarRodada("2026-11-17", dias, "2026-11-17")).toBe(false);
+  });
+  test("não permite criar rodada futura", () => {
+    expect(podeCriarRodada("2026-11-18", dias, "2026-11-17")).toBe(false);
+    expect(podeCriarRodada("2026-11-16", dias, "2026-11-17")).toBe(true);
+  });
+  test("participante que entrou depois não faz parte da rodada", () => {
+    expect(participantesDaRodada([P({ username: "antes", entrou_em: "2026-11-16" }), P({ username: "depois", entrou_em: "2026-11-17" })], "2026-11-16").map((p) => p.username)).toEqual(["antes"]);
+  });
+  const rodadas = [
+    { id: "s", data: "2026-11-16", dia_semana: "seg", status: "fechada" as const },
+    { id: "q", data: "2026-11-18", dia_semana: "qua", status: "fechada" as const },
+    { id: "f", data: "2026-11-20", dia_semana: "sex", status: "aberta" as const },
+  ];
+  test("cabeçalho representa somente dias fechados", () => {
+    const r = resumoSemana("2026-11-16", dias, rodadas, []);
+    expect(textoSemana({ dias, ...r, participantes: [] })).toContain("(Seg✅|Qua✅|Sex❌)");
+  });
+  test("marca vem da última fechada, não da aberta nem de outra semana", () => {
+    const checks = [
+      { rodada_id: "s", participante_id: "ana", status: "ok" as const },
+      { rodada_id: "q", participante_id: "ana", status: "nao" as const },
+      { rodada_id: "f", participante_id: "ana", status: "ok" as const },
+    ];
+    const r = resumoSemana("2026-11-16", dias, [...rodadas, { id: "outra", data: "2026-11-23", dia_semana: "seg", status: "fechada" }], checks);
+    expect(r.ultima?.id).toBe("q");
+    expect(textoSemana({ dias, ...r, participantes: [P({ username: "ana" })] })).toContain("1. @ana ❌");
+  });
+  test("sem rodada fechada todas são ❌ e novata sem check é 🆕", () => {
+    const r = resumoSemana("2026-11-16", dias, [rodadas[2]], [{ rodada_id: "f", participante_id: "ana", status: "ok" }]);
+    expect(r.ultima).toBeNull();
+    expect(textoSemana({ dias, ...r, participantes: [P({ username: "ana" }), P({ username: "bia", novata: true })] })).toContain("1. @ana ❌\n2. @bia 🆕");
+  });
+  test("pendências incluem só dias passados nas duas semanas, sem fechadas", () => {
+    expect(conferenciasPendentes("2026-11-19", dias, rodadas, "2026-11-11")).toEqual(["2026-11-11", "2026-11-13"]);
+  });
   test("formato antigo do Notas: ✅❌🆕 não viram emoji", () => {
     expect(parseLista("Lista de atualização da semana\n(Seg✅|Qua❌|Sex❌)\n✅=Atualizou\n1. @Adri.anacostaalves ❌\n2. @alinesaionery 🆕\n")).toEqual([
       { username: "adri.anacostaalves", emoji: "", lista: null }, { username: "alinesaionery", emoji: "", lista: null }]);

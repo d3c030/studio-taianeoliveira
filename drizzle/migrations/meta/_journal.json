@@ -106,6 +106,13 @@
       "when": 1794859244598,
       "tag": "0014_drop_public_read_agenda_days",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794876364057,
+      "tag": "0015_grupos_rodadas_protegidas",
+      "breakpoints": true
     }
   ]
 }

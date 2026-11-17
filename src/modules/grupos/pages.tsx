@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Copy, ImagePlus, Loader2, Plus, RefreshCw, Upload, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, Copy, ImagePlus, Loader2, Plus, RefreshCw, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
-  addDias, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
+  addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
   type Leitura, type Participante,
 } from "./lib";
 
@@ -102,6 +102,7 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
     <div className="space-y-4">
       <Link to="/grupos" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" /> Grupos</Link>
       <h1 className="text-2xl font-bold">{g.data.nome}</h1>
+      <Pendencias grupo={g.data} />
       <Tabs defaultValue="rodada">
         <TabsList className="grid h-auto w-full grid-cols-4">
           <TabsTrigger value="rodada" className="py-2">Rodada</TabsTrigger>
@@ -116,6 +117,35 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
       </Tabs>
     </div>
   );
+}
+
+function useRodadasSemana(grupoId: string, semana: string) {
+  return useQuery({
+    queryKey: ["grupo-semana", grupoId, semana],
+    queryFn: async () => {
+      const { data: rs, error } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupoId).gte("data", semana).lte("data", addDias(semana, 6));
+      if (error) throw error;
+      const ids = (rs ?? []).map((r: Rodada) => r.id);
+      const result = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status").in("rodada_id", ids) : { data: [], error: null };
+      if (result.error) throw result.error;
+      return { rodadas: (rs ?? []) as Rodada[], checks: (result.data ?? []) as CheckRow[] };
+    },
+  });
+}
+function SeletorSemana({ semana, onChange, disabled = false }: { semana: string; onChange: (v: string) => void; disabled?: boolean }) {
+  return <div className="flex items-center justify-between gap-2">
+    <Button variant="outline" className="h-12 w-12 shrink-0" aria-label="Semana anterior" disabled={disabled} onClick={() => onChange(addDias(semana, -7))}><ChevronLeft /></Button>
+    <p className="text-center text-sm font-semibold">Semana de {fmtData(semana)} a {fmtData(addDias(semana, 6))}</p>
+    <Button variant="outline" className="h-12 w-12 shrink-0" aria-label="Próxima semana" disabled={disabled} onClick={() => onChange(addDias(semana, 7))}><ChevronRight /></Button>
+  </div>;
+}
+function Pendencias({ grupo }: { grupo: Grupo }) {
+  const atual = inicioSemana(hoje());
+  const anterior = useRodadasSemana(grupo.id, addDias(atual, -7));
+  const semana = useRodadasSemana(grupo.id, atual);
+  if (!anterior.data || !semana.data) return null;
+  const datas = conferenciasPendentes(hoje(), grupo.dias_missao, [...anterior.data.rodadas, ...semana.data.rodadas], grupo.criado_em);
+  return datas.length ? <div className="space-y-1 rounded-lg bg-accent p-3 text-sm" role="status">{datas.map((d) => <p key={d}>⚠️ Conferência pendente: {DIA_LABEL[diaSemana(d)]} {fmtData(d)}</p>)}</div> : null;
 }
 
 /* ---------------- Participantes ---------------- */
@@ -269,24 +299,28 @@ type PrintEstado = { nome: string; status: "lendo" | "ok" | "erro"; erro?: strin
 
 function RodadaDia({ grupo }: { grupo: Grupo }) {
   const qc = useQueryClient();
-  const [data, setData] = useState(hoje());
+  const [semana, setSemana] = useState(inicioSemana(hoje()));
+  const [data, setData] = useState<string | null>(() => diaPadrao(inicioSemana(hoje()), grupo.dias_missao, hoje()));
+  const semanaQ = useRodadasSemana(grupo.id, semana);
   const parts = useParticipantes(grupo.id);
   const rodadaQ = useQuery({
     queryKey: ["grupo-rodada", grupo.id, data],
+    enabled: !!data,
     queryFn: async () => {
-      let { data: r } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupo.id).eq("data", data).maybeSingle();
-      if (!r) {
-        const ins = await db.from("grupo_rodada").upsert({ grupo_id: grupo.id, data, dia_semana: diaSemana(data) }, { onConflict: "grupo_id,data" }).select("*").single();
-        if (ins.error) throw ins.error;
-        r = ins.data;
-      }
-      const { data: checks } = await db.from("grupo_check").select("participante_id,status").eq("rodada_id", r.id);
-      return { rodada: r as Rodada, checks: (checks ?? []) as CheckRow[] };
+      if (!data) return null;
+      const { data: r, error } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupo.id).eq("data", data).maybeSingle();
+      if (error) throw error;
+      if (!r) return null;
+      const result = await db.from("grupo_check").select("participante_id,status").eq("rodada_id", r.id);
+      if (result.error) throw result.error;
+      return { rodada: r as Rodada, checks: (result.data ?? []) as CheckRow[] };
     },
   });
   const rodada = rodadaQ.data?.rodada;
-  const storeKey = rodada ? `grupo-leituras-${rodada.id}` : "";
+  const storeKey = data ? `grupo-leituras-${grupo.id}-${data}` : "";
+  const fechada = rodada?.status === "fechada";
   const [leituras, setLeituras] = useState<Leitura[]>([]);
+  const [chaveCarregada, setChaveCarregada] = useState("");
   const [prints, setPrints] = useState<PrintEstado[]>([]);
   const [manual, setManual] = useState<Record<string, "ok" | "nao">>({});
   const [confirmadas, setConfirmadas] = useState<Record<number, string>>({}); // índice da leitura -> participante escolhido
@@ -294,13 +328,15 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
   const lerFn = lerPrintReacoes;
 
   useEffect(() => {
-    if (!storeKey) return;
-    try { setLeituras(JSON.parse(sessionStorage.getItem(storeKey) || "[]")); } catch { setLeituras([]); }
+    if (!storeKey || fechada) setLeituras([]);
+    else try { setLeituras(JSON.parse(sessionStorage.getItem(storeKey) || "[]")); } catch { setLeituras([]); }
+    setChaveCarregada(storeKey);
     setManual({}); setConfirmadas({}); setPrints([]);
-  }, [storeKey]);
-  useEffect(() => { if (storeKey) sessionStorage.setItem(storeKey, JSON.stringify(leituras)); }, [leituras, storeKey]);
+  }, [storeKey, fechada]);
+  useEffect(() => { if (storeKey && chaveCarregada === storeKey && !fechada) sessionStorage.setItem(storeKey, JSON.stringify(leituras)); }, [leituras, storeKey, chaveCarregada, fechada]);
 
-  const ativas = (parts.data ?? []).filter((p) => p.ativo);
+  const idsSalvos = new Set((rodadaQ.data?.checks ?? []).map((c) => c.participante_id));
+  const ativas = fechada ? (parts.data ?? []).filter((p) => idsSalvos.has(p.id)) : data ? participantesDaRodada(parts.data ?? [], data) : [];
   const matches = useMemo(() => cruzar(leituras, ativas), [leituras, ativas]);
 
   const lerUm = async (file: File, idx: number) => {
@@ -314,7 +350,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
     }
   };
   const enviar = async (files: FileList | null) => {
-    if (!files?.length) return;
+    if (!files?.length || fechada || !data) return;
     const base = prints.length;
     const novos = Array.from(files).map((f) => ({ nome: f.name, status: "lendo" as const, file: f }));
     setPrints((ps) => [...ps, ...novos]);
@@ -337,6 +373,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
     toast.success(`Vinculado a @${p.username}`);
   };
   const cadastrarNovata = async (l: Leitura) => {
+    if (!data || fechada) return;
     const sug = l.nome.trim().startsWith("@") ? normUser(l.nome) : norm(l.nome);
     const u = window.prompt("Qual é o @ dela?", sug);
     if (!u) return;
@@ -361,30 +398,32 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
   });
   const reconhecidas = [...auto.values()].sort((a, b) => a.m.participante!.username.localeCompare(b.m.participante!.username));
   const salvo = new Map((rodadaQ.data?.checks ?? []).map((c) => [c.participante_id, c.status]));
-  const statusDe = (pid: string): "ok" | "nao" => manual[pid] ?? (auto.has(pid) ? "ok" : leituras.length ? "nao" : (salvo.get(pid) ?? "nao"));
+  const statusDe = (pid: string): "ok" | "nao" => fechada ? (salvo.get(pid) ?? "nao") : manual[pid] ?? (auto.has(pid) ? "ok" : (salvo.get(pid) ?? "nao"));
   const totalOk = ativas.filter((p) => statusDe(p.id) === "ok").length;
 
   const confirmarRodada = async () => {
-    if (!rodada) return;
+    if (!data || fechada || !podeCriarRodada(data, grupo.dias_missao, hoje())) return;
     if (conferir.length && !window.confirm(`${conferir.length} leitura(s) em "Conferir" ainda não foram confirmadas e contarão como ❌. Continuar?`)) return;
     setSalvando(true);
     try {
+      let atual = rodada;
+      if (!atual) {
+        const inserted = await db.from("grupo_rodada").insert({ grupo_id: grupo.id, data, dia_semana: diaSemana(data) }).select("*").single();
+        if (inserted.error) throw inserted.error;
+        atual = inserted.data as Rodada;
+      }
       const rows = ativas.map((p) => {
         const a = auto.get(p.id);
         const st = statusDe(p.id);
         const isManual = manual[p.id] !== undefined || (!a && st === "ok");
         return {
-          rodada_id: rodada.id, participante_id: p.id, status: st, origem: isManual || !a ? "manual" : "auto",
+          participante_id: p.id, status: st, origem: isManual || !a ? "manual" : "auto",
           nome_lido: a?.m.leitura.nome ?? null, emoji_lido: a?.m.leitura.emoji || null, confianca: a ? a.m.confianca : null,
         };
       });
-      const { error } = await db.from("grupo_check").upsert(rows, { onConflict: "rodada_id,participante_id" });
-      if (error) throw error;
-      await db.from("grupo_leitura_nao_vinculada").delete().eq("rodada_id", rodada.id);
       const sobras = [...conferir, ...naoRec].map((i) => matches[i].leitura);
-      if (sobras.length) await db.from("grupo_leitura_nao_vinculada").insert(sobras.map((l) => ({ rodada_id: rodada.id, nome_lido: l.nome, emoji_lido: l.emoji || null })));
-      const up = await db.from("grupo_rodada").update({ status: "fechada" }).eq("id", rodada.id);
-      if (up.error) throw up.error;
+      const { error } = await db.rpc("grupo_fechar_rodada", { p_rodada: atual.id, p_checks: rows, p_sobras: sobras });
+      if (error) throw error;
       sessionStorage.removeItem(storeKey);
       setLeituras([]); setPrints([]); setManual({}); setConfirmadas({});
       toast.success(`Rodada fechada: ${rows.filter((r) => r.status === "ok").length} ✅ · ${rows.filter((r) => r.status === "nao").length} ❌`);
@@ -395,8 +434,11 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
     finally { setSalvando(false); }
   };
   const reabrir = async () => {
-    if (!rodada) return;
-    await db.from("grupo_rodada").update({ status: "aberta" }).eq("id", rodada.id);
+    if (!rodada || !window.confirm("Reabrir esta rodada para corrigir? Os checks salvos serão mantidos.")) return;
+    const { error } = await db.from("grupo_rodada").update({ status: "aberta" }).eq("id", rodada.id);
+    if (error) return toast.error(error.message);
+    setManual({}); setLeituras([]); setConfirmadas({}); setPrints([]);
+    qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] });
     qc.invalidateQueries({ queryKey: ["grupo-rodada", grupo.id, data] });
   };
 
@@ -409,18 +451,25 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
 
   return (
     <div className="space-y-4 pt-3">
-      <div className="flex items-end gap-2">
-        <div className="flex-1"><label className="text-xs text-muted-foreground">Data</label><Input type="date" className="h-12" value={data} onChange={(e) => e.target.value && setData(e.target.value)} /></div>
-        {rodada && <span className={cn("rounded-full px-3 py-2 text-xs font-semibold", rodada.status === "fechada" ? "bg-primary text-primary-foreground" : "bg-accent")}>{DIA_LABEL[rodada.dia_semana]} · {rodada.status === "fechada" ? "Fechada" : "Aberta"}</span>}
+      <SeletorSemana semana={semana} disabled={lendo || salvando} onChange={(v) => { setSemana(v); setData(diaPadrao(v, grupo.dias_missao, hoje())); }} />
+      <div className="grid grid-cols-3 gap-2">
+        {diasConferencia(semana, grupo.dias_missao).map((d) => {
+          const r = semanaQ.data?.rodadas.find((r) => r.data === d);
+          return <Button key={d} variant={data === d ? "default" : "outline"} className="h-auto min-h-20 flex-col whitespace-normal px-2" disabled={d > hoje() || lendo || salvando} onClick={() => setData(d)}>
+            <span>{DIA_LABEL[diaSemana(d)]} {fmtData(d)}</span>
+            <span className="text-xs">{r?.status === "fechada" ? "✅ Fechada" : r ? "🟡 Aberta" : "⏳ Pendente"}</span>
+          </Button>;
+        })}
       </div>
-      {rodada && !grupo.dias_missao.includes(rodada.dia_semana) && <p className="rounded-lg bg-accent p-2 text-xs">Hoje não é dia de missão neste grupo, mas você pode registrar mesmo assim.</p>}
-      {rodada?.status === "fechada" && (
-        <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
-          <span>Rodada já confirmada. Você pode corrigir abaixo ou enviar novos prints.</span>
-          <Button variant="outline" size="sm" onClick={reabrir}>Reabrir</Button>
-        </div>
-      )}
+      {!data && <p className="text-sm text-muted-foreground">Nenhum dia de conferência desta semana chegou ainda.</p>}
+      {rodadaQ.isLoading && <p className="text-sm text-muted-foreground">Carregando rodada…</p>}
+      {rodadaQ.error && <p className="text-sm text-destructive">Não foi possível carregar a rodada. <Button variant="outline" onClick={() => rodadaQ.refetch()}>Tentar novamente</Button></p>}
+      {fechada && <div className="space-y-2 rounded-lg border border-border bg-card p-3 text-sm">
+        <p>Rodada fechada · somente leitura.</p>
+        <Button variant="outline" className="h-12" onClick={reabrir}>Reabrir para corrigir</Button>
+      </div>}
 
+      {data && !fechada && !rodadaQ.isLoading && !rodadaQ.error && <>
       <label className={cn("flex h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-primary/50 bg-accent/40 text-sm font-medium", lendo && "pointer-events-none opacity-60")}>
         {lendo ? <Loader2 className="h-6 w-6 animate-spin" /> : <ImagePlus className="h-6 w-6" />}
         {lendo ? "Lendo os prints…" : "Enviar prints da tela Reações"}
@@ -476,25 +525,25 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
         </div>
       )}
 
-      <Bloco titulo={`Todas as participantes ativas · ${totalOk} ✅ / ${ativas.length}`}>
+      </>}
+      {data && !rodadaQ.isLoading && !rodadaQ.error && <Bloco titulo={`Todas as participantes ativas · ${totalOk} ✅ / ${ativas.length}`}>
         {ativas.map((p) => {
           const st = statusDe(p.id);
           return (
             <div key={p.id} className="flex items-center justify-between gap-2 border-b border-border py-1.5 last:border-0">
               <span className="truncate text-sm">@{p.username} {p.novata && "🆕"}{manual[p.id] && <span className="text-xs text-muted-foreground"> · manual</span>}</span>
               <div className="flex shrink-0 gap-1">
-                <button aria-label="Cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "ok" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "ok" ? "border-primary bg-primary/15" : "border-border opacity-40")}>✅</button>
-                <button aria-label="Não cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "nao" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "nao" ? "border-destructive bg-destructive/10" : "border-border opacity-40")}>❌</button>
+                <Button variant="outline" disabled={fechada || salvando} aria-label="Cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "ok" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "ok" ? "border-primary bg-primary/15" : "border-border opacity-40")}>✅</Button>
+                <Button variant="outline" disabled={fechada || salvando} aria-label="Não cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "nao" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "nao" ? "border-destructive bg-destructive/10" : "border-border opacity-40")}>❌</Button>
               </div>
             </div>
           );
         })}
         {!ativas.length && <p className="py-3 text-sm text-muted-foreground">Cadastre as participantes na aba Participantes.</p>}
-      </Bloco>
-
-      <Button className="h-14 w-full text-base" disabled={!rodada || salvando || lendo || !ativas.length} onClick={confirmarRodada}>
+      </Bloco>}
+      {data && !fechada && <Button className="h-14 w-full text-base" disabled={rodadaQ.isLoading || !!rodadaQ.error || parts.isLoading || !!parts.error || salvando || lendo || !ativas.length} onClick={confirmarRodada}>
         {salvando ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />} Confirmar rodada
-      </Button>
+      </Button>}
     </div>
   );
 }
@@ -508,26 +557,15 @@ const Linha = ({ esq, dir }: { esq: React.ReactNode; dir: React.ReactNode }) => 
 
 /* ---------------- Semana / Exportar ---------------- */
 function SemanaTab({ grupo }: { grupo: Grupo }) {
-  const [data, setData] = useState(hoje());
+  const [ini, setIni] = useState(inicioSemana(hoje()));
   const [lst, setLst] = useState("");
   const partsQ = useParticipantes(grupo.id);
   const listasExist = [...new Set((partsQ.data ?? []).map((p) => p.lista).filter((x): x is number => x != null))].sort((a, b) => a - b);
   const parts = { data: (partsQ.data ?? []).filter((p) => !lst || String(p.lista ?? "") === lst) };
-  const ini = inicioSemana(data), fim = addDias(ini, 6);
-  const q = useQuery({
-    queryKey: ["grupo-semana", grupo.id, ini],
-    queryFn: async () => {
-      const { data: rs } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupo.id).gte("data", ini).lte("data", fim);
-      const ids = (rs ?? []).map((r: Rodada) => r.id);
-      const { data: cs } = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status").in("rodada_id", ids) : { data: [] };
-      return { rodadas: (rs ?? []) as Rodada[], checks: (cs ?? []) as CheckRow[] };
-    },
-  });
+  const q = useRodadasSemana(grupo.id, ini);
   const rodadas = q.data?.rodadas ?? [];
-  const porDia = new Map(rodadas.map((r) => [r.dia_semana, r]));
-  const fechados = new Set(rodadas.filter((r) => r.status === "fechada").map((r) => r.dia_semana));
-  const rodSel = rodadas.find((r) => r.data === data) ?? [...rodadas].filter((r) => r.status === "fechada").sort((a, b) => b.data.localeCompare(a.data))[0];
-  const status = new Map((q.data?.checks ?? []).filter((c) => c.rodada_id === rodSel?.id).map((c) => [c.participante_id, c.status]));
+  const porDia = new Map(rodadas.filter((r) => r.status === "fechada").map((r) => [r.dia_semana, r]));
+  const { ultima: rodSel, fechados, status } = resumoSemana(ini, grupo.dias_missao, rodadas, q.data?.checks ?? []);
   const texto = textoSemana({ dias: grupo.dias_missao, fechados, participantes: parts.data ?? [], status });
   const cel = (pid: string, dia: string) => {
     const r = porDia.get(dia); if (!r) return "–";
@@ -536,12 +574,12 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
   };
   return (
     <div className="space-y-3 pt-3">
-      <div><label className="text-xs text-muted-foreground">Rodada (escolha o dia)</label><Input type="date" className="h-12" value={data} onChange={(e) => e.target.value && setData(e.target.value)} /></div>
+      <SeletorSemana semana={ini} onChange={setIni} />
       <select className="h-12 w-full rounded-md border border-input bg-background px-2 text-sm" value={lst} onChange={(e) => setLst(e.target.value)}>
         <option value="">Exportar a lista inteira</option>
         {listasExist.map((n) => <option key={n} value={String(n)}>Só a Lista {n}</option>)}
       </select>
-      <p className="text-xs text-muted-foreground">Semana de {fmtData(ini)} a {fmtData(fim)} · status da rodada de {rodSel ? `${DIA_LABEL[rodSel.dia_semana]} ${fmtData(rodSel.data)}` : "—"}</p>
+      <p className="text-sm font-semibold">{rodSel ? `Status da rodada de ${DIA_LABEL[rodSel.dia_semana]} ${fmtData(rodSel.data)}` : "Nenhuma rodada fechada nesta semana"}</p>
       <Textarea readOnly rows={12} value={texto} className="font-mono text-xs" />
       <Button className="h-12 w-full" onClick={() => navigator.clipboard.writeText(texto).then(() => toast.success("Lista copiada"), () => toast.error("Não foi possível copiar"))}><Copy className="h-4 w-4" /> Copiar lista</Button>
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -552,6 +590,11 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
               <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">@{p.username}</td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p.id, d)}</td>)}</tr>
             ))}
           </tbody>
+          <tfoot><tr className="border-t border-border font-semibold"><td className="p-2">Total ✅</td>{grupo.dias_missao.map((d) => {
+            const r = porDia.get(d);
+            const ids = new Set((parts.data ?? []).filter((p) => p.ativo).map((p) => p.id));
+            return <td key={d} className="p-2 text-center">{r ? (q.data?.checks ?? []).filter((c) => c.rodada_id === r.id && c.status === "ok" && ids.has(c.participante_id)).length : "–"}</td>;
+          })}</tr></tfoot>
         </table>
       </div>
     </div>

@@ -987,6 +987,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      grupo_fechar_rodada: {
+        Args: { p_checks: Json; p_rodada: string; p_sobras?: Json }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
