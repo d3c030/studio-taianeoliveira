@@ -12,3 +12,6 @@
 - [x] Rodar 34 testes e conferir cópia, prévia e salvamento autenticado no celular/computador.
 - [x] Corrigir atualização de Semana e Histórico; conferir 122 checks, 22 confirmações, 100 faltas e 18% na tela; 34 testes passaram.
 - [x] Criar links únicos de perfil nas abas e prévia; cópia em texto puro e cliques conferidos no computador/celular; 35 testes passaram.
+- [x] Adicionar RPCs protegidas de ajuste e regularização semanal com status original preservado.
+- [x] Adicionar diálogo, indicadores e contagem de ajustes em Semana, Rodada e Histórico.
+- [x] Testar proteções no banco, exportação e fluxo autenticado sem alterar checks reais: 36 testes de regras e 5 testes transacionais passaram; tela conferida no computador e celular.

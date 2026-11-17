@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, Copy, ImagePlus, Loader2, Plus, RefreshCw, Upload, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, Copy, ImagePlus, Loader2, Plus, RefreshCw, ListChecks, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +14,16 @@ import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
   cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseCadastroManual, ordenarUsernames, listasEmojis, textoEmojis, textoSemana,
-  type Leitura, type Participante,
+  type Leitura, type Participante, type CheckSemana,
 } from "./lib";
 import { ImportarLista } from "./ImportarLista";
 import { PerfilLink } from "./PerfilLink";
+import { IndicadorAjuste } from "./IndicadorAjuste";
 
 const db = supabase as any;
 type Grupo = { id: string; nome: string; dias_missao: string[]; criado_em: string };
 type Rodada = { id: string; grupo_id: string; data: string; dia_semana: string; status: "aberta" | "fechada" };
-type CheckRow = { rodada_id: string; participante_id: string; status: "ok" | "nao" };
+type CheckRow = CheckSemana;
 const hoje = hojeSaoPaulo;
 const fmtData = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
@@ -92,6 +93,8 @@ function useParticipantes(grupoId: string) {
 }
 
 export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
+  const [aba, setAba] = useState("rodada");
+  const [semanaAjuste, setSemanaAjuste] = useState<string | null>(null);
   const g = useQuery({
     queryKey: ["grupo", grupoId],
     queryFn: async () => {
@@ -106,7 +109,7 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
       <Link to="/grupos" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" /> Grupos</Link>
       <h1 className="text-2xl font-bold">{g.data.nome}</h1>
       <Pendencias grupo={g.data} />
-      <Tabs defaultValue="rodada">
+      <Tabs value={aba} onValueChange={setAba}>
         <TabsList className="flex h-auto w-full justify-start overflow-x-auto">
           <TabsTrigger value="rodada" className="py-2">Rodada</TabsTrigger>
           <TabsTrigger value="part" className="py-2">Participantes</TabsTrigger>
@@ -114,10 +117,10 @@ export function GrupoDetalhe({ grupoId }: { grupoId: string }) {
           <TabsTrigger value="semana" className="py-2">Semana</TabsTrigger>
           <TabsTrigger value="hist" className="py-2">Histórico</TabsTrigger>
         </TabsList>
-        <TabsContent value="rodada"><RodadaDia grupo={g.data} /></TabsContent>
+        <TabsContent value="rodada"><RodadaDia grupo={g.data} onAjustar={(semana) => { setSemanaAjuste(semana); setAba("semana"); }} /></TabsContent>
         <TabsContent value="part"><ParticipantesTab grupo={g.data} /></TabsContent>
         <TabsContent value="emojis"><EmojisTab grupo={g.data} /></TabsContent>
-        <TabsContent value="semana"><SemanaTab grupo={g.data} /></TabsContent>
+        <TabsContent value="semana"><SemanaTab grupo={g.data} semanaInicial={semanaAjuste} /></TabsContent>
         <TabsContent value="hist"><HistoricoTab grupo={g.data} /></TabsContent>
       </Tabs>
     </div>
@@ -132,7 +135,7 @@ function useRodadasSemana(grupoId: string, semana: string) {
       const { data: rs, error } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupoId).gte("data", semana).lte("data", addDias(semana, 6));
       if (error) throw error;
       const ids = (rs ?? []).map((r: Rodada) => r.id);
-      const result = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status").in("rodada_id", ids) : { data: [], error: null };
+      const result = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status,ajustado_em,status_original,obs").in("rodada_id", ids) : { data: [], error: null };
       if (result.error) throw result.error;
       return { rodadas: (rs ?? []) as Rodada[], checks: (result.data ?? []) as CheckRow[] };
     },
@@ -290,7 +293,7 @@ async function comprimir(file: File): Promise<string> {
 
 type PrintEstado = { nome: string; status: "lendo" | "ok" | "erro"; erro?: string; file: File; n?: number };
 
-function RodadaDia({ grupo }: { grupo: Grupo }) {
+function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: string) => void }) {
   const qc = useQueryClient();
   const [semana, setSemana] = useState(inicioSemana(hoje()));
   const [data, setData] = useState<string | null>(() => diaPadrao(inicioSemana(hoje()), grupo.dias_missao, hoje()));
@@ -304,7 +307,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
       const { data: r, error } = await db.from("grupo_rodada").select("*").eq("grupo_id", grupo.id).eq("data", data).maybeSingle();
       if (error) throw error;
       if (!r) return null;
-      const result = await db.from("grupo_check").select("participante_id,status").eq("rodada_id", r.id);
+      const result = await db.from("grupo_check").select("rodada_id,participante_id,status,ajustado_em,status_original,obs").eq("rodada_id", r.id);
       if (result.error) throw result.error;
       return { rodada: r as Rodada, checks: (result.data ?? []) as CheckRow[] };
     },
@@ -460,6 +463,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
       {rodadaQ.error && <p className="text-sm text-destructive">Não foi possível carregar a rodada. <Button variant="outline" onClick={() => rodadaQ.refetch()}>Tentar novamente</Button></p>}
       {fechada && <div className="space-y-2 rounded-lg border border-border bg-card p-3 text-sm">
         <p>Rodada fechada · somente leitura.</p>
+        <Button variant="link" className="px-0" onClick={() => onAjustar(semana)}>Ajustar na aba Semana</Button>
         <Button variant="outline" className="h-12" onClick={reabrir}>Reabrir para corrigir</Button>
       </div>}
 
@@ -527,7 +531,8 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
           return (
             <div key={p.id} className="flex items-center justify-between gap-2 border-b border-border py-1.5 last:border-0">
               <span className="min-w-0 break-all text-sm"><PerfilLink username={p.username} /> {p.novata && "🆕"}{manual[p.id] && <span className="text-xs text-muted-foreground"> · manual</span>}</span>
-              <div className="flex shrink-0 gap-1">
+              <div className="flex shrink-0 items-center gap-1">
+                {fechada && <IndicadorAjuste check={rodadaQ.data?.checks.find((c) => c.participante_id === p.id)} />}
                 <Button variant="outline" disabled={fechada || salvando} aria-label="Cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "ok" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "ok" ? "border-primary bg-primary/15" : "border-border opacity-40")}>✅</Button>
                 <Button variant="outline" disabled={fechada || salvando} aria-label="Não cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "nao" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "nao" ? "border-destructive bg-destructive/10" : "border-border opacity-40")}>❌</Button>
               </div>
@@ -551,8 +556,14 @@ const Linha = ({ esq, dir }: { esq: React.ReactNode; dir: React.ReactNode }) => 
 );
 
 /* ---------------- Semana / Exportar ---------------- */
-function SemanaTab({ grupo }: { grupo: Grupo }) {
-  const [ini, setIni] = useState(inicioSemana(hoje()));
+function SemanaTab({ grupo, semanaInicial }: { grupo: Grupo; semanaInicial: string | null }) {
+  const qc = useQueryClient();
+  const [ini, setIni] = useState(semanaInicial ?? inicioSemana(hoje()));
+  const [ajuste, setAjuste] = useState<{ p: Participante; r: Rodada } | null>(null);
+  const [regularizar, setRegularizar] = useState<Participante | null>(null);
+  const [novoStatus, setNovoStatus] = useState<"ok" | "nao">("ok");
+  const [obs, setObs] = useState("Atualizou depois");
+  const [salvando, setSalvando] = useState(false);
   const [lst, setLst] = useState("");
   const partsQ = useParticipantes(grupo.id);
   const listasExist = [...new Set((partsQ.data ?? []).map((p) => p.lista).filter((x): x is number => x != null))].sort((a, b) => a - b);
@@ -562,10 +573,40 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
   const porDia = new Map(rodadas.filter((r) => r.status === "fechada").map((r) => [r.dia_semana, r]));
   const { ultima: rodSel, fechados, status } = resumoSemana(ini, grupo.dias_missao, rodadas, q.data?.checks ?? []);
   const texto = textoSemana({ dias: grupo.dias_missao, fechados, participantes: parts.data ?? [], status });
-  const cel = (pid: string, dia: string) => {
+  const refresh = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] }),
+      qc.invalidateQueries({ queryKey: ["grupo-rodada", grupo.id] }),
+      qc.invalidateQueries({ queryKey: ["grupo-hist", grupo.id] }),
+    ]);
+  };
+  const salvar = async () => {
+    if (!ajuste || salvando) return;
+    setSalvando(true);
+    try {
+      const { error } = await supabase.rpc("grupo_ajustar_check", { p_rodada: ajuste.r.id, p_participante: ajuste.p.id, p_status: novoStatus, p_obs: obs.trim() });
+      if (error) throw error;
+      await refresh(); setAjuste(null); toast.success("Check ajustado");
+    } catch (e) { toast.error((e as Error).message || "Não foi possível ajustar"); }
+    finally { setSalvando(false); }
+  };
+  const salvarSemana = async () => {
+    if (!regularizar || salvando) return;
+    setSalvando(true);
+    try {
+      const { data, error } = await supabase.rpc("grupo_regularizar_semana", { p_grupo: grupo.id, p_participante: regularizar.id, p_semana: ini, p_obs: "Atualizou depois" });
+      if (error) throw error;
+      await refresh(); setRegularizar(null); toast.success(`${data} check(s) regularizado(s)`);
+    } catch (e) { toast.error((e as Error).message || "Não foi possível regularizar"); }
+    finally { setSalvando(false); }
+  };
+  const cel = (p: Participante, dia: string) => {
     const r = porDia.get(dia); if (!r) return "–";
-    const c = q.data?.checks.find((x) => x.rodada_id === r.id && x.participante_id === pid);
-    return c ? (c.status === "ok" ? "✅" : "❌") : "–";
+    const c = q.data?.checks.find((x) => x.rodada_id === r.id && x.participante_id === p.id);
+    if (p.entrou_em > r.data) return "–";
+    return <Button variant="ghost" aria-label={`Ajustar @${p.username} · ${DIA_LABEL[dia]} ${fmtData(r.data)}`} className="h-11 min-w-11 px-1 text-base" onClick={() => { setNovoStatus(c?.status ?? "nao"); setObs(c?.obs ?? "Atualizou depois"); setAjuste({ p, r }); }}>
+      {c ? (c.status === "ok" ? "✅" : "❌") : "–"}<IndicadorAjuste check={c} />
+    </Button>;
   };
   const carregando = partsQ.isLoading || q.isLoading;
   const erro = partsQ.error || q.error;
@@ -585,19 +626,38 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
       <Button className="h-12 w-full" onClick={() => navigator.clipboard.writeText(texto).then(() => toast.success("Lista copiada"), () => toast.error("Não foi possível copiar"))}><Copy className="h-4 w-4" /> Copiar lista</Button>
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full text-sm">
-          <thead><tr className="border-b border-border"><th className="p-2 text-left">Participante</th>{grupo.dias_missao.map((d) => <th key={d} className="p-2">{DIA_LABEL[d]}</th>)}</tr></thead>
+          <thead><tr className="border-b border-border"><th className="p-2 text-left">Participante</th>{grupo.dias_missao.map((d) => <th key={d} className="p-2">{DIA_LABEL[d]}</th>)}<th className="p-2">Ajustes</th></tr></thead>
           <tbody>
             {(parts.data ?? []).filter((p) => p.ativo).map((p, i) => (
-              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. <PerfilLink username={p.username} /></td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p.id, d)}</td>)}</tr>
+              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. <PerfilLink username={p.username} /></td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p, d)}</td>)}<td className="p-2"><Button variant="outline" size="sm" className="h-11" aria-label={`Regularizar semana de @${p.username}`} disabled={!q.data?.checks.some((c) => c.participante_id === p.id && c.status === "nao" && rodadas.some((r) => r.id === c.rodada_id && r.status === "fechada" && p.entrou_em <= r.data))} onClick={() => setRegularizar(p)}><ListChecks className="h-4 w-4" /> Regularizar semana</Button></td></tr>
             ))}
           </tbody>
           <tfoot><tr className="border-t border-border font-semibold"><td className="p-2">Total ✅</td>{grupo.dias_missao.map((d) => {
             const r = porDia.get(d);
             const ids = new Set((parts.data ?? []).filter((p) => p.ativo).map((p) => p.id));
             return <td key={d} className="p-2 text-center">{r ? (q.data?.checks ?? []).filter((c) => c.rodada_id === r.id && c.status === "ok" && ids.has(c.participante_id)).length : "–"}</td>;
-          })}</tr></tfoot>
+          })}<td /></tr></tfoot>
         </table>
       </div>
+      <p className="text-xs text-muted-foreground">• = ajustado manualmente</p>
+      <Dialog open={!!ajuste} onOpenChange={(v) => { if (!v && !salvando) setAjuste(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="break-words">Ajustar {ajuste && <PerfilLink username={ajuste.p.username} />} · {ajuste && `${DIA_LABEL[ajuste.r.dia_semana]} ${fmtData(ajuste.r.data)}`}</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-2">
+            <Button aria-label="Marcar cumpriu" aria-pressed={novoStatus === "ok"} variant={novoStatus === "ok" ? "default" : "outline"} disabled={salvando} className="h-12 text-xl" onClick={() => setNovoStatus("ok")}>✅</Button>
+            <Button aria-label="Marcar não cumpriu" aria-pressed={novoStatus === "nao"} variant={novoStatus === "nao" ? "default" : "outline"} disabled={salvando} className="h-12 text-xl" onClick={() => setNovoStatus("nao")}>❌</Button>
+          </div>
+          <label className="space-y-2 text-sm">Observação (opcional)<Textarea aria-label="Observação do ajuste" value={obs} disabled={salvando} onChange={(e) => setObs(e.target.value)} /></label>
+          <Button disabled={salvando} className="h-12" onClick={salvar}>{salvando && <Loader2 className="h-4 w-4 animate-spin" />} {salvando ? "Salvando…" : "Salvar"}</Button>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!regularizar} onOpenChange={(v) => { if (!v && !salvando) setRegularizar(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Regularizar semana</DialogTitle></DialogHeader>
+          <p className="break-words text-sm">Marcar ✅ em todas as rodadas fechadas desta semana para {regularizar && <PerfilLink username={regularizar.username} />}?</p>
+          <div className="flex justify-end gap-2"><Button variant="outline" disabled={salvando} onClick={() => setRegularizar(null)}>Cancelar</Button><Button disabled={salvando} onClick={salvarSemana}>{salvando && <Loader2 className="h-4 w-4 animate-spin" />} Confirmar</Button></div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -614,7 +674,7 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
       const { data: rs, error } = await db.from("grupo_rodada").select("id").eq("grupo_id", grupo.id).eq("status", "fechada").gte("data", de).lte("data", ate);
       if (error) throw error;
       const ids = (rs ?? []).map((r: { id: string }) => r.id);
-      const { data: cs, error: checksError } = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status").in("rodada_id", ids) : { data: [], error: null };
+      const { data: cs, error: checksError } = ids.length ? await db.from("grupo_check").select("rodada_id,participante_id,status,ajustado_em,status_original,obs").in("rodada_id", ids) : { data: [], error: null };
       if (checksError) throw checksError;
       return { n: ids.length, checks: (cs ?? []) as CheckRow[] };
     },
@@ -622,7 +682,7 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
   const stats = (parts.data ?? []).map((p) => {
     const cs = (q.data?.checks ?? []).filter((c) => c.participante_id === p.id);
     const ok = cs.filter((c) => c.status === "ok").length;
-    return { p, ok, faltas: cs.length - ok, total: cs.length, taxa: cs.length ? ok / cs.length : 0 };
+    return { p, ok, ajustes: cs.filter((c) => c.ajustado_em).length, faltas: cs.length - ok, total: cs.length, taxa: cs.length ? ok / cs.length : 0 };
   }).filter((s) => s.total > 0).sort((a, b) => b.faltas - a.faltas || a.taxa - b.taxa || ordenarUsernames(a.p.username, b.p.username));
   const media = stats.length ? stats.reduce((s, x) => s + x.taxa, 0) / stats.length : 0;
   const atualizar = () => { parts.refetch(); q.refetch(); };
@@ -642,7 +702,7 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
       <Bloco titulo="Quem mais falta">
         {stats.map((s, i) => (
           <div key={s.p.id} className="border-b border-border py-2 last:border-0">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0">{i + 1}. <PerfilLink username={s.p.username} /></span><span><b>{s.faltas}</b> falta{s.faltas === 1 ? "" : "s"} · {Math.round(s.taxa * 100)}%</span></div>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0">{i + 1}. <PerfilLink username={s.p.username} /></span><span><b>{s.faltas}</b> falta{s.faltas === 1 ? "" : "s"} · {Math.round(s.taxa * 100)}% · <span title="Checks ajustados no período">{s.ajustes} ajuste{s.ajustes === 1 ? "" : "s"} •</span></span></div>
             <div className="mt-1 h-1.5 rounded-full bg-accent"><div className="h-full rounded-full bg-primary" style={{ width: `${s.taxa * 100}%` }} /></div>
           </div>
         ))}

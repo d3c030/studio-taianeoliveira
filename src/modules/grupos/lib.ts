@@ -169,7 +169,12 @@ export function addDias(iso: string, n: number) {
 }
 
 export type RodadaSemana = { id: string; data: string; dia_semana: string; status: "aberta" | "fechada" };
-export type CheckSemana = { rodada_id: string; participante_id: string; status: "ok" | "nao" };
+export type CheckSemana = { rodada_id: string; participante_id: string; status: "ok" | "nao"; ajustado_em?: string | null; status_original?: "ok" | "nao" | null; obs?: string | null };
+export function descricaoAjuste(check?: CheckSemana) {
+  if (!check?.ajustado_em) return null;
+  const data = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" }).format(new Date(check.ajustado_em));
+  return `Ajustado em ${data}${check.obs ? ` · ${check.obs}` : ""}${check.status_original ? ` · antes ${check.status_original === "ok" ? "✅" : "❌"}` : ""}`;
+}
 export const diasConferencia = (semana: string, dias: string[]) =>
   Array.from({ length: 7 }, (_, i) => addDias(inicioSemana(semana), i)).filter((d) => dias.includes(diaSemana(d)));
 /** Sem dia passado nesta semana, não seleciona/cria uma rodada futura. */

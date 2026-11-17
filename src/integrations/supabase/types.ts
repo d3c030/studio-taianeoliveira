@@ -555,34 +555,43 @@ export type Database = {
       }
       grupo_check: {
         Row: {
+          ajustado_em: string | null
           confianca: number | null
           emoji_lido: string | null
           id: string
           nome_lido: string | null
+          obs: string | null
           origem: string
           participante_id: string
           rodada_id: string
           status: string
+          status_original: string | null
         }
         Insert: {
+          ajustado_em?: string | null
           confianca?: number | null
           emoji_lido?: string | null
           id?: string
           nome_lido?: string | null
+          obs?: string | null
           origem?: string
           participante_id: string
           rodada_id: string
           status: string
+          status_original?: string | null
         }
         Update: {
+          ajustado_em?: string | null
           confianca?: number | null
           emoji_lido?: string | null
           id?: string
           nome_lido?: string | null
+          obs?: string | null
           origem?: string
           participante_id?: string
           rodada_id?: string
           status?: string
+          status_original?: string | null
         }
         Relationships: [
           {
@@ -987,8 +996,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      grupo_ajustar_check: {
+        Args: {
+          p_obs: string
+          p_participante: string
+          p_rodada: string
+          p_status: string
+        }
+        Returns: undefined
+      }
       grupo_fechar_rodada: {
         Args: { p_checks: Json; p_rodada: string; p_sobras?: Json }
+        Returns: number
+      }
+      grupo_regularizar_semana: {
+        Args: {
+          p_grupo: string
+          p_obs: string
+          p_participante: string
+          p_semana: string
+        }
         Returns: number
       }
       has_role: {

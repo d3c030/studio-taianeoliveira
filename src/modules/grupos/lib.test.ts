@@ -24,6 +24,11 @@ describe("check de grupos", () => {
     expect(cadastroEntrada(false, new Date("2026-11-17T01:10:00Z"))).toEqual({ novata: false, entrou_em: "2000-01-01" });
   });
   const dias = ["seg", "qua", "sex"];
+  test("exportação usa status ajustado sem indicador nem status original", () => {
+    const resumo = resumoSemana("2026-11-16", dias, [{ id: "s", data: "2026-11-16", dia_semana: "seg", status: "fechada" }], [{ rodada_id: "s", participante_id: "ana", status: "ok", status_original: "nao", ajustado_em: "2026-11-20T15:00:00Z", obs: "Atualizou depois" }]);
+    const linha = textoSemana({ dias, ...resumo, participantes: [P({ username: "ana" })] }).split("\n").at(-1);
+    expect(linha).toBe("1. @ana ✅");
+  });
   test("dia padrão quando hoje é dia de missão", () => {
     expect(diaPadrao("2026-11-16", dias, "2026-11-18")).toBe("2026-11-18");
   });
