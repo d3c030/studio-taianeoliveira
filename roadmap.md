@@ -15,3 +15,4 @@
 - [x] Adicionar RPCs protegidas de ajuste e regularização semanal com status original preservado.
 - [x] Adicionar diálogo, indicadores e contagem de ajustes em Semana, Rodada e Histórico.
 - [x] Testar proteções no banco, exportação e fluxo autenticado sem alterar checks reais: 36 testes de regras e 5 testes transacionais passaram; tela conferida no computador e celular.
+- [ ] Fotos de perfil via Apify: armazenamento privado, busca manual, avatares em lote e testes; aguardando o usuário criar uma conexão Apify acessível para este projeto.
