@@ -1,10 +1,24 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from "bun:test";
-import { cruzar, emojisDuplicados, parseLista, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
+import { cadastroEntrada, hojeSaoPaulo, cruzar, emojisDuplicados, parseLista, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
 
 const P = (o: Partial<Participante>): Participante => ({ id: o.username ?? "x", grupo_id: "g", nome_exibicao: null, emoji_habitual: null, apelidos: [], ativo: true, novata: false, entrou_em: "2026-01-01", username: "x", ...o });
 
 describe("check de grupos", () => {
+  test("hoje mantém 16/11 após 21h de São Paulo, mesmo com UTC em 17/11", () => {
+    expect(hojeSaoPaulo(new Date("2026-11-17T01:10:00Z"))).toBe("2026-11-16");
+    expect(hojeSaoPaulo(new Date("2026-11-17T03:00:00Z"))).toBe("2026-11-17");
+  });
+  test("importação e cadastro manual são veteranas por padrão", () => {
+    expect(cadastroEntrada()).toEqual({ novata: false, entrou_em: "2000-01-01" });
+    expect(participantesDaRodada([P({ ...cadastroEntrada() })], "2026-11-16")).toHaveLength(1);
+  });
+  test("novata usa hoje em São Paulo e não a data da rodada antiga", () => {
+    expect(cadastroEntrada(true, new Date("2026-11-17T01:10:00Z"))).toEqual({ novata: true, entrou_em: "2026-11-16" });
+  });
+  test("voltar a veterana restaura elegibilidade histórica", () => {
+    expect(cadastroEntrada(false, new Date("2026-11-17T01:10:00Z"))).toEqual({ novata: false, entrou_em: "2000-01-01" });
+  });
   const dias = ["seg", "qua", "sex"];
   test("dia padrão quando hoje é dia de missão", () => {
     expect(diaPadrao("2026-11-16", dias, "2026-11-18")).toBe("2026-11-18");

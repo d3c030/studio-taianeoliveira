@@ -1,0 +1,1 @@
+ALTER TABLE public.grupo_participante ALTER COLUMN entrou_em SET DEFAULT ((now() AT TIME ZONE 'America/Sao_Paulo')::date);

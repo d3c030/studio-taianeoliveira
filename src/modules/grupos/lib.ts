@@ -10,7 +10,15 @@ export type ItemLista = { username: string; emoji: string; lista: number | null 
 
 export const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"] as const;
 export const DIA_LABEL: Record<string, string> = { dom: "Dom", seg: "Seg", ter: "Ter", qua: "Qua", qui: "Qui", sex: "Sex", sab: "Sáb" };
-export const diaSemana = (iso: string) => DIAS[new Date(iso + "T12:00:00").getDay()];
+export const diaSemana = (iso: string) => DIAS[new Date(iso + "T12:00:00Z").getUTCDay()];
+export function hojeSaoPaulo(instante = new Date()): string {
+  const partes = new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(instante);
+  const valor = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "";
+  return `${valor("year")}-${valor("month")}-${valor("day")}`;
+}
+export function cadastroEntrada(novata = false, instante = new Date()) {
+  return { novata, entrou_em: novata ? hojeSaoPaulo(instante) : "2000-01-01" };
+}
 
 export const norm = (s: string) =>
   (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -123,13 +131,13 @@ export function dedupe(ls: Leitura[]): Leitura[] {
 
 /** Segunda-feira da semana da data (ISO). */
 export function inicioSemana(iso: string) {
-  const d = new Date(iso + "T12:00:00");
-  const off = (d.getDay() + 6) % 7;
-  d.setDate(d.getDate() - off);
+  const d = new Date(iso + "T12:00:00Z");
+  const off = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - off);
   return d.toISOString().slice(0, 10);
 }
 export function addDias(iso: string, n: number) {
-  const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10);
+  const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
 }
 
 export type RodadaSemana = { id: string; data: string; dia_semana: string; status: "aberta" | "fechada" };
@@ -155,7 +163,7 @@ export function resumoSemana(semana: string, dias: string[], rodadas: RodadaSema
 export function conferenciasPendentes(hoje: string, dias: string[], rodadas: RodadaSemana[], criadoEm: string) {
   const semana = inicioSemana(hoje);
   return [...diasConferencia(addDias(semana, -7), dias), ...diasConferencia(semana, dias)]
-    .filter((d) => d < hoje && d >= criadoEm.slice(0, 10) && !rodadas.some((r) => r.data === d && r.status === "fechada"));
+    .filter((d) => d < hoje && d >= hojeSaoPaulo(new Date(criadoEm)) && !rodadas.some((r) => r.data === d && r.status === "fechada"));
 }
 
 /** Gera o texto no mesmo formato da lista do Notas. */

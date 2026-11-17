@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
-  addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
+  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseLista, textoSemana,
   type Leitura, type Participante,
 } from "./lib";
 
@@ -21,7 +21,7 @@ const db = supabase as any;
 type Grupo = { id: string; nome: string; dias_missao: string[]; criado_em: string };
 type Rodada = { id: string; grupo_id: string; data: string; dia_semana: string; status: "aberta" | "fechada" };
 type CheckRow = { rodada_id: string; participante_id: string; status: "ok" | "nao" };
-const hoje = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const hoje = hojeSaoPaulo;
 const fmtData = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
 /* ---------------- Grupos ---------------- */
@@ -154,6 +154,7 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
   const q = useParticipantes(grupo.id);
   const [imp, setImp] = useState(false);
   const [texto, setTexto] = useState("");
+  const [importarNovatas, setImportarNovatas] = useState(false);
   const [busca, setBusca] = useState("");
   const [mostrarInativas, setMostrarInativas] = useState(false);
   const [filtroLista, setFiltroLista] = useState<string>("");
@@ -176,17 +177,18 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
 
   const salvarImport = async () => {
     if (novos.length) {
-      const { error } = await db.from("grupo_participante").insert(novos.map((l) => ({ grupo_id: grupo.id, username: l.username, emoji_habitual: l.emoji || null, lista: l.lista })));
+      const { error } = await db.from("grupo_participante").insert(novos.map((l) => ({ grupo_id: grupo.id, username: l.username, emoji_habitual: l.emoji || null, lista: l.lista, ...cadastroEntrada(importarNovatas) })));
       if (error) return toast.error(error.message);
     }
     for (const l of atualizar) {
+      if (!l.ex) continue;
       const v: Record<string, unknown> = { emoji_habitual: l.emoji };
       if (l.lista != null) v.lista = l.lista;
-      const { error } = await db.from("grupo_participante").update(v).eq("id", l.ex!.id);
+      const { error } = await db.from("grupo_participante").update(v).eq("id", l.ex.id);
       if (error) return toast.error(error.message);
     }
     toast.success(`${novos.length} novas · ${atualizar.length} emojis atualizados`);
-    setTexto(""); setImp(false); refresh();
+    setTexto(""); setImportarNovatas(false); setImp(false); refresh();
   };
   const patch = async (id: string, v: Partial<Participante>) => {
     const { error } = await db.from("grupo_participante").update(v).eq("id", id);
@@ -219,7 +221,7 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
             <div className="flex items-center justify-between gap-2">
               <p className="font-semibold">@{p.username} {p.novata && "🆕"}</p>
               <div className="flex items-center gap-3 text-xs">
-                <label className="flex items-center gap-1">Novata <Switch checked={p.novata} onCheckedChange={(v) => patch(p.id, { novata: v })} /></label>
+                <label className="flex items-center gap-1">Novata <Switch checked={p.novata} onCheckedChange={(v) => patch(p.id, cadastroEntrada(v))} /></label>
                 <label className="flex items-center gap-1">Ativa <Switch checked={p.ativo} onCheckedChange={(v) => patch(p.id, { ativo: v })} /></label>
               </div>
             </div>
@@ -228,6 +230,9 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
               <Input defaultValue={p.emoji_habitual ?? ""} placeholder="Emoji" className="text-center" onBlur={(e) => e.target.value !== (p.emoji_habitual ?? "") && patch(p.id, { emoji_habitual: e.target.value || null })} />
               <Input type="number" inputMode="numeric" defaultValue={p.lista ?? ""} placeholder="Lista" className="text-center" onBlur={(e) => { const v = e.target.value ? Number(e.target.value) : null; if (v !== (p.lista ?? null)) patch(p.id, { lista: v }); }} />
             </div>
+            {p.novata && <label className="mt-2 block text-xs text-muted-foreground">Entrou em
+              <Input aria-label={`Entrou em @${p.username}`} type="date" defaultValue={p.entrou_em} className="mt-1" onBlur={(e) => { if (e.target.value && e.target.value !== p.entrou_em) patch(p.id, { entrou_em: e.target.value }); }} />
+            </label>}
             {p.apelidos.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {p.apelidos.map((a) => (
@@ -244,6 +249,7 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
       <Dialog open={imp} onOpenChange={setImp}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Importar lista do Notas</DialogTitle></DialogHeader>
+          <label className="flex items-center gap-2 text-sm"><Switch checked={importarNovatas} onCheckedChange={setImportarNovatas} /> Importar como novatas</label>
           <Textarea rows={8} placeholder="Cole aqui a lista (1. @fulana ❌ …)" value={texto} onChange={(e) => setTexto(e.target.value)} />
           {lidos.length > 0 && (
             <div className="space-y-1 text-sm">
@@ -273,7 +279,7 @@ function NovaParticipante({ grupoId, onDone }: { grupoId: string; onDone: () => 
   const add = async () => {
     const username = normUser(u);
     if (!username) return;
-    const { error } = await db.from("grupo_participante").insert({ grupo_id: grupoId, username });
+    const { error } = await db.from("grupo_participante").insert({ grupo_id: grupoId, username, ...cadastroEntrada() });
     if (error) return toast.error(error.code === "23505" ? "Essa @ já está no grupo" : error.message);
     setU(""); onDone();
   };
@@ -378,8 +384,8 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
     const u = window.prompt("Qual é o @ dela?", sug);
     if (!u) return;
     const { error } = await db.from("grupo_participante").insert({
-      grupo_id: grupo.id, username: normUser(u), novata: true, nome_exibicao: l.nome.trim(), emoji_habitual: l.emoji || null,
-      apelidos: norm(u) === norm(l.nome) ? [] : [l.nome.trim()], entrou_em: data,
+      grupo_id: grupo.id, username: normUser(u), nome_exibicao: l.nome.trim(), emoji_habitual: l.emoji || null,
+      apelidos: norm(u) === norm(l.nome) ? [] : [l.nome.trim()], ...cadastroEntrada(true),
     });
     if (error) return toast.error(error.code === "23505" ? "Essa @ já está no grupo" : error.message);
     toast.success("Novata cadastrada 🆕"); refreshParts();

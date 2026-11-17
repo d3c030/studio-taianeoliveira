@@ -113,6 +113,13 @@
       "when": 1794876364057,
       "tag": "0015_grupos_rodadas_protegidas",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794877903745,
+      "tag": "0016_grupo_entrada_fuso_sao_paulo",
+      "breakpoints": true
     }
   ]
 }

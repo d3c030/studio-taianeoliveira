@@ -3,3 +3,6 @@
 - [x] Fechamento atômico, somente leitura e reabertura com checks preservados.
 - [x] Exportação semanal pela última rodada fechada e totais por dia.
 - [x] Testes das regras e verificação do fluxo no celular.
+- [x] Corrigir hoje para São Paulo e cadastro de veteranas/novatas.
+- [x] Ajustar data padrão e corrigir 121 veteranas existentes.
+- [x] Testar regras e cadastro pela tela.
