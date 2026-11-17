@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { cadastroEntrada, emojisDuplicados, parseLista, type Participante } from "./lib";
+import { PerfilLink } from "./PerfilLink";
 
 const db = supabase as any;
 
@@ -66,7 +67,7 @@ export function ImportarLista({ grupoId, participantes, onDone }: { grupoId: str
         {lidos.map((l) => {
           const dup = duplicados.has(l.ex?.id ?? `novo:${l.username}`);
           return <div key={l.username} className={cn("flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs", dup && "bg-destructive/10 text-destructive")}>
-            <span className="min-w-0 break-all">@{l.username} <span className="text-base">{l.emoji}</span> · {l.lista == null ? "Sem lista" : `Lista ${l.lista}`}{dup && " · emoji repetido"}</span>
+            <span className="min-w-0 break-all"><PerfilLink username={l.username} /> <span className="text-base">{l.emoji}</span> · {l.lista == null ? "Sem lista" : `Lista ${l.lista}`}{dup && " · emoji repetido"}</span>
             <span className="font-medium">{l.acao}{l.mudaLista && " · atualizar lista"}</span>
           </div>;
         })}

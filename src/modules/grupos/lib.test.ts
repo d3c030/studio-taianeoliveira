@@ -1,10 +1,14 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from "bun:test";
-import { cadastroEntrada, hojeSaoPaulo, cruzar, emojisDuplicados, parseLista, parseCadastroManual, ordenarUsernames, textoEmojis, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
+import { urlPerfilInstagram, cadastroEntrada, hojeSaoPaulo, cruzar, emojisDuplicados, parseLista, parseCadastroManual, ordenarUsernames, textoEmojis, pontuar, textoSemana, diaPadrao, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, type Participante } from "./lib";
 
 const P = (o: Partial<Participante>): Participante => ({ id: o.username ?? "x", grupo_id: "g", nome_exibicao: null, emoji_habitual: null, apelidos: [], ativo: true, novata: false, entrou_em: "2026-01-01", username: "x", ...o });
 
 describe("check de grupos", () => {
+  test("URL de perfil normaliza minúsculas e codifica o username", () => {
+    expect(urlPerfilInstagram(" @Mari.Celia_2 ")).toBe("https://www.instagram.com/mari.celia_2/");
+    expect(urlPerfilInstagram("A/B?C#D")).toBe("https://www.instagram.com/a%2Fb%3Fc%23d/");
+  });
   test("hoje mantém 16/11 após 21h de São Paulo, mesmo com UTC em 17/11", () => {
     expect(hojeSaoPaulo(new Date("2026-11-17T01:10:00Z"))).toBe("2026-11-16");
     expect(hojeSaoPaulo(new Date("2026-11-17T03:00:00Z"))).toBe("2026-11-17");

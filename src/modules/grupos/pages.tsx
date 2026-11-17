@@ -17,6 +17,7 @@ import {
   type Leitura, type Participante,
 } from "./lib";
 import { ImportarLista } from "./ImportarLista";
+import { PerfilLink } from "./PerfilLink";
 
 const db = supabase as any;
 type Grupo = { id: string; nome: string; dias_missao: string[]; criado_em: string };
@@ -193,7 +194,7 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
           <div key={p.id} className={cn("rounded-xl border border-border bg-card p-3", !p.ativo && "opacity-60", dupAtual.has(p.id) && "border-destructive")}>
             {dupAtual.has(p.id) && <p className="mb-1 text-xs font-medium text-destructive">⚠️ Emoji igual ao de outra participante ativa</p>}
             <div className="flex items-center justify-between gap-2">
-              <p className="font-semibold">@{p.username} {p.novata && "🆕"}</p>
+              <p className="min-w-0 font-semibold"><PerfilLink username={p.username} /> {p.novata && "🆕"}</p>
               <div className="flex items-center gap-3 text-xs">
                 <label className="flex items-center gap-1">Novata <Switch checked={p.novata} onCheckedChange={(v) => patch(p.id, cadastroEntrada(v))} /></label>
                 <label className="flex items-center gap-1">Ativa <Switch checked={p.ativo} onCheckedChange={(v) => patch(p.id, { ativo: v })} /></label>
@@ -247,7 +248,7 @@ function EmojisTab({ grupo }: { grupo: Grupo }) {
       <ol className="divide-y divide-border">
         {participantes.map((p, i) => <li key={p.id} className={cn("py-3", duplicados.has(p.id) && "text-destructive")}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="min-w-0 break-all text-sm font-medium">{i + 1}. @{p.username} {p.emoji_habitual}</span>
+            <span className="min-w-0 break-all text-sm font-medium">{i + 1}. <PerfilLink username={p.username} /> {p.emoji_habitual}</span>
             <div className="flex shrink-0 gap-2">
               <Input key={`emoji-${p.id}-${p.emoji_habitual}`} aria-label={`Emoji de @${p.username}`} defaultValue={p.emoji_habitual ?? ""} placeholder="Emoji" className="h-11 w-20 text-center text-base" onBlur={(e) => { if (e.target.value !== (p.emoji_habitual ?? "")) patch(p.id, { emoji_habitual: e.target.value || null }); }} />
               <Input key={`lista-${p.id}-${p.lista}`} aria-label={`Lista de @${p.username}`} type="number" inputMode="numeric" defaultValue={p.lista ?? ""} placeholder="Lista" className="h-11 w-20 text-center" onBlur={(e) => { const v = e.target.value ? Number(e.target.value) : null; if (v !== (p.lista ?? null)) patch(p.id, { lista: v }); }} />
@@ -485,17 +486,18 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
       {leituras.length > 0 && (
         <div className="space-y-3">
           <Bloco titulo={`✅ Reconhecidas (${reconhecidas.length})`}>
-            {reconhecidas.map(({ m }) => (
-              <Linha key={m.participante!.id} esq={<><b>@{m.participante!.username}</b><span className="text-muted-foreground"> · lido “{m.leitura.nome}” {m.leitura.emoji}</span></>} dir={<span className="text-xs text-muted-foreground">{Math.round(m.confianca * 100)}%</span>} />
-            ))}
+            {reconhecidas.map(({ m }) => {
+              if (!m.participante) return null;
+              return <Linha key={m.participante.id} esq={<><b><PerfilLink username={m.participante.username} /></b><span className="text-muted-foreground"> · lido “{m.leitura.nome}” {m.leitura.emoji}</span></>} dir={<span className="text-xs text-muted-foreground">{Math.round(m.confianca * 100)}%</span>} />;
+            })}
           </Bloco>
           {conferir.length > 0 && (
             <Bloco titulo={`⚠️ Conferir (${conferir.length})`}>
-              {conferir.map((i) => { const m = matches[i]; return (
+              {conferir.map((i) => { const m = matches[i]; const participante = m.participante; if (!participante) return null; return (
                 <div key={i} className="space-y-2 border-b border-border py-2 last:border-0">
-                  <p className="text-sm">Lido: <b>{m.leitura.nome}</b> {m.leitura.emoji} → sugestão <b>@{m.participante!.username}</b>{m.porEmoji && <span className="text-xs"> pelo emoji {m.participante!.emoji_habitual}</span>} <span className="text-xs text-muted-foreground">({Math.round(m.confianca * 100)}%)</span></p>
+                  <p className="text-sm">Lido: <b>{m.leitura.nome}</b> {m.leitura.emoji} → sugestão <b><PerfilLink username={participante.username} /></b>{m.porEmoji && <span className="text-xs"> pelo emoji {participante.emoji_habitual}</span>} <span className="text-xs text-muted-foreground">({Math.round(m.confianca * 100)}%)</span></p>
                   <div className="flex gap-2">
-                    <Button className="h-11 shrink-0" onClick={() => vincular(i, m.participante!.id)}><Check className="h-4 w-4" /> Confirmar</Button>
+                    <Button className="h-11 shrink-0" onClick={() => vincular(i, participante.id)}><Check className="h-4 w-4" /> Confirmar</Button>
                     <SelectPart onChange={(v) => vincular(i, v)} />
                   </div>
                 </div>
@@ -524,7 +526,7 @@ function RodadaDia({ grupo }: { grupo: Grupo }) {
           const st = statusDe(p.id);
           return (
             <div key={p.id} className="flex items-center justify-between gap-2 border-b border-border py-1.5 last:border-0">
-              <span className="truncate text-sm">@{p.username} {p.novata && "🆕"}{manual[p.id] && <span className="text-xs text-muted-foreground"> · manual</span>}</span>
+              <span className="min-w-0 break-all text-sm"><PerfilLink username={p.username} /> {p.novata && "🆕"}{manual[p.id] && <span className="text-xs text-muted-foreground"> · manual</span>}</span>
               <div className="flex shrink-0 gap-1">
                 <Button variant="outline" disabled={fechada || salvando} aria-label="Cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "ok" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "ok" ? "border-primary bg-primary/15" : "border-border opacity-40")}>✅</Button>
                 <Button variant="outline" disabled={fechada || salvando} aria-label="Não cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "nao" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "nao" ? "border-destructive bg-destructive/10" : "border-border opacity-40")}>❌</Button>
@@ -586,7 +588,7 @@ function SemanaTab({ grupo }: { grupo: Grupo }) {
           <thead><tr className="border-b border-border"><th className="p-2 text-left">Participante</th>{grupo.dias_missao.map((d) => <th key={d} className="p-2">{DIA_LABEL[d]}</th>)}</tr></thead>
           <tbody>
             {(parts.data ?? []).filter((p) => p.ativo).map((p, i) => (
-              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. @{p.username}</td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p.id, d)}</td>)}</tr>
+              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. <PerfilLink username={p.username} /></td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p.id, d)}</td>)}</tr>
             ))}
           </tbody>
           <tfoot><tr className="border-t border-border font-semibold"><td className="p-2">Total ✅</td>{grupo.dias_missao.map((d) => {
@@ -640,7 +642,7 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
       <Bloco titulo="Quem mais falta">
         {stats.map((s, i) => (
           <div key={s.p.id} className="border-b border-border py-2 last:border-0">
-            <div className="flex justify-between text-sm"><span>{i + 1}. @{s.p.username}</span><span><b>{s.faltas}</b> falta{s.faltas === 1 ? "" : "s"} · {Math.round(s.taxa * 100)}%</span></div>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0">{i + 1}. <PerfilLink username={s.p.username} /></span><span><b>{s.faltas}</b> falta{s.faltas === 1 ? "" : "s"} · {Math.round(s.taxa * 100)}%</span></div>
             <div className="mt-1 h-1.5 rounded-full bg-accent"><div className="h-full rounded-full bg-primary" style={{ width: `${s.taxa * 100}%` }} /></div>
           </div>
         ))}

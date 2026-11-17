@@ -24,6 +24,7 @@ export const norm = (s: string) =>
   (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/(\.\.\.|…)\s*$/, "").replace(/[^a-z0-9]/g, "");
 export const normUser = (s: string) => s.trim().replace(/^@/, "").toLowerCase();
+export const urlPerfilInstagram = (username: string) => `https://www.instagram.com/${encodeURIComponent(normUser(username))}/`;
 /** Normaliza emoji: tira variation selectors e tom de pele, mantém o ZWJ (❤️‍🩹 ≠ ❤️). */
 export const normEmoji = (e?: string | null) => (e || "").replace(/[\uFE0E\uFE0F]/g, "").replace(/\p{Emoji_Modifier}/gu, "").replace(/\s+/g, "");
 

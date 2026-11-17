@@ -11,3 +11,4 @@
 - [x] Corrigir cadastro manual com emoji e validar usernames.
 - [x] Rodar 34 testes e conferir cópia, prévia e salvamento autenticado no celular/computador.
 - [x] Corrigir atualização de Semana e Histórico; conferir 122 checks, 22 confirmações, 100 faltas e 18% na tela; 34 testes passaram.
+- [x] Criar links únicos de perfil nas abas e prévia; cópia em texto puro e cliques conferidos no computador/celular; 35 testes passaram.
