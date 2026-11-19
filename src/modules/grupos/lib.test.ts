@@ -25,9 +25,8 @@ describe("check de grupos", () => {
   });
   const dias = ["seg", "qua", "sex"];
   test("exportação usa status ajustado sem indicador nem status original", () => {
-    const resumo = resumoSemana("2026-11-16", dias, [{ id: "s", data: "2026-11-16", dia_semana: "seg", status: "fechada" }], [{ rodada_id: "s", participante_id: "ana", status: "ok", status_original: "nao", ajustado_em: "2026-11-20T15:00:00Z", obs: "Atualizou depois" }]);
-    const linha = textoSemana({ dias, ...resumo, participantes: [P({ username: "ana" })] }).split("\n").at(-1);
-    expect(linha).toBe("1. @ana ✅");
+    const linha = textoSemana({ dias, rodadas: [{ id: "s", data: "2026-11-16", dia_semana: "seg", status: "fechada" }], checks: [{ rodada_id: "s", participante_id: "ana", status: "ok", status_original: "nao", ajustado_em: "2026-11-20T15:00:00Z", obs: "Atualizou depois" }], participantes: [P({ username: "ana" })] }).split("\n").at(-1);
+    expect(linha).toBe("1. @ana Seg✅");
   });
   test("dia padrão quando hoje é dia de missão", () => {
     expect(diaPadrao("2026-11-16", dias, "2026-11-18")).toBe("2026-11-18");
@@ -56,9 +55,9 @@ describe("check de grupos", () => {
   ];
   test("cabeçalho representa somente dias fechados", () => {
     const r = resumoSemana("2026-11-16", dias, rodadas, []);
-    expect(textoSemana({ dias, ...r, participantes: [] })).toContain("(Seg✅|Qua✅|Sex❌)");
+    expect(textoSemana({ dias, rodadas: r.fechadas, checks: [], participantes: [] })).toContain("(Seg✅|Qua✅|Sex❌)");
   });
-  test("marca vem da última fechada, não da aberta nem de outra semana", () => {
+  test("marcas de Seg e Qua fechadas, não da Sex aberta nem de outra semana", () => {
     const checks = [
       { rodada_id: "s", participante_id: "ana", status: "ok" as const },
       { rodada_id: "q", participante_id: "ana", status: "nao" as const },
@@ -66,12 +65,30 @@ describe("check de grupos", () => {
     ];
     const r = resumoSemana("2026-11-16", dias, [...rodadas, { id: "outra", data: "2026-11-23", dia_semana: "seg", status: "fechada" }], checks);
     expect(r.ultima?.id).toBe("q");
-    expect(textoSemana({ dias, ...r, participantes: [P({ username: "ana" })] })).toContain("1. @ana ❌");
+    expect(textoSemana({ dias: ["sex", "qua", "seg"], rodadas: r.fechadas, checks, participantes: [P({ username: "ana" })] })).toContain("1. @ana Seg✅ Qua❌");
   });
-  test("sem rodada fechada todas são ❌ e novata sem check é 🆕", () => {
+  test("sem rodada fechada veterana fica sem marca e novata é 🆕", () => {
     const r = resumoSemana("2026-11-16", dias, [rodadas[2]], [{ rodada_id: "f", participante_id: "ana", status: "ok" }]);
     expect(r.ultima).toBeNull();
-    expect(textoSemana({ dias, ...r, participantes: [P({ username: "ana" }), P({ username: "bia", novata: true })] })).toContain("1. @ana ❌\n2. @bia 🆕");
+    expect(textoSemana({ dias, rodadas: r.fechadas, checks: [{ rodada_id: "f", participante_id: "ana", status: "ok" }], participantes: [P({ username: "ana" }), P({ username: "bia", novata: true })] })).toContain("1. @ana\n2. @bia 🆕");
+  });
+  test("omite dias sem elegibilidade ou check; novata sem marcas recebe 🆕", () => {
+    const participantes = [P({ username: "nova", novata: true, entrou_em: "2026-11-19" }), P({ username: "antes", novata: true, entrou_em: "2026-11-17" }), P({ username: "semcheck" })];
+    const texto = textoSemana({ dias, rodadas, participantes, checks: [
+      { rodada_id: "s", participante_id: "antes", status: "ok" },
+      { rodada_id: "q", participante_id: "antes", status: "nao" },
+      { rodada_id: "q", participante_id: "nova", status: "ok" },
+    ] });
+    expect(texto.split("\n").slice(6)).toEqual(["1. @antes Qua❌", "2. @nova 🆕", "3. @semcheck"]);
+  });
+  test("sexta só aparece nas marcas depois do fechamento e mantém filtro de participantes", () => {
+    const ps = [P({ username: "l2", lista: 2 }), P({ username: "l1", lista: 1 })];
+    const texto = textoSemana({ dias, rodadas: rodadas.map((r) => ({ ...r, status: "fechada" })), participantes: ps.filter((p) => p.lista === 2), checks: [
+      { rodada_id: "s", participante_id: "l2", status: "ok" },
+      { rodada_id: "q", participante_id: "l2", status: "nao" },
+      { rodada_id: "f", participante_id: "l2", status: "ok" },
+    ] });
+    expect(texto.split("\n").slice(6)).toEqual(["1. @l2 Seg✅ Qua❌ Sex✅"]);
   });
   test("pendências incluem só dias passados nas duas semanas, sem fechadas", () => {
     expect(conferenciasPendentes("2026-11-19", dias, rodadas, "2026-11-11")).toEqual(["2026-11-11", "2026-11-13"]);
@@ -118,7 +135,7 @@ describe("check de grupos", () => {
     const parts = [P({ username: "thaynara10", lista: 1 }), P({ username: "_ericarodrigss", lista: 1 }), P({ username: "adri.anacostaalves", lista: 1 }), P({ username: "inativa", ativo: false, lista: 1 })];
     const esperado = ["1. @adri.anacostaalves", "2. @_ericarodrigss", "3. @thaynara10"];
     expect(textoEmojis(parts).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado);
-    expect(textoSemana({ dias: ["seg"], fechados: new Set(), participantes: parts, status: new Map() }).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado.map((l) => `${l} ❌`));
+    expect(textoSemana({ dias: ["seg"], rodadas: [], participantes: parts, checks: [] }).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado);
   });
   test("cadastro manual separa username e emoji composto", () => {
     expect(parseCadastroManual("@mariicelia_santos 🙆🏻‍♀️")).toEqual({ username: "mariicelia_santos", emoji: "🙆🏻‍♀️", lista: null });
@@ -151,9 +168,9 @@ describe("check de grupos", () => {
   });
   test("exportação em ordem alfabética com 🆕", () => {
     const a = P({ username: "bia" }), b = P({ username: "ana", novata: true });
-    const t = textoSemana({ dias: ["seg", "qua", "sex"], fechados: new Set(["seg"]), participantes: [a, b], status: new Map([["bia", "ok"]]) });
-    expect(t).toContain("(Seg✅|Qua❌|Sex❌)");
-    expect(t).toContain("1. @ana 🆕\n2. @bia ✅");
+    const t = textoSemana({ dias, rodadas, participantes: [a, b], checks: [{ rodada_id: "s", participante_id: "bia", status: "ok" }] });
+    expect(t).toContain("(Seg✅|Qua✅|Sex❌)");
+    expect(t).toContain("1. @ana 🆕\n2. @bia Seg✅");
   });
 });
 

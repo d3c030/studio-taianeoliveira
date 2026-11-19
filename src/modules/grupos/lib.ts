@@ -189,6 +189,7 @@ export function resumoSemana(semana: string, dias: string[], rodadas: RodadaSema
   const ultima = fechadas.at(-1) ?? null;
   return {
     ultima,
+    fechadas,
     fechados: new Set(fechadas.map((r) => r.dia_semana)),
     status: new Map(checks.filter((c) => c.rodada_id === ultima?.id).map((c) => [c.participante_id, c.status])),
   };
@@ -199,17 +200,24 @@ export function conferenciasPendentes(hoje: string, dias: string[], rodadas: Rod
     .filter((d) => d < hoje && d >= hojeSaoPaulo(new Date(criadoEm)) && !rodadas.some((r) => r.data === d && r.status === "fechada"));
 }
 
-/** Gera o texto no mesmo formato da lista do Notas. */
+/** Exporta cada dia fechado com o status salvo atual, sem inventar checks ausentes. */
 export function textoSemana(opts: {
-  dias: string[]; fechados: Set<string>; participantes: Participante[];
-  status: Map<string, "ok" | "nao">;
+  dias: string[]; rodadas: RodadaSemana[]; checks: CheckSemana[]; participantes: Participante[];
 }) {
-  const cab = opts.dias.map((d) => `${DIA_LABEL[d] ?? d}${opts.fechados.has(d) ? "✅" : "❌"}`).join("|");
+  const dias = ["seg", "ter", "qua", "qui", "sex", "sab", "dom"].filter((d) => opts.dias.includes(d));
+  const porDia = new Map(opts.rodadas.filter((r) => r.status === "fechada" && dias.includes(r.dia_semana)).map((r) => [r.dia_semana, r]));
+  const status = new Map(opts.checks.map((c) => [`${c.rodada_id}|${c.participante_id}`, c.status]));
+  const cab = dias.map((d) => `${DIA_LABEL[d]}${porDia.has(d) ? "✅" : "❌"}`).join("|");
   const lista = opts.participantes.filter((p) => p.ativo).sort((a, b) => ordenarUsernames(a.username, b.username))
     .map((p, i) => {
-      const st = opts.status.get(p.id);
-      const e = st === "ok" ? "✅" : st === "nao" ? "❌" : p.novata ? "🆕" : "❌";
-      return `${i + 1}. @${p.username} ${e}`;
+      const marcas = dias.flatMap((d) => {
+        const r = porDia.get(d);
+        if (!r || p.entrou_em > r.data) return [];
+        const st = status.get(`${r.id}|${p.id}`);
+        return st ? [`${DIA_LABEL[d]}${st === "ok" ? "✅" : "❌"}`] : [];
+      });
+      const sufixo = marcas.length ? marcas.join(" ") : p.novata ? "🆕" : "";
+      return `${i + 1}. @${p.username}${sufixo ? ` ${sufixo}` : ""}`;
     });
   return ["Lista de atualização da semana", `(${cab})`, "✅=Atualizou os pedidos do dia", "❌=Não atualizou os pedidos do dia", "🆕=Novatas(não estava no grupo)", "", ...lista].join("\n");
 }

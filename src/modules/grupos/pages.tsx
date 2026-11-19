@@ -573,8 +573,9 @@ function SemanaTab({ grupo, semanaInicial }: { grupo: Grupo; semanaInicial: stri
   const q = useRodadasSemana(grupo.id, ini);
   const rodadas = q.data?.rodadas ?? [];
   const porDia = new Map(rodadas.filter((r) => r.status === "fechada").map((r) => [r.dia_semana, r]));
-  const { ultima: rodSel, fechados, status } = resumoSemana(ini, grupo.dias_missao, rodadas, q.data?.checks ?? []);
-  const texto = textoSemana({ dias: grupo.dias_missao, fechados, participantes: parts.data ?? [], status });
+  const { fechadas, fechados } = resumoSemana(ini, grupo.dias_missao, rodadas, q.data?.checks ?? []);
+  const texto = textoSemana({ dias: grupo.dias_missao, rodadas: fechadas, checks: q.data?.checks ?? [], participantes: parts.data ?? [] });
+  const diasConferidos = diasConferencia(ini, grupo.dias_missao).map(diaSemana).filter((d) => fechados.has(d)).map((d) => DIA_LABEL[d]);
   const refresh = async () => {
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] }),
@@ -623,7 +624,7 @@ function SemanaTab({ grupo, semanaInicial }: { grupo: Grupo; semanaInicial: stri
         <option value="">Exportar a lista inteira</option>
         {listasExist.map((n) => <option key={n} value={String(n)}>Só a Lista {n}</option>)}
       </select>
-      <p className="text-sm font-semibold">{rodSel ? `Status da rodada de ${DIA_LABEL[rodSel.dia_semana]} ${fmtData(rodSel.data)}` : "Nenhuma rodada fechada nesta semana"}</p>
+      <p className="text-sm font-semibold">{`Dias conferidos: ${diasConferidos.join(", ") || "nenhum"}`}</p>
       <Textarea readOnly rows={12} value={texto} className="font-mono text-xs" />
       <Button className="h-12 w-full" onClick={() => navigator.clipboard.writeText(texto).then(() => toast.success("Lista copiada"), () => toast.error("Não foi possível copiar"))}><Copy className="h-4 w-4" /> Copiar lista</Button>
       <div className="overflow-x-auto rounded-xl border border-border bg-card">

@@ -1,7 +1,7 @@
 # Check de Grupos
 - [x] Seleção de semanas e dias de conferência, com aviso de pendências.
 - [x] Fechamento atômico, somente leitura e reabertura com checks preservados.
-- [x] Exportação semanal pela última rodada fechada e totais por dia.
+- [x] Exportação semanal com marcas de cada rodada fechada e totais por dia.
 - [x] Testes das regras e verificação do fluxo no celular.
 - [x] Corrigir hoje para São Paulo e cadastro de veteranas/novatas.
 - [x] Ajustar data padrão e corrigir 121 veteranas existentes.
@@ -15,4 +15,5 @@
 - [x] Adicionar RPCs protegidas de ajuste e regularização semanal com status original preservado.
 - [x] Adicionar diálogo, indicadores e contagem de ajustes em Semana, Rodada e Histórico.
 - [x] Testar proteções no banco, exportação e fluxo autenticado sem alterar checks reais: 36 testes de regras e 5 testes transacionais passaram; tela conferida no computador e celular.
-- [ ] Fotos de perfil via Apify: armazenamento privado, busca manual, avatares em lote e testes; aguardando o usuário criar uma conexão Apify acessível para este projeto.
+- Cancelado: fotos de perfil via Apify, conforme pedido anterior.
+- [x] Atualizar prévia e cópia semanal por dia fechado; 43 testes passaram e cópia conferida com dados salvos no computador/celular.
