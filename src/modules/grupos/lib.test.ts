@@ -79,7 +79,7 @@ describe("check de grupos", () => {
       { rodada_id: "q", participante_id: "antes", status: "nao" },
       { rodada_id: "q", participante_id: "nova", status: "ok" },
     ] });
-    expect(texto.split("\n").slice(6)).toEqual(["1. @antes ➖❌", "2. @nova 🆕", "3. @semcheck ➖➖"]);
+    expect(texto.split("\n").slice(6)).toEqual(["1. @antes 🆕 ➖❌", "2. @nova 🆕 ➖➖", "3. @semcheck ➖➖"]);
   });
   test("sexta só aparece nas marcas depois do fechamento e mantém filtro de participantes", () => {
     const ps = [P({ username: "l2", lista: 2 }), P({ username: "l1", lista: 1 })];
@@ -89,6 +89,13 @@ describe("check de grupos", () => {
       { rodada_id: "f", participante_id: "l2", status: "ok" },
     ] });
     expect(texto.split("\n").slice(6)).toEqual(["1. @l2 ✅❌✅"]);
+  });
+  test("novata mantém 🆕 antes das marcas de dias fechados", () => {
+    const texto = textoSemana({ dias, rodadas, participantes: [P({ username: "fulana", novata: true })], checks: [
+      { rodada_id: "s", participante_id: "fulana", status: "ok" },
+      { rodada_id: "q", participante_id: "fulana", status: "nao" },
+    ] });
+    expect(texto.split("\n").at(-1)).toBe("1. @fulana 🆕 ✅❌");
   });
   test("check ausente na quarta mantém sua posição entre segunda e sexta", () => {
     const texto = textoSemana({ dias: ["sex", "seg", "qua"], rodadas: rodadas.map((r) => ({ ...r, status: "fechada" })), participantes: [P({ username: "ana" })], checks: [
@@ -144,6 +151,15 @@ describe("check de grupos", () => {
     expect(textoEmojis(parts).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado);
     expect(textoSemana({ dias: ["seg"], rodadas: [], participantes: parts, checks: [] }).split("\n").filter((l) => /^\d+\./.test(l))).toEqual(esperado);
   });
+  test("ida e volta dos emojis de novatas ignora indicador sem perder emoji habitual", () => {
+    const parts = [P({ username: "fulana", novata: true, emoji_habitual: "💅🏽", lista: 1 }), P({ username: "sicrana", novata: true, emoji_habitual: "✅", lista: 1 })];
+    const texto = textoEmojis(parts);
+    expect(texto).toContain("1. @fulana 🆕 💅🏽");
+    expect(texto).toContain("2. @sicrana 🆕 ✅");
+    expect(parseLista(texto)).toEqual([{ username: "fulana", emoji: "💅🏽", lista: 1 }, { username: "sicrana", emoji: "✅", lista: 1 }]);
+    expect(parseLista("@nova 🆕 🙆🏻‍♀️")[0].emoji).toBe("🙆🏻‍♀️");
+    expect(parseLista("@outra 🆕")[0].emoji).toBe("🆕");
+  });
   test("cadastro manual separa username e emoji composto", () => {
     expect(parseCadastroManual("@mariicelia_santos 🙆🏻‍♀️")).toEqual({ username: "mariicelia_santos", emoji: "🙆🏻‍♀️", lista: null });
     expect(parseCadastroManual("  Mari.Celia_2 ✅ ")).toEqual({ username: "mari.celia_2", emoji: "✅", lista: null });
@@ -177,7 +193,7 @@ describe("check de grupos", () => {
     const a = P({ username: "bia" }), b = P({ username: "ana", novata: true });
     const t = textoSemana({ dias, rodadas, participantes: [a, b], checks: [{ rodada_id: "s", participante_id: "bia", status: "ok" }] });
     expect(t).toContain("(Seg✅|Qua✅|Sex❌)");
-    expect(t).toContain("1. @ana 🆕\n2. @bia ✅➖");
+    expect(t).toContain("1. @ana 🆕 ➖➖\n2. @bia ✅➖");
   });
 });
 
@@ -252,6 +268,11 @@ describe("não fizeram", () => {
   });
   test("status ajustado conta como ✅", () => {
     expect(naoFizeram({ participantes: parts, rodadas: [qua], checks }).some((x) => x.participante.username === "ana")).toBe(false);
+  });
+  test("não fizeram mantém 🆕 depois do username em dia e semana", () => {
+    const r = naoFizeram({ participantes: [P({ username: "fulana", novata: true })], rodadas: [qua], checks: [] });
+    expect(textoNaoFizeram(r, { dia: qua })).toBe("Não atualizaram – Qua 18/11\n1. @fulana 🆕");
+    expect(textoNaoFizeram(r, { semana: "2026-11-16" })).toBe("Não atualizaram – semana de 16/11 a 22/11\n1. @fulana 🆕 (Qua)");
   });
   test("inativas e não elegíveis ficam fora", () => {
     const nomes = naoFizeram({ participantes: parts, rodadas: [seg, qua], checks }).map((x) => x.participante.username);

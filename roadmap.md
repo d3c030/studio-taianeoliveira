@@ -1,4 +1,5 @@
 # Check de Grupos
+- [x] Manter 🆕 nas telas e exportações de novatas e preservar emoji na reimportação; 55 testes passaram, cópia e indicadores conferidos nas cinco abas com acesso autorizado.
 - [x] Persistir auditoria por print e total de reações, com conferência e limpeza.
 - [x] Atualizar leitura para Gemini 3.8 e revisão única de linhas faltantes; proteger apelidos e sugestões/cadastro de novatas. Reserva 2.5 não utilizada: modelo expirado no catálogo.
 - [x] 51 testes passaram; leitura real Gemini, persistência, vínculos, conflitos, fechamento/reabertura e limpeza conferidos em grupo temporário, removido após os testes; computador e celular verificados.

@@ -55,6 +55,7 @@ export function parseLista(texto: string): ItemLista[] {
       const username = m[1].replace(/\.+$/, "").toLowerCase();
       if (!username || out.some((x) => x.username === username)) continue;
       let emoji = m[2].replace(/\s+/g, "");
+      emoji = emoji.replace(/^🆕(?=[\p{Extended_Pictographic}\p{Emoji_Presentation}])/u, "");
       if (antigo) emoji = emoji.replace(/[✅❌✔✖]|🆕/gu, "");
       out.push({ username, emoji, lista });
     }
@@ -76,7 +77,7 @@ export function listasEmojis(parts: Participante[]) {
 export function textoEmojis(parts: Participante[]) {
   return listasEmojis(parts).map(({ lista, participantes }) => [
     lista == null ? "SEM LISTA" : `LISTA ${lista} - de emojis escolhidos para fixar nos pedidos.`,
-    "", ...participantes.map((p, i) => `${i + 1}. @${p.username}${p.emoji_habitual ? ` ${p.emoji_habitual}` : ""}`),
+    "", ...participantes.map((p, i) => `${i + 1}. @${p.username}${p.novata ? " 🆕" : ""}${p.emoji_habitual ? ` ${p.emoji_habitual}` : ""}`),
   ].join("\n")).join("\n\n");
 }
 
@@ -231,9 +232,8 @@ export function textoSemana(opts: {
         const st = status.get(`${r.id}|${p.id}`);
         return [st ? st === "ok" ? "✅" : "❌" : "➖"];
       });
-      const temCheck = marcas.some((marca) => marca !== "➖");
-      const sufixo = p.novata && !temCheck ? "🆕" : marcas.join("");
-      return `${i + 1}. @${p.username}${sufixo ? ` ${sufixo}` : ""}`;
+      const sufixo = marcas.join("");
+      return `${i + 1}. @${p.username}${p.novata ? " 🆕" : ""}${sufixo ? ` ${sufixo}` : ""}`;
     });
   return ["Lista de atualização da semana", `(${cab})`, "✅=Atualizou os pedidos do dia", "❌=Não atualizou os pedidos do dia", "🆕=Novatas(não estava no grupo)", "", ...lista].join("\n");
 }
@@ -257,9 +257,9 @@ const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 export function textoNaoFizeram(itens: NaoFez[], modo: { dia: RodadaSemana } | { semana: string }) {
   const ord = [...itens].sort((a, b) => ordenarUsernames(a.participante.username, b.participante.username));
   if ("dia" in modo) {
-    return [`Não atualizaram – ${DIA_LABEL[modo.dia.dia_semana] ?? modo.dia.dia_semana} ${ddmm(modo.dia.data)}`, ...ord.map((x, i) => `${i + 1}. @${normUser(x.participante.username)}`)].join("\n");
+    return [`Não atualizaram – ${DIA_LABEL[modo.dia.dia_semana] ?? modo.dia.dia_semana} ${ddmm(modo.dia.data)}`, ...ord.map((x, i) => `${i + 1}. @${normUser(x.participante.username)}${x.participante.novata ? " 🆕" : ""}`)].join("\n");
   }
   const ini = inicioSemana(modo.semana);
   return [`Não atualizaram – semana de ${ddmm(ini)} a ${ddmm(addDias(ini, 6))}`,
-    ...ord.map((x, i) => `${i + 1}. @${normUser(x.participante.username)} (${x.faltas.map((r) => DIA_LABEL[r.dia_semana] ?? r.dia_semana).join(", ")})`)].join("\n");
+    ...ord.map((x, i) => `${i + 1}. @${normUser(x.participante.username)}${x.participante.novata ? " 🆕" : ""} (${x.faltas.map((r) => DIA_LABEL[r.dia_semana] ?? r.dia_semana).join(", ")})`)].join("\n");
 }

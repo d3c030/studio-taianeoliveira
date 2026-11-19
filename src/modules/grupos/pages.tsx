@@ -200,7 +200,7 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
           <div key={p.id} className={cn("rounded-xl border border-border bg-card p-3", !p.ativo && "opacity-60", dupAtual.has(p.id) && "border-destructive")}>
             {dupAtual.has(p.id) && <p className="mb-1 text-xs font-medium text-destructive">⚠️ Emoji igual ao de outra participante ativa</p>}
             <div className="flex items-center justify-between gap-2">
-              <p className="min-w-0 font-semibold"><PerfilLink username={p.username} /> {p.novata && "🆕"}</p>
+              <p className="min-w-0 font-semibold"><PerfilLink username={p.username} novata={p.novata} /></p>
               <div className="flex items-center gap-3 text-xs">
                 <label className="flex items-center gap-1">Novata <Switch checked={p.novata} onCheckedChange={(v) => patch(p.id, cadastroEntrada(v))} /></label>
                 <label className="flex items-center gap-1">Ativa <Switch checked={p.ativo} onCheckedChange={(v) => patch(p.id, { ativo: v })} /></label>
@@ -254,7 +254,7 @@ function EmojisTab({ grupo }: { grupo: Grupo }) {
       <ol className="divide-y divide-border">
         {participantes.map((p, i) => <li key={p.id} className={cn("py-3", duplicados.has(p.id) && "text-destructive")}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="min-w-0 break-all text-sm font-medium">{i + 1}. <PerfilLink username={p.username} /> {p.emoji_habitual}</span>
+            <span className="min-w-0 break-all text-sm font-medium">{i + 1}. <PerfilLink username={p.username} novata={p.novata} /> {p.emoji_habitual}</span>
             <div className="flex shrink-0 gap-2">
               <Input key={`emoji-${p.id}-${p.emoji_habitual}`} aria-label={`Emoji de @${p.username}`} defaultValue={p.emoji_habitual ?? ""} placeholder="Emoji" className="h-11 w-20 text-center text-base" onBlur={(e) => { if (e.target.value !== (p.emoji_habitual ?? "")) patch(p.id, { emoji_habitual: e.target.value || null }); }} />
               <Input key={`lista-${p.id}-${p.lista}`} aria-label={`Lista de @${p.username}`} type="number" inputMode="numeric" defaultValue={p.lista ?? ""} placeholder="Lista" className="h-11 w-20 text-center" onBlur={(e) => { const v = e.target.value ? Number(e.target.value) : null; if (v !== (p.lista ?? null)) patch(p.id, { lista: v }); }} />
@@ -558,7 +558,7 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
         {!auditoriaQ.data?.rows.length && <p className="text-sm text-muted-foreground">Nenhuma leitura registrada. Prints antigos precisam ser enviados novamente.</p>}
         {(auditoriaQ.data?.rows ?? []).map((r) => {
           const p = parts.data?.find((p) => p.id === r.participante_id);
-          return <div key={r.id} className="border-b border-border py-2 text-sm"><p className="font-semibold">Print {r.print_idx} · Linha {r.ordem + 1}</p><p className="break-words">{r.nome_lido} {r.emoji_lido} {r.cortado && "(cortado)"}</p><p>{p ? <PerfilLink username={p.username} /> : "Não vinculada"} · {Math.round(Number(r.confianca) * 100)}%</p></div>;
+          return <div key={r.id} className="border-b border-border py-2 text-sm"><p className="font-semibold">Print {r.print_idx} · Linha {r.ordem + 1}</p><p className="break-words">{r.nome_lido} {r.emoji_lido} {r.cortado && "(cortado)"}</p><p>{p ? <PerfilLink username={p.username} novata={p.novata} /> : "Não vinculada"} · {Math.round(Number(r.confianca) * 100)}%</p></div>;
         })}
       </DialogContent></Dialog>
       {data && !fechada && !rodadaQ.isLoading && !rodadaQ.error && <>
@@ -586,14 +586,14 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
           <Bloco titulo={`✅ Reconhecidas (${reconhecidas.length})`}>
             {reconhecidas.map(({ m }) => {
               if (!m.participante) return null;
-              return <Linha key={m.participante.id} esq={<><b><PerfilLink username={m.participante.username} /></b><span className="text-muted-foreground"> · lido “{m.leitura.nome}” {m.leitura.emoji}</span></>} dir={<span className="text-xs text-muted-foreground">{Math.round(m.confianca * 100)}%</span>} />;
+              return <Linha key={m.participante.id} esq={<><b><PerfilLink username={m.participante.username} novata={m.participante.novata} /></b><span className="text-muted-foreground"> · lido “{m.leitura.nome}” {m.leitura.emoji}</span></>} dir={<span className="text-xs text-muted-foreground">{Math.round(m.confianca * 100)}%</span>} />;
             })}
           </Bloco>
           {conferir.length > 0 && (
             <Bloco titulo={`⚠️ Conferir (${conferir.length})`}>
               {conferir.map((i) => { const m = matches[i]; const participante = m.participante; if (!participante) return null; return (
                 <div key={i} className="space-y-2 border-b border-border py-2 last:border-0">
-                  <p className="text-sm">Lido: <b>{m.leitura.nome}</b> {m.leitura.emoji} → sugestão <b><PerfilLink username={participante.username} /></b>{m.porEmoji && <span className="text-xs"> pelo emoji {participante.emoji_habitual}</span>} <span className="text-xs text-muted-foreground">({Math.round(m.confianca * 100)}%)</span></p>
+                  <p className="text-sm">Lido: <b>{m.leitura.nome}</b> {m.leitura.emoji} → sugestão <b><PerfilLink username={participante.username} novata={participante.novata} /></b>{m.porEmoji && <span className="text-xs"> pelo emoji {participante.emoji_habitual}</span>} <span className="text-xs text-muted-foreground">({Math.round(m.confianca * 100)}%)</span></p>
                   <div className="flex gap-2">
                     <Button className="h-11 shrink-0" onClick={() => vincular(i, participante.id)}><Check className="h-4 w-4" /> Confirmar</Button>
                     <SelectPart onChange={(v) => vincular(i, v)} />
@@ -624,7 +624,7 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
           const st = statusDe(p.id);
           return (
             <div key={p.id} className="flex items-center justify-between gap-2 border-b border-border py-1.5 last:border-0">
-              <span className="min-w-0 break-all text-sm"><PerfilLink username={p.username} /> {p.novata && "🆕"}{manual[p.id] && <span className="text-xs text-muted-foreground"> · manual</span>}</span>
+              <span className="min-w-0 break-all text-sm"><PerfilLink username={p.username} novata={p.novata} />{manual[p.id] && <span className="text-xs text-muted-foreground"> · manual</span>}</span>
               <div className="flex shrink-0 items-center gap-1">
                 {fechada && <IndicadorAjuste check={rodadaQ.data?.checks.find((c) => c.participante_id === p.id)} />}
                 <Button variant="outline" disabled={fechada || salvando} aria-label="Cumpriu" onClick={() => setManual((m) => ({ ...m, [p.id]: "ok" }))} className={cn("h-10 w-12 rounded-lg border text-lg", st === "ok" ? "border-primary bg-primary/15" : "border-border opacity-40")}>✅</Button>
@@ -724,7 +724,7 @@ function SemanaTab({ grupo, semanaInicial }: { grupo: Grupo; semanaInicial: stri
           <thead><tr className="border-b border-border"><th className="p-2 text-left">Participante</th>{grupo.dias_missao.map((d) => <th key={d} className="p-2">{DIA_LABEL[d]}</th>)}<th className="p-2">Ajustes</th></tr></thead>
           <tbody>
             {(parts.data ?? []).filter((p) => p.ativo).map((p, i) => (
-              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. <PerfilLink username={p.username} /></td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p, d)}</td>)}<td className="p-2"><Button variant="outline" size="sm" className="h-11" aria-label={`Regularizar semana de @${p.username}`} disabled={!q.data?.checks.some((c) => c.participante_id === p.id && c.status === "nao" && rodadas.some((r) => r.id === c.rodada_id && r.status === "fechada" && p.entrou_em <= r.data))} onClick={() => setRegularizar(p)}><ListChecks className="h-4 w-4" /> Regularizar semana</Button></td></tr>
+              <tr key={p.id} className="border-b border-border last:border-0"><td className="p-2">{i + 1}. <PerfilLink username={p.username} novata={p.novata} /></td>{grupo.dias_missao.map((d) => <td key={d} className="p-2 text-center">{cel(p, d)}</td>)}<td className="p-2"><Button variant="outline" size="sm" className="h-11" aria-label={`Regularizar semana de @${p.username}`} disabled={!q.data?.checks.some((c) => c.participante_id === p.id && c.status === "nao" && rodadas.some((r) => r.id === c.rodada_id && r.status === "fechada" && p.entrou_em <= r.data))} onClick={() => setRegularizar(p)}><ListChecks className="h-4 w-4" /> Regularizar semana</Button></td></tr>
             ))}
           </tbody>
           <tfoot><tr className="border-t border-border font-semibold"><td className="p-2">Total ✅</td>{grupo.dias_missao.map((d) => {
@@ -737,7 +737,7 @@ function SemanaTab({ grupo, semanaInicial }: { grupo: Grupo; semanaInicial: stri
       <p className="text-xs text-muted-foreground">• = ajustado manualmente</p>
       <Dialog open={!!ajuste} onOpenChange={(v) => { if (!v && !salvando) setAjuste(null); }}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="break-words">Ajustar {ajuste && <PerfilLink username={ajuste.p.username} />} · {ajuste && `${DIA_LABEL[ajuste.r.dia_semana]} ${fmtData(ajuste.r.data)}`}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="break-words">Ajustar {ajuste && <PerfilLink username={ajuste.p.username} novata={ajuste.p.novata} />} · {ajuste && `${DIA_LABEL[ajuste.r.dia_semana]} ${fmtData(ajuste.r.data)}`}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-2">
             <Button aria-label="Marcar cumpriu" aria-pressed={novoStatus === "ok"} variant={novoStatus === "ok" ? "default" : "outline"} disabled={salvando} className="h-12 text-xl" onClick={() => setNovoStatus("ok")}>✅</Button>
             <Button aria-label="Marcar não cumpriu" aria-pressed={novoStatus === "nao"} variant={novoStatus === "nao" ? "default" : "outline"} disabled={salvando} className="h-12 text-xl" onClick={() => setNovoStatus("nao")}>❌</Button>
@@ -749,7 +749,7 @@ function SemanaTab({ grupo, semanaInicial }: { grupo: Grupo; semanaInicial: stri
       <Dialog open={!!regularizar} onOpenChange={(v) => { if (!v && !salvando) setRegularizar(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Regularizar semana</DialogTitle></DialogHeader>
-          <p className="break-words text-sm">Marcar ✅ em todas as rodadas fechadas desta semana para {regularizar && <PerfilLink username={regularizar.username} />}?</p>
+          <p className="break-words text-sm">Marcar ✅ em todas as rodadas fechadas desta semana para {regularizar && <PerfilLink username={regularizar.username} novata={regularizar.novata} />}?</p>
           <div className="flex justify-end gap-2"><Button variant="outline" disabled={salvando} onClick={() => setRegularizar(null)}>Cancelar</Button><Button disabled={salvando} onClick={salvarSemana}>{salvando && <Loader2 className="h-4 w-4 animate-spin" />} Confirmar</Button></div>
         </DialogContent>
       </Dialog>
@@ -797,7 +797,7 @@ function HistoricoTab({ grupo }: { grupo: Grupo }) {
       <Bloco titulo="Quem mais falta">
         {stats.map((s, i) => (
           <div key={s.p.id} className="border-b border-border py-2 last:border-0">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0">{i + 1}. <PerfilLink username={s.p.username} /></span><span><b>{s.faltas}</b> falta{s.faltas === 1 ? "" : "s"} · {Math.round(s.taxa * 100)}% · <span title="Checks ajustados no período">{s.ajustes} ajuste{s.ajustes === 1 ? "" : "s"} •</span></span></div>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0">{i + 1}. <PerfilLink username={s.p.username} novata={s.p.novata} /></span><span><b>{s.faltas}</b> falta{s.faltas === 1 ? "" : "s"} · {Math.round(s.taxa * 100)}% · <span title="Checks ajustados no período">{s.ajustes} ajuste{s.ajustes === 1 ? "" : "s"} •</span></span></div>
             <div className="mt-1 h-1.5 rounded-full bg-accent"><div className="h-full rounded-full bg-primary" style={{ width: `${s.taxa * 100}%` }} /></div>
           </div>
         ))}
@@ -882,7 +882,7 @@ function NaoFizeramTab({ grupo, onIrRodada }: { grupo: Grupo; onIrRodada: () => 
                 {itens.map((x, i) => (
                   <li key={x.participante.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 text-sm">
                     <span className="w-6 text-muted-foreground">{i + 1}.</span>
-                    <PerfilLink username={x.participante.username} />
+                    <PerfilLink username={x.participante.username} novata={x.participante.novata} />
                     <span className="text-lg">{x.participante.emoji_habitual ?? ""}</span>
                     {x.participante.lista != null && <span className="rounded bg-muted px-1.5 text-xs">L{x.participante.lista}</span>}
                     {atual === "semana" && <span className="w-full pl-9 text-xs text-muted-foreground sm:w-auto sm:pl-0">{x.dias.filter((d) => d.fez !== null).map((d) => `${DIA_LABEL[d.rodada.dia_semana]} ${d.fez ? "✅" : "❌"}`).join(" · ")}</span>}
@@ -899,7 +899,7 @@ function NaoFizeramTab({ grupo, onIrRodada }: { grupo: Grupo; onIrRodada: () => 
       )}
       <Dialog open={!!escolha} onOpenChange={(v) => { if (!v && !salvando) setEscolha(null); }}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="break-words">Fez depois · {escolha && <PerfilLink username={escolha.p.username} />}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="break-words">Fez depois · {escolha && <PerfilLink username={escolha.p.username} novata={escolha.p.novata} />}</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">Qual dia ela atualizou?</p>
           <div className="grid gap-2">
             {escolha?.faltas.map((r) => <Button key={r.id} variant="outline" className="h-12" disabled={!!salvando} onClick={() => ajustar(escolha.p, [r])}>✅ {DIA_LABEL[r.dia_semana]} {fmtData(r.data)}</Button>)}

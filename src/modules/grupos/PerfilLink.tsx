@@ -1,6 +1,6 @@
 import { normUser, urlPerfilInstagram } from "./lib";
 
-export function PerfilLink({ username }: { username: string }) {
+export function PerfilLink({ username, novata = false }: { username: string; novata?: boolean }) {
   return (
     <a
       href={urlPerfilInstagram(username)}
@@ -10,6 +10,7 @@ export function PerfilLink({ username }: { username: string }) {
       onClick={(event) => event.stopPropagation()}
     >
       @{normUser(username)}
+      {novata && <span className="ml-1" aria-label="Novata">🆕</span>}
     </a>
   );
 }
