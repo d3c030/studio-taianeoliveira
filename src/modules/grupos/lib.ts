@@ -226,11 +226,13 @@ export function textoSemana(opts: {
     .map((p, i) => {
       const marcas = dias.flatMap((d) => {
         const r = porDia.get(d);
-        if (!r || p.entrou_em > r.data) return [];
+        if (!r) return [];
+        if (p.entrou_em > r.data) return ["➖"];
         const st = status.get(`${r.id}|${p.id}`);
-        return st ? [`${DIA_LABEL[d]}${st === "ok" ? "✅" : "❌"}`] : [];
+        return [st ? st === "ok" ? "✅" : "❌" : "➖"];
       });
-      const sufixo = marcas.length ? marcas.join(" ") : p.novata ? "🆕" : "";
+      const temCheck = marcas.some((marca) => marca !== "➖");
+      const sufixo = p.novata && !temCheck ? "🆕" : marcas.join("");
       return `${i + 1}. @${p.username}${sufixo ? ` ${sufixo}` : ""}`;
     });
   return ["Lista de atualização da semana", `(${cab})`, "✅=Atualizou os pedidos do dia", "❌=Não atualizou os pedidos do dia", "🆕=Novatas(não estava no grupo)", "", ...lista].join("\n");
