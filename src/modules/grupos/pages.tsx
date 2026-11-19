@@ -13,16 +13,17 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { lerPrintReacoes } from "@/lib/grupos.functions";
 import {
-  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, dedupe, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseCadastroManual, ordenarUsernames, listasEmojis, textoEmojis, textoSemana, naoFizeram, textoNaoFizeram, type RodadaSemana,
-  type Leitura, type Participante, type CheckSemana,
+  cadastroEntrada, hojeSaoPaulo, addDias, diaPadrao, diasConferencia, podeCriarRodada, participantesDaRodada, resumoSemana, conferenciasPendentes, cruzar, emojisDuplicados, normEmoji, DIA_LABEL, diaSemana, faixa, inicioSemana, norm, normUser, parseCadastroManual, ordenarUsernames, listasEmojis, textoEmojis, textoSemana, naoFizeram, textoNaoFizeram, type RodadaSemana,
+  conflitoApelido, sugestaoUsername, participanteDuplicada, faltantesLeitura, type Leitura, type Participante, type CheckSemana,
 } from "./lib";
 import { ImportarLista } from "./ImportarLista";
 import { PerfilLink } from "./PerfilLink";
 import { IndicadorAjuste } from "./IndicadorAjuste";
+import { consultarAuditoria } from "./leituras-store";
 
 const db = supabase as any;
 type Grupo = { id: string; nome: string; dias_missao: string[]; criado_em: string };
-type Rodada = { id: string; grupo_id: string; data: string; dia_semana: string; status: "aberta" | "fechada" };
+type Rodada = { id: string; grupo_id: string; data: string; dia_semana: string; status: "aberta" | "fechada"; total_reacoes?: number | null };
 type CheckRow = CheckSemana;
 const hoje = hojeSaoPaulo;
 const fmtData = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
@@ -217,7 +218,7 @@ function ParticipantesTab({ grupo }: { grupo: Grupo }) {
               <div className="mt-2 flex flex-wrap gap-1">
                 {p.apelidos.map((a) => (
                   <span key={a} className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs">
-                    {a}<button aria-label="Remover apelido" onClick={() => patch(p.id, { apelidos: p.apelidos.filter((x) => x !== a) })}><X className="h-3 w-3" /></button>
+                    {a}{conflitoApelido(a, p.id, q.data ?? []) && <span className="text-destructive"> ⚠️ Conflito com @{conflitoApelido(a, p.id, q.data ?? [])?.username}</span>}<Button size="icon" variant="ghost" aria-label={`Remover apelido ${a}`} onClick={() => patch(p.id, { apelidos: p.apelidos.filter((x) => x !== a) })}><X className="h-3 w-3" /></Button>
                   </span>
                 ))}
               </div>
@@ -289,7 +290,10 @@ async function comprimir(file: File): Promise<string> {
   const scale = Math.min(1, 1400 / img.width);
   const c = document.createElement("canvas");
   c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
-  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+  const ctx = c.getContext("2d");
+  if (!ctx) throw new Error("Não foi possível abrir a imagem");
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  img.close();
   return c.toDataURL("image/jpeg", 0.85);
 }
 
@@ -315,34 +319,76 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
     },
   });
   const rodada = rodadaQ.data?.rodada;
-  const storeKey = data ? `grupo-leituras-${grupo.id}-${data}` : "";
+  
   const fechada = rodada?.status === "fechada";
   const [leituras, setLeituras] = useState<Leitura[]>([]);
-  const [chaveCarregada, setChaveCarregada] = useState("");
+  const [auditoriaAberta, setAuditoriaAberta] = useState(false);
+  const [totalReacoes, setTotalReacoes] = useState("");
   const [prints, setPrints] = useState<PrintEstado[]>([]);
   const [manual, setManual] = useState<Record<string, "ok" | "nao">>({});
   const [confirmadas, setConfirmadas] = useState<Record<number, string>>({}); // índice da leitura -> participante escolhido
   const [salvando, setSalvando] = useState(false);
   const lerFn = lerPrintReacoes;
 
+  const auditoriaQ = useQuery({
+    queryKey: ["grupo-leituras", rodada?.id], enabled: !!rodada?.id, refetchOnMount: "always",
+    queryFn: () => consultarAuditoria(() => db.from("grupo_leitura").select("*").eq("rodada_id", rodada?.id).order("print_idx").order("ordem")),
+  });
   useEffect(() => {
-    if (!storeKey || fechada) setLeituras([]);
-    else try { setLeituras(JSON.parse(sessionStorage.getItem(storeKey) || "[]")); } catch { setLeituras([]); }
-    setChaveCarregada(storeKey);
-    setManual({}); setConfirmadas({}); setPrints([]);
-  }, [storeKey, fechada]);
-  useEffect(() => { if (storeKey && chaveCarregada === storeKey && !fechada) sessionStorage.setItem(storeKey, JSON.stringify(leituras)); }, [leituras, storeKey, chaveCarregada, fechada]);
+    setManual({}); setConfirmadas({}); setPrints([]); setLeituras([]);
+  }, [data]);
+  useEffect(() => {
+    setLeituras(auditoriaQ.data?.leituras ?? []);
+    setConfirmadas({});
+  }, [auditoriaQ.data]);
+  useEffect(() => { setTotalReacoes(rodada?.total_reacoes == null ? "" : String(rodada.total_reacoes)); }, [rodada?.id, rodada?.total_reacoes]);
+  const garantirRodada = async (): Promise<Rodada> => {
+    if (rodada) return rodada;
+    if (!data || !podeCriarRodada(data, grupo.dias_missao, hoje())) throw new Error("Selecione um dia de conferência válido.");
+    const { data: r, error } = await db.from("grupo_rodada").upsert({ grupo_id: grupo.id, data, dia_semana: diaSemana(data) }, { onConflict: "grupo_id,data", ignoreDuplicates: true }).select("*").maybeSingle();
+    if (error) throw error;
+    const existente = r ?? (await db.from("grupo_rodada").select("*").eq("grupo_id", grupo.id).eq("data", data).single()).data;
+    if (!existente) throw new Error("Não foi possível criar a rodada");
+    await rodadaQ.refetch();
+    qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] });
+    return existente as Rodada;
+  };
+  const limparLeituras = async () => {
+    if (!rodada || !window.confirm("Apagar todas as leituras desta rodada?")) return;
+    const { error } = await db.from("grupo_leitura").delete().eq("rodada_id", rodada.id);
+    if (error) return toast.error(error.message);
+    setLeituras([]); setPrints([]); setConfirmadas({}); await auditoriaQ.refetch();
+  };
+  const salvarTotal = async () => {
+    if (totalReacoes && (!/^\d+$/.test(totalReacoes) || Number(totalReacoes) > 2147483647)) return toast.error("Informe um total inteiro válido.");
+    try {
+      const r = await garantirRodada();
+      const { error } = await db.from("grupo_rodada").update({ total_reacoes: totalReacoes === "" ? null : Number(totalReacoes) }).eq("id", r.id);
+      if (error) throw error;
+      await rodadaQ.refetch();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao salvar total"); }
+  };
 
   const idsSalvos = new Set((rodadaQ.data?.checks ?? []).map((c) => c.participante_id));
   const ativas = fechada ? (parts.data ?? []).filter((p) => idsSalvos.has(p.id)) : data ? participantesDaRodada(parts.data ?? [], data) : [];
-  const matches = useMemo(() => cruzar(leituras, ativas), [leituras, ativas]);
+  const matches = useMemo(() => cruzar(leituras, ativas).map((m) => {
+    const salva = auditoriaQ.data?.rows.find((r) => r.nome_lido === m.leitura.nome && r.emoji_lido === m.leitura.emoji && Number(r.confianca) === 1);
+    const p = salva ? ativas.find((p) => p.id === salva.participante_id) : null;
+    return p ? { ...m, participante: p, confianca: 1 } : m;
+  }), [leituras, ativas, auditoriaQ.data]);
 
   const lerUm = async (file: File, idx: number) => {
     setPrints((ps) => ps.map((p, i) => (i === idx ? { ...p, status: "lendo", erro: undefined } : p)));
     try {
-      const itens = await lerFn({ data: { imagem: await comprimir(file) } });
-      setLeituras((ls) => dedupe([...ls, ...itens]));
-      setPrints((ps) => ps.map((p, i) => (i === idx ? { ...p, status: "ok", n: itens.length } : p)));
+      const r = await garantirRodada();
+      const anteriores = await consultarAuditoria(() => db.from("grupo_leitura").select("*").eq("rodada_id", r.id));
+      const base = Math.max(0, ...anteriores.rows.map((r) => r.print_idx));
+      const resultado = await lerFn({ data: { imagem: await comprimir(file), rodadaId: r.id, printIdx: base + 1 } });
+      if (resultado.aviso) toast.error(resultado.aviso);
+      const { rows, leituras: salvas } = await consultarAuditoria(() => db.from("grupo_leitura").select("*").eq("rodada_id", r.id).order("print_idx").order("ordem"));
+      qc.setQueryData(["grupo-leituras", r.id], { rows, leituras: salvas });
+      setLeituras(salvas);
+      setPrints((ps) => ps.map((p, i) => (i === idx ? { ...p, status: "ok", n: resultado.itens.length } : p)));
     } catch (e) {
       setPrints((ps) => ps.map((p, i) => (i === idx ? { ...p, status: "erro", erro: e instanceof Error ? e.message : "Erro ao ler" } : p)));
     }
@@ -360,24 +406,49 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
   const aprender = async (p: Participante, l: Leitura) => {
     const apel = l.nome.trim();
     const v: Partial<Participante> = {};
-    if (norm(apel) !== norm(p.username) && !p.apelidos.some((a) => norm(a) === norm(apel))) v.apelidos = [...p.apelidos, apel];
+    if (!conflitoApelido(apel, p.id, parts.data ?? []) && norm(apel) !== norm(p.username) && !p.apelidos.some((a) => norm(a) === norm(apel))) v.apelidos = [...p.apelidos, apel];
     if (!p.emoji_habitual && l.emoji) v.emoji_habitual = l.emoji;
-    if (Object.keys(v).length) { await db.from("grupo_participante").update(v).eq("id", p.id); refreshParts(); }
+    if (Object.keys(v).length) { const { error } = await db.from("grupo_participante").update(v).eq("id", p.id); if (error) throw error; refreshParts(); }
   };
   const vincular = async (i: number, pid: string) => {
-    const p = ativas.find((x) => x.id === pid); if (!p) return;
-    setConfirmadas((c) => ({ ...c, [i]: pid }));
-    await aprender(p, matches[i].leitura);
-    toast.success(`Vinculado a @${p.username}`);
+    const p = ativas.find((x) => x.id === pid), l = matches[i]?.leitura;
+    if (!p || !l || !rodada) return;
+    const conflito = conflitoApelido(l.nome, p.id, parts.data ?? []);
+    if (conflito) {
+      toast.error(`Esse nome já pertence a @${conflito.username}`);
+      if (!window.confirm(`Esse nome já pertence a @${conflito.username}. Vincular somente nesta rodada a @${p.username}, sem salvar apelido?`)) return;
+    }
+    try {
+      const ids = (auditoriaQ.data?.rows ?? []).filter((r) => r.nome_lido === l.nome && r.emoji_lido === l.emoji).map((r) => r.id);
+      if (ids.length) {
+        const { error } = await db.from("grupo_leitura").update({ participante_id: pid, confianca: 1 }).in("id", ids);
+        if (error) throw error;
+      }
+      await aprender(p, l);
+      setConfirmadas((c) => ({ ...c, [i]: pid }));
+      await auditoriaQ.refetch();
+      toast.success(`Vinculado a @${p.username}`);
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao vincular"); }
   };
   const cadastrarNovata = async (l: Leitura) => {
     if (!data || fechada) return;
-    const sug = l.nome.trim().startsWith("@") ? normUser(l.nome) : norm(l.nome);
-    const u = window.prompt("Qual é o @ dela?", sug);
+    const u = window.prompt("Qual é o @ dela?", sugestaoUsername(l.nome));
     if (!u) return;
+    const item = parseCadastroManual(u);
+    if (!item) return toast.error("Digite um @ válido.");
+    const existente = participanteDuplicada(item.username, parts.data ?? []);
+    if (existente) {
+      if (window.confirm(`Você quis dizer @${existente.username}?`)) {
+        if (!ativas.some((p) => p.id === existente.id)) return toast.error("Essa participante não está ativa ou não era elegível nesta rodada.");
+        const i = matches.findIndex((m) => m.leitura.nome === l.nome && m.leitura.emoji === l.emoji);
+        if (i >= 0) await vincular(i, existente.id);
+      }
+      return;
+    }
+    const conflito = conflitoApelido(l.nome, "", parts.data ?? []);
     const { error } = await db.from("grupo_participante").insert({
-      grupo_id: grupo.id, username: normUser(u), nome_exibicao: l.nome.trim(), emoji_habitual: l.emoji || null,
-      apelidos: norm(u) === norm(l.nome) ? [] : [l.nome.trim()], ...cadastroEntrada(true),
+      grupo_id: grupo.id, username: item.username, nome_exibicao: conflito ? null : l.nome.trim(), emoji_habitual: l.emoji || null,
+      apelidos: conflito || norm(u) === norm(l.nome) ? [] : [l.nome.trim()], ...cadastroEntrada(true),
     });
     if (error) return toast.error(error.code === "23505" ? "Essa @ já está no grupo" : error.message);
     toast.success("Novata cadastrada 🆕"); refreshParts();
@@ -390,11 +461,11 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
     const escolhido = confirmadas[i];
     if (escolhido) { const p = ativas.find((x) => x.id === escolhido); if (p) { auto.set(p.id, { m: { ...m, participante: p, confianca: Math.max(m.confianca, 0.95) }, idx: i }); return; } }
     const f = faixa(m.confianca, !!m.participante);
-    if (f === "ok") auto.set(m.participante!.id, { m, idx: i });
+    if (f === "ok" && m.participante) auto.set(m.participante.id, { m, idx: i });
     else if (f === "conferir") conferir.push(i);
     else naoRec.push(i);
   });
-  const reconhecidas = [...auto.values()].sort((a, b) => a.m.participante!.username.localeCompare(b.m.participante!.username));
+  const reconhecidas = [...auto.values()].sort((a, b) => ordenarUsernames(a.m.participante?.username ?? "", b.m.participante?.username ?? ""));
   const salvo = new Map((rodadaQ.data?.checks ?? []).map((c) => [c.participante_id, c.status]));
   const statusDe = (pid: string): "ok" | "nao" => fechada ? (salvo.get(pid) ?? "nao") : manual[pid] ?? (auto.has(pid) ? "ok" : (salvo.get(pid) ?? "nao"));
   const totalOk = ativas.filter((p) => statusDe(p.id) === "ok").length;
@@ -422,8 +493,7 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
       const sobras = [...conferir, ...naoRec].map((i) => matches[i].leitura);
       const { error } = await db.rpc("grupo_fechar_rodada", { p_rodada: atual.id, p_checks: rows, p_sobras: sobras });
       if (error) throw error;
-      sessionStorage.removeItem(storeKey);
-      setLeituras([]); setPrints([]); setManual({}); setConfirmadas({});
+      setPrints([]); setManual({}); setConfirmadas({});
       toast.success(`Rodada fechada: ${rows.filter((r) => r.status === "ok").length} ✅ · ${rows.filter((r) => r.status === "nao").length} ❌`);
       qc.invalidateQueries({ queryKey: ["grupo-rodada", grupo.id] });
       qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] });
@@ -435,7 +505,8 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
     if (!rodada || !window.confirm("Reabrir esta rodada para corrigir? Os checks salvos serão mantidos.")) return;
     const { error } = await db.from("grupo_rodada").update({ status: "aberta" }).eq("id", rodada.id);
     if (error) return toast.error(error.message);
-    setManual({}); setLeituras([]); setConfirmadas({}); setPrints([]);
+    setManual({}); setConfirmadas({}); setPrints([]);
+    auditoriaQ.refetch();
     qc.invalidateQueries({ queryKey: ["grupo-semana", grupo.id] });
     qc.invalidateQueries({ queryKey: ["grupo-rodada", grupo.id, data] });
     qc.invalidateQueries({ queryKey: ["grupo-hist", grupo.id] });
@@ -469,6 +540,27 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
         <Button variant="outline" className="h-12" onClick={reabrir}>Reabrir para corrigir</Button>
       </div>}
 
+      {data && !rodadaQ.isLoading && !rodadaQ.error && <section className="space-y-3 border-y border-border py-3">
+        <label className="block text-sm font-medium">Total de reações no post (Instagram)
+          <Input aria-label="Total de reações no post (Instagram)" type="number" min="0" step="1" disabled={fechada || lendo} value={totalReacoes} onChange={(e) => setTotalReacoes(e.target.value)} onBlur={salvarTotal} className="mt-1 max-w-64" />
+        </label>
+        <p className="text-sm">Lidos: {new Set(leituras.map((l) => norm(l.nome))).size} únicos · Reconhecidas {reconhecidas.length} · Conferir {conferir.length} · Não reconhecidas {naoRec.length}</p>
+        {faltantesLeitura(leituras, totalReacoes === "" ? null : Number(totalReacoes)) > 0 && <p role="alert" className="text-sm font-semibold text-destructive">Faltam {faltantesLeitura(leituras, Number(totalReacoes))} nomes — envie mais prints (role a lista de Reações até o fim)</p>}
+        {auditoriaQ.isError && <p role="alert" className="text-destructive">Não foi possível carregar as leituras. <Button variant="outline" onClick={() => auditoriaQ.refetch()}>Tentar novamente</Button></p>}
+        {[...new Set((auditoriaQ.data?.rows ?? []).map((r) => r.print_idx))].map((idx) => {
+          const rows = auditoriaQ.data?.rows.filter((r) => r.print_idx === idx) ?? [];
+          const total = Math.max(...rows.map((r) => r.total_linhas_visiveis));
+          return <p className="text-sm" key={idx}>Print {idx}: {rows.length} nomes{rows.length < total ? ` · ${total - rows.length} linhas ainda não lidas` : ""}</p>;
+        })}
+        <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setAuditoriaAberta(true)}>Ver leituras</Button><Button variant="ghost" disabled={fechada || lendo || !leituras.length} onClick={limparLeituras}>Limpar leituras</Button></div>
+      </section>}
+      <Dialog open={auditoriaAberta} onOpenChange={setAuditoriaAberta}><DialogContent className="max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>Leituras por print</DialogTitle></DialogHeader>
+        {!auditoriaQ.data?.rows.length && <p className="text-sm text-muted-foreground">Nenhuma leitura registrada. Prints antigos precisam ser enviados novamente.</p>}
+        {(auditoriaQ.data?.rows ?? []).map((r) => {
+          const p = parts.data?.find((p) => p.id === r.participante_id);
+          return <div key={r.id} className="border-b border-border py-2 text-sm"><p className="font-semibold">Print {r.print_idx} · Linha {r.ordem + 1}</p><p className="break-words">{r.nome_lido} {r.emoji_lido} {r.cortado && "(cortado)"}</p><p>{p ? <PerfilLink username={p.username} /> : "Não vinculada"} · {Math.round(Number(r.confianca) * 100)}%</p></div>;
+        })}
+      </DialogContent></Dialog>
       {data && !fechada && !rodadaQ.isLoading && !rodadaQ.error && <>
       <label className={cn("flex h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-primary/50 bg-accent/40 text-sm font-medium", lendo && "pointer-events-none opacity-60")}>
         {lendo ? <Loader2 className="h-6 w-6 animate-spin" /> : <ImagePlus className="h-6 w-6" />}
@@ -485,7 +577,7 @@ function RodadaDia({ grupo, onAjustar }: { grupo: Grupo; onAjustar: (semana: str
               {p.status === "erro" && <span className="flex items-center gap-2 text-destructive">{p.erro}<Button size="sm" variant="outline" onClick={() => lerUm(p.file, i)}><RefreshCw className="h-3 w-3" /> Reenviar</Button></span>}
             </div>
           ))}
-          {leituras.length > 0 && !lendo && <button className="text-xs text-muted-foreground underline" onClick={() => { setLeituras([]); setPrints([]); setConfirmadas({}); }}>Limpar leituras</button>}
+          
         </div>
       )}
 

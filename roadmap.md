@@ -1,4 +1,7 @@
 # Check de Grupos
+- [x] Persistir auditoria por print e total de reações, com conferência e limpeza.
+- [x] Atualizar leitura para Gemini 3.8 e revisão única de linhas faltantes; proteger apelidos e sugestões/cadastro de novatas. Reserva 2.5 não utilizada: modelo expirado no catálogo.
+- [x] 51 testes passaram; leitura real Gemini, persistência, vínculos, conflitos, fechamento/reabertura e limpeza conferidos em grupo temporário, removido após os testes; computador e celular verificados.
 - [x] Seleção de semanas e dias de conferência, com aviso de pendências.
 - [x] Fechamento atômico, somente leitura e reabertura com checks preservados.
 - [x] Exportação semanal com marcas de cada rodada fechada e totais por dia.

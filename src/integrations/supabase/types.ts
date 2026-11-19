@@ -631,6 +631,63 @@ export type Database = {
         }
         Relationships: []
       }
+      grupo_leitura: {
+        Row: {
+          confianca: number
+          cortado: boolean
+          criado_em: string
+          emoji_lido: string
+          id: string
+          nome_lido: string
+          ordem: number
+          participante_id: string | null
+          print_idx: number
+          rodada_id: string
+          total_linhas_visiveis: number
+        }
+        Insert: {
+          confianca?: number
+          cortado?: boolean
+          criado_em?: string
+          emoji_lido?: string
+          id?: string
+          nome_lido: string
+          ordem: number
+          participante_id?: string | null
+          print_idx: number
+          rodada_id: string
+          total_linhas_visiveis?: number
+        }
+        Update: {
+          confianca?: number
+          cortado?: boolean
+          criado_em?: string
+          emoji_lido?: string
+          id?: string
+          nome_lido?: string
+          ordem?: number
+          participante_id?: string | null
+          print_idx?: number
+          rodada_id?: string
+          total_linhas_visiveis?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grupo_leitura_participante_id_fkey"
+            columns: ["participante_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_participante"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grupo_leitura_rodada_id_fkey"
+            columns: ["rodada_id"]
+            isOneToOne: false
+            referencedRelation: "grupo_rodada"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grupo_leitura_nao_vinculada: {
         Row: {
           emoji_lido: string | null
@@ -718,6 +775,7 @@ export type Database = {
           grupo_id: string
           id: string
           status: string
+          total_reacoes: number | null
         }
         Insert: {
           criado_em?: string
@@ -726,6 +784,7 @@ export type Database = {
           grupo_id: string
           id?: string
           status?: string
+          total_reacoes?: number | null
         }
         Update: {
           criado_em?: string
@@ -734,6 +793,7 @@ export type Database = {
           grupo_id?: string
           id?: string
           status?: string
+          total_reacoes?: number | null
         }
         Relationships: [
           {

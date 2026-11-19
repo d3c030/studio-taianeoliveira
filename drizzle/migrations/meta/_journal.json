@@ -127,6 +127,13 @@
       "when": 1794880744662,
       "tag": "0017_grupos_ajustes_manuais",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795049253307,
+      "tag": "0018_grupos_auditoria_leituras",
+      "breakpoints": true
     }
   ]
 }

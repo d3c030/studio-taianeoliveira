@@ -5,6 +5,19 @@ export type Participante = {
   lista?: number | null;
 };
 export type Leitura = { nome: string; emoji: string; cortado: boolean };
+export type LeituraSalva = { id?: string; rodada_id: string; print_idx: number; ordem: number; nome_lido: string; emoji_lido: string; cortado: boolean; participante_id: string | null; confianca: number; total_linhas_visiveis: number };
+export const sugestaoUsername = (nome: string) => /^@?[A-Za-z0-9._]+$/.test(nome.trim()) ? normUser(nome) : "";
+export const participanteDuplicada = (username: string, parts: Participante[]) => parts.find((p) => norm(p.username) === norm(username));
+export function conflitoApelido(nome: string, destino: string, parts: Participante[]) {
+  const n = norm(nome);
+  return n ? parts.find((p) => p.id !== destino && [p.username, ...(p.apelidos ?? []), p.nome_exibicao ?? ""].some((a) => norm(a) === n)) : undefined;
+}
+export const emojiGenerico = (emoji: string) => ["❤️", "♥️", "🩷", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "❤️‍🔥", "😍", "🥰", "👍"].some((e) => normEmoji(e) === normEmoji(emoji));
+export function linhasAuditoria(rodadaId: string, printIdx: number, itens: Leitura[], total: number, parts: Participante[]): LeituraSalva[] {
+  return cruzar(itens, parts).map((m, ordem) => ({ rodada_id: rodadaId, print_idx: printIdx, ordem, nome_lido: m.leitura.nome, emoji_lido: m.leitura.emoji, cortado: m.leitura.cortado, participante_id: m.participante?.id ?? null, confianca: m.confianca, total_linhas_visiveis: total }));
+}
+export const carregarLeituras = (rows: LeituraSalva[]) => dedupe([...rows].sort((a, b) => a.print_idx - b.print_idx || a.ordem - b.ordem).map((r) => ({ nome: r.nome_lido, emoji: r.emoji_lido, cortado: r.cortado })));
+export const faltantesLeitura = (leituras: Leitura[], total: number | null | undefined) => Math.max(0, (total ?? 0) - new Set(leituras.map((l) => norm(l.nome)).filter(Boolean)).size);
 export type Match = { leitura: Leitura; participante: Participante | null; confianca: number; porEmoji?: boolean };
 export type ItemLista = { username: string; emoji: string; lista: number | null };
 
@@ -106,7 +119,7 @@ export function pontuar(l: Leitura, p: Participante): number {
   if (!n) return 0;
   const cortado = l.cortado || /(\.\.\.|…)\s*$/.test(l.nome);
   const user = norm(p.username);
-  const nomes = [p.nome_exibicao, ...(p.apelidos || [])].filter(Boolean).map((x) => norm(x!));
+  const nomes = [p.nome_exibicao, ...(p.apelidos || [])].flatMap((x) => x ? [norm(x)] : []);
   let s = 0;
   if (n === user) s = 1;
   else if (nomes.includes(n)) s = 0.95;
@@ -115,7 +128,7 @@ export function pontuar(l: Leitura, p: Participante): number {
     const sim = Math.max(...[user, ...nomes].map((c) => similaridade(n, c)));
     if (sim >= 0.8) s = 0.6 + (sim - 0.8) * 1.25; // 0.6 a 0.85
   }
-  if (s > 0 && l.emoji && normEmoji(l.emoji) === normEmoji(p.emoji_habitual)) s = Math.min(1, s + 0.1);
+  if (s > 0 && l.emoji && !emojiGenerico(l.emoji) && normEmoji(l.emoji) === normEmoji(p.emoji_habitual)) s = Math.min(1, s + 0.1);
   return Math.round(s * 1000) / 1000;
 }
 
@@ -123,7 +136,8 @@ export function pontuar(l: Leitura, p: Participante): number {
 export function cruzar(leituras: Leitura[], parts: Participante[]): Match[] {
   const pares: { li: number; p: Participante; s: number; emo: boolean }[] = [];
   leituras.forEach((l, li) => parts.forEach((p) => {
-    const s = pontuar(l, p);
+    const donoUsername = parts.find((x) => norm(x.username) === norm(l.nome));
+    const s = donoUsername && donoUsername.id !== p.id ? 0 : pontuar(l, { ...p, apelidos: p.apelidos.filter((a) => !conflitoApelido(a, p.id, parts)) });
     if (s > 0) pares.push({ li, p, s, emo: !!l.emoji && normEmoji(l.emoji) === normEmoji(p.emoji_habitual) });
   }));
   pares.sort((a, b) => b.s - a.s || Number(b.emo) - Number(a.emo));
@@ -137,7 +151,7 @@ export function cruzar(leituras: Leitura[], parts: Participante[]): Match[] {
   // Sem casamento por nome: sugere pelo emoji só se ele for de UMA participante ativa
   res.forEach((r, i) => {
     if (r.participante) return;
-    const e = normEmoji(r.leitura.emoji); if (!e) return;
+    const e = normEmoji(r.leitura.emoji); if (!e || emojiGenerico(e)) return;
     const donas = parts.filter((p) => p.ativo && normEmoji(p.emoji_habitual) === e);
     if (donas.length !== 1 || usadoP.has(donas[0].id)) return;
     usadoP.add(donas[0].id);

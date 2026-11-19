@@ -175,6 +175,57 @@ describe("check de grupos", () => {
 });
 
 import { naoFizeram, textoNaoFizeram } from "./lib";
+import { linhasAuditoria, carregarLeituras, faltantesLeitura, conflitoApelido, sugestaoUsername, participanteDuplicada } from "./lib";
+import { gravarAuditoria, consultarAuditoria } from "./leituras-store";
+describe("auditoria das leituras", () => {
+  const itens = [{ nome: "larissa_moreira_oficial", emoji: "🍓", cortado: false }, { nome: "Ana...", emoji: "❤️", cortado: true }, { nome: "larissa_moreira_oficial", emoji: "🍓", cortado: false }];
+  test("grava todas as linhas por print e carrega únicas em ordem", async () => {
+    const rows = linhasAuditoria("r", 3, itens, 3, [P({ username: "larissa_moreira_oficial" })]);
+    let armazenadas: typeof rows = [];
+    await gravarAuditoria(rows, async (r) => { armazenadas = structuredClone(r); return { error: null }; });
+    const carregadas = await consultarAuditoria(async () => ({ data: [...armazenadas].reverse() }));
+    expect(carregadas.rows).toHaveLength(3);
+    expect(armazenadas.map((r) => [r.print_idx, r.ordem])).toEqual([[3, 0], [3, 1], [3, 2]]);
+    expect(armazenadas[0].participante_id).toBe("larissa_moreira_oficial");
+    expect(carregadas.leituras).toEqual(itens.slice(0, 2));
+    expect(carregarLeituras(armazenadas)).toEqual(itens.slice(0, 2));
+  });
+  test("falha de persistência e consulta não descarta erro", async () => {
+    await expect(gravarAuditoria(linhasAuditoria("r", 1, itens, 3, []), async () => ({ error: { message: "negado" } }))).rejects.toThrow("negado");
+    await expect(consultarAuditoria(async () => ({ error: { message: "offline" } }))).rejects.toThrow("offline");
+  });
+  test("alerta conta nomes únicos e faltantes sem confundir com total de participantes", () => {
+    expect(faltantesLeitura(itens, 119)).toBe(117);
+    expect(faltantesLeitura(itens, 2)).toBe(0);
+    expect(faltantesLeitura(itens, null)).toBe(0);
+    expect(faltantesLeitura([...itens, { ...itens[0], emoji: "👍" }], 119)).toBe(117);
+  });
+  test("bloqueia apelido que é username ou apelido de outra participante", () => {
+    const parts = [P({ username: "edchristopfer" }), P({ username: "larissa_moreira_oficial", apelidos: ["ANA SIQUEIRA | UGC"] })];
+    expect(conflitoApelido("larissa_moreira_oficial", "edchristopfer", parts)?.username).toBe("larissa_moreira_oficial");
+    expect(conflitoApelido("Ana Siqueira UGC", "edchristopfer", parts)?.username).toBe("larissa_moreira_oficial");
+    expect(conflitoApelido("edchristopfer", "edchristopfer", parts)).toBeUndefined();
+  });
+  test("username verdadeiro prevalece sobre apelido aprendido errado", () => {
+    const parts = [P({ username: "edchristopfer", apelidos: ["larissa_moreira_oficial"] }), P({ username: "larissa_moreira_oficial" })];
+    expect(cruzar([itens[0]], parts)[0].participante?.username).toBe("larissa_moreira_oficial");
+  });
+  test("não sugere pelo emoji genérico nem com variante de tom de pele", () => {
+    for (const emoji of ["❤️", "♥️", "🩷", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "❤️‍🔥", "😍", "🥰", "👍", "👍🏽"]) {
+      expect(cruzar([{ nome: "Pessoa desconhecida", emoji, cortado: false }], [P({ username: "xyz", emoji_habitual: emoji })])[0].participante).toBeNull();
+    }
+  });
+  test("sugestão preserva ponto e sublinhado e não inventa username de nome", () => {
+    expect(sugestaoUsername("larissa_moreira_oficial")).toBe("larissa_moreira_oficial");
+    expect(sugestaoUsername(" @Laay.Fer_ ")).toBe("laay.fer_");
+    expect(sugestaoUsername("ANA SIQUEIRA | UGC")).toBe("");
+  });
+  test("detecta duplicada normalizada inclusive inativa", () => {
+    const parts = [P({ username: "larissa_moreira_oficial", ativo: false })];
+    expect(participanteDuplicada("larissamoreiraoficial", parts)?.username).toBe("larissa_moreira_oficial");
+    expect(participanteDuplicada("outra", parts)).toBeUndefined();
+  });
+});
 describe("não fizeram", () => {
   const seg = { id: "rs", data: "2026-11-16", dia_semana: "seg", status: "fechada" as const };
   const qua = { id: "rq", data: "2026-11-18", dia_semana: "qua", status: "fechada" as const };
